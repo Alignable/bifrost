@@ -1,0 +1,26 @@
+{
+  "name": "tests-vite",
+  "version": "1.0.0",
+  "description": "",
+  "scripts": {
+    "dev": "PORT=5555 nodemon server/index.ts",
+    "start": "node server/index.ts",
+    "build": "vite build"
+  },
+  "type": "module",
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@vite-turbolinks-bridge/fastify-server": "1.0.0",
+    "@vite-turbolinks-bridge/stem-plugin": "1.0.0",
+    "@vite-turbolinks-bridge/types": "1.0.0",
+    "nodemon": "^2.0.21",
+    "ts-node": "^10.9.1",
+    "uuid": "^9.0.0",
+    "vite": "^4.3.2",
+    "vite-plugin-ssr": "^0.4.115"
+  },
+  "devDependencies": {
+    "@types/uuid": "^9.0.1"
+  }
+}

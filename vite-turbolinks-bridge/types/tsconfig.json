@@ -1,0 +1,13 @@
+{
+  "compilerOptions": {
+    "strict": true,
+    "target": "ES2020",
+    "moduleResolution": "node",
+    "lib": ["DOM", "DOM.Iterable", "ESNext"],
+    "jsx": "react",
+    "skipLibCheck": true,
+    "composite": true,
+    "esModuleInterop": true,
+    "outDir": "./dist"
+  }
+}

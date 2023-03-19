@@ -1,0 +1,49 @@
+{
+  "name": "@vite-turbolinks-bridge/stem-plugin",
+  "version": "1.0.0",
+  "type": "module",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    "./vite-plugin-ssr.config.js": "./dist/vite-plugin-ssr.config.js",
+    "./pages/+config.js": "./dist/pages/+config.js",
+    "./pages/+onRenderClient.js": "./dist/pages/+onRenderClient.js",
+    "./pages/+onRenderHtml.js": "./dist/pages/+onRenderHtml.js",
+    "./proxy/pages/+config.js": "./dist/proxy/pages/+config.js",
+    "./proxy/pages/+onRenderClient.js": "./dist/proxy/pages/+onRenderClient.js",
+    "./proxy/pages/+onRenderHtml.js": "./dist/proxy/pages/+onRenderHtml.js",
+    "./proxy/pages/+Page.js": "./dist/proxy/pages/+Page.js",
+    "./proxy/pages/+onBeforeRender.js": "./dist/proxy/pages/+onBeforeRender.js",
+    "./proxy/pages/+onBeforeRoute.js": "./dist/proxy/pages/+onBeforeRoute.js",
+    "./proxy/pages/restorationVisit/+config.js": "./dist/proxy/pages/restorationVisit/+config.js",
+    "./proxy/pages/restorationVisit/+route.js": "./dist/proxy/pages/restorationVisit/+route.js",
+    "./package.json": "./package.json",
+    ".": "./dist/index.js"
+  },
+  "scripts": {
+    "dev": "vite",
+    "release": "release-me patch"
+  },
+  "files": [
+    "dist/"
+  ],
+  "dependencies": {
+    "cross-env": "^7.0.3",
+    "react": "^18.x.x",
+    "react-dom": "^18.x.x",
+    "vite-plugin-ssr": "^0.4.115"
+  },
+  "peerDependencies": {
+    "react": "^18.x.x",
+    "react-dom": "^18.x.x",
+    "vite-plugin-ssr": "^0.4.115"
+  },
+  "devDependencies": {
+    "@types/node": "^18.11.9",
+    "@types/react": "^18.0.8",
+    "@types/react-dom": "^18.0.3",
+    "@vitejs/plugin-react": "^3.0.0",
+    "@vite-turbolinks-bridge/types": "1.0.0",
+    "typescript": "^4.9.4",
+    "vite": "^4.0.3"
+  }
+}

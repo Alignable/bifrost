@@ -1,0 +1,10 @@
+{
+  "name": "tests-playwright",
+  "version": "1.0.0",
+  "description": "",
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "@playwright/test": "^1.32.2"
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "name": "vite-turbolinks-bridge",
+  "private": true,
+  "workspaces": [
+    "vite-turbolinks-bridge/*",
+    "tests/*"
+  ],
+  "devDependencies": {
+    "concurrently": "^7.6.0"
+  },
+  "scripts": {
+  }
+}
