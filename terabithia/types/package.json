@@ -1,8 +1,0 @@
-{
-  "name": "terabithia-types",
-  "version": "1.0.0",
-  "types": "index.d.ts",
-  "dependencies": {
-    "vite-plugin-ssr": "^0.4.98"
-  }
-}

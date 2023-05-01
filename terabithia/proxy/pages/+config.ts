@@ -6,6 +6,6 @@ export default {
   clientRouting: true,
   hydrationCanBeAborted: true,
   meta: {
-    layouts: { env: "server-and-client" },
+    layoutMap: { env: "server-and-client" },
   },
 } satisfies Config;

@@ -1,7 +1,7 @@
 import React from "react";
 import { renderReact } from "../../lib/renderReact";
 import { PageShell } from "../../lib/PageShell";
-import { PageContextProxyClient } from "terabithia-types";
+import { PageContextProxyClient } from "../../types/internal";
 import { turbolinksClickListener } from "../../lib/linkInterceptor";
 import { dispatchTurbolinks } from "../../lib/dispatchTurbolinks";
 import { mergeHead } from "../../lib/mergeHead";
@@ -19,7 +19,7 @@ export default async function onRenderClient(
   let body: string;
 
   const { layoutProps, layout } = pageContext;
-  const Layout = pageContext.config.layouts[layout];
+  const Layout = pageContext.config.layoutMap[layout];
 
   if (pageContext.isHydration) {
     // During hydration of initial ssr, body is in dom, not page props (to avoid double-send)

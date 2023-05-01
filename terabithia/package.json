@@ -42,7 +42,6 @@
     "@types/react": "^18.0.8",
     "@types/react-dom": "^18.0.3",
     "@vitejs/plugin-react": "^3.0.0",
-    "terabithia-types": "1.0.0",
     "typescript": "^4.9.4",
     "vite": "^4.0.3"
   }

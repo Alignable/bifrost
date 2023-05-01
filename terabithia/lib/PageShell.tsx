@@ -1,6 +1,6 @@
 import React, { ReactNode } from "react";
 import { PageContextProvider } from "../pages/usePageContext";
-import { PageContext, PageContextNoProxy } from "terabithia-types";
+import { PageContext, PageContextNoProxy } from "../types/internal";
 
 export function PageShell({
   pageContext,

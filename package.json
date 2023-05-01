@@ -3,7 +3,8 @@
   "description": "Bridge from Turbolinks to Vite",
   "private": true,
   "workspaces": [
-    "terabithia/*",
+    "terabithia",
+    "terabithia-fastify",
     "tests/*"
   ],
   "devDependencies": {

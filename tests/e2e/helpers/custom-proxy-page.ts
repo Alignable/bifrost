@@ -34,6 +34,7 @@ export class CustomProxyPage {
     await this.page.goto(customPageUrl(this.initialPageData), {
       waitUntil: "networkidle",
     });
+    await sleep(1000)
     this.pageData = followRedirects(this.initialPageData);
     await expect(this.page).toHaveTitle(this.pageData.title);
   }
@@ -67,7 +68,7 @@ export class CustomProxyPage {
       this.page,
       async () => {
         await this.page.getByRole("link").filter({ hasText: title }).click();
-        await sleep(50); // TODO: wait on something smarter.
+        await sleep(500); // TODO: wait on something smarter.
 
         if (title === "vite page") {
           this.pageData = undefined;

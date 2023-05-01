@@ -3,8 +3,8 @@
   "version": "1.0.0",
   "description": "",
   "scripts": {
-    "dev": "PORT=5555 nodemon server/index.ts",
-    "start": "node server/index.ts",
+    "dev": "nodemon server/index.ts",
+    "start": "ts-node server/index.ts",
     "build": "vite build"
   },
   "type": "module",
@@ -13,7 +13,6 @@
   "dependencies": {
     "terabithia-fastify": "1.0.0",
     "terabithia": "1.0.0",
-    "terabithia-types": "1.0.0",
     "nodemon": "^2.0.21",
     "ts-node": "^10.9.1",
     "uuid": "^9.0.0",

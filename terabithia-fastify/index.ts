@@ -3,7 +3,7 @@ import { FastifyReply, RawServerBase, FastifyPluginAsync } from "fastify";
 import { FastifyRequest, RequestGenericInterface } from "fastify/types/request";
 import proxy from "@fastify/http-proxy";
 import accepts from "@fastify/accepts";
-import { PageContextProxy, Proxy } from "../types";
+import { PageContextProxy, Proxy } from "../terabithia/types/internal";
 import forwarded from "@fastify/forwarded";
 import { Writable } from "stream";
 import jsdom from "jsdom";
@@ -73,7 +73,10 @@ export const viteProxyPlugin: FastifyPluginAsync<
           urlOriginal: req.url,
         };
 
-        const pageContext = await renderPage(pageContextInit);
+        const pageContext = await renderPage<
+          { _pageId: string },
+          typeof pageContextInit
+        >(pageContextInit);
 
         const proxy = pageContext._pageId === proxyPageId;
 
@@ -184,12 +187,11 @@ export const viteProxyPlugin: FastifyPluginAsync<
           layout,
           layoutProps,
         };
+        // proxySendClient is serialized and sent to client on subsequent navigation. proxy is ONLY included server-side to avoid doubling page size
         if (isPageContext) {
-          // on subsequent navigations (pagecontext requests), we put proxy data into page props so it gets passed to client.
-          pageContextInit.proxySendClient = proxy;
+          Object.assign(pageContextInit, { proxySendClient: proxy });
         } else {
-          // VERY IMPORTANT we don't pass body/head on initial ssr render as that would 2x page size
-          pageContextInit.proxy = proxy;
+          Object.assign(pageContextInit, { proxy });
         }
         const pageContext = await renderPage(pageContextInit);
         return replyWithPage(reply, pageContext);

@@ -4,30 +4,24 @@ import {
   PageContextBuiltInClientWithClientRouting as PageContextBuiltInClient,
 } from "vite-plugin-ssr/types";
 
+// =============== Types for proxy pages ================= //
+// ===============  Crossing the bridge  ================ //
 export interface Proxy {
   body: string;
   head: string;
   bodyAttrs: Record<string, string>;
 }
 
-export interface DocumentProps {
-  title?: string;
-  description?: string;
-}
+export type Layout<LayoutProps> = React.ComponentType<PropsWithChildren<LayoutProps>>;
+export type LayoutMap<LayoutProps> = Record<string, Layout<LayoutProps>>;
 
-type PageProps = Record<string, unknown>;
-type Page = React.ComponentType<PageProps>;
-
-type PageContextProxyCommon<LayoutProps extends Record<string, string>> = {
+type PageContextProxyCommon<LayoutProps = Record<string, unknown>> = {
   /// Which layout to render
   layout: string;
   /// Props to pass down to layout component. Proxied server should send this
   layoutProps: LayoutProps;
   config: {
-    layouts: Record<
-      string,
-      React.ComponentType<PropsWithChildren<LayoutProps>>
-    >;
+    layoutMap: LayoutMap<LayoutProps>;
   };
 };
 
@@ -51,13 +45,23 @@ export type PageContextProxyClient = PageContextBuiltInClient<Page> &
 
 export type PageContextProxy = PageContextProxyServer | PageContextProxyClient;
 
+// =============== Types for new non-proxy pages ================= //
+// ===============   You've entered Terabithia!   ================ //
+
+export interface DocumentProps {
+  title?: string;
+  description?: string;
+}
+
+type PageProps = Record<string, unknown>;
+type Page = React.ComponentType<PageProps>;
 // Context for non-proxied pages
-interface PageContextNoProxyCommon {
+interface PageContextNoProxyCommon<LayoutProps = Record<string, unknown>> {
   pageProps: PageProps;
   redirectTo?: string;
   documentProps?: DocumentProps;
   config: {
-    Layout: LayoutComponent;
+    Layout: Layout<LayoutProps>;
     layoutProps?: LayoutProps;
     documentProps?: DocumentProps;
   };
@@ -71,11 +75,5 @@ export type PageContextNoProxyClient = PageContextBuiltInClient<Page> &
 export type PageContextNoProxy =
   | PageContextNoProxyServer
   | PageContextNoProxyClient;
-
-// export type PageContextServer = PageContextBuiltIn<Page> &
-//   (PageContextProxyServer | PageContextNoProxyServer);
-
-// export type PageContextClient = PageContextBuiltInClient<Page> &
-//   (PageContextProxyClient | PageContextNoProxyClient);
 
 export type PageContext = PageContextNoProxy | PageContextProxy;

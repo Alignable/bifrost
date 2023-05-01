@@ -1,6 +1,6 @@
 import React from "react";
 import { renderReact } from "../lib/renderReact";
-import { PageContextNoProxyClient } from "terabithia-types";
+import { PageContextNoProxyClient } from "../types/internal";
 import { PageShell } from "../lib/PageShell";
 import { turbolinksClickListener } from "../lib/linkInterceptor";
 import { getDocumentProps } from "./getDocumentProps";

@@ -11,7 +11,7 @@ function isAction(action: any): action is Action {
 
 // TODO: polyfilled closest may not be required. check caniuse?
 const closest = (() => {
-  const html = typeof document !== "undefined" && document.documentElement;
+  const html = document.documentElement;
 
   type MatchesSelector = (this: Element, selector: string) => boolean;
   const match: MatchesSelector =

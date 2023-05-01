@@ -83,10 +83,16 @@ export default defineConfig({
   // outputDir: 'test-results/',
 
   /* Run your local dev server before starting the tests */
-  // webServer: [
-  //   {
-  //     command: "cd .. && npm run example:dev",
-  //     port: 5555,
-  //   },
-  // ],
+  webServer: [
+    {
+      command: "cd ../vite && PORT=5555 yarn start",
+      reuseExistingServer: true,
+      port: 5555,
+    },
+    {
+      command: "cd ../fake-backend && PORT=5557 yarn start",
+      reuseExistingServer: true,
+      port: 5557
+    },
+  ],
 });

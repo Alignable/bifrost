@@ -2837,22 +2837,6 @@ vite-plugin-ssr@^0.4.120:
     fast-glob "^3.0.0"
     sirv "^2.0.0"
 
-vite-plugin-ssr@^0.4.98:
-  version "0.4.115"
-  resolved "https://registry.yarnpkg.com/vite-plugin-ssr/-/vite-plugin-ssr-0.4.115.tgz#2e2703cbc67c5aff436e8820b94fb9a4c316bdb0"
-  integrity sha512-SXoru+rFEwSBgYXvQXzG73nfN8x+MGhlW4pcJI2BX0p6Tei8ys0tyg1yNu1VI95Uux2rBZip6ra/43rvKSNsag==
-  dependencies:
-    "@brillout/import" "0.2.3"
-    "@brillout/json-serializer" "^0.5.3"
-    "@brillout/vite-plugin-import-build" "^0.2.16"
-    acorn "^8.0.0"
-    cac "^6.0.0"
-    es-module-lexer "^0.10.0"
-    esbuild "^0.17.0"
-    fast-glob "^3.0.0"
-    picocolors "^1.0.0"
-    sirv "^2.0.0"
-
 vite@^4.0.3:
   version "4.3.1"
   resolved "https://registry.yarnpkg.com/vite/-/vite-4.3.1.tgz#9badb1377f995632cdcf05f32103414db6fbb95a"

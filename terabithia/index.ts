@@ -1,0 +1,29 @@
+import { Config } from "vite-plugin-ssr/types";
+import { DocumentProps, Layout, LayoutMap } from "./types/internal";
+import ProxyLibConfig from "./proxy/pages/+config";
+import TerabithiaLibConfig from "./pages/+config";
+export { usePageContext } from "./pages/usePageContext";
+
+export { LayoutMap, DocumentProps };
+
+// Utility type to ensure exported type matches meta defined in library
+type ConfigConstructor<
+  LibConfig extends Config,
+  T extends { [K in keyof LibConfig["meta"]]?: any }
+> = Config & Partial<T>;
+
+export type ProxyConfig<LayoutProps> = ConfigConstructor<
+  typeof ProxyLibConfig,
+  {
+    layoutMap: LayoutMap<LayoutProps>;
+  }
+>;
+
+export type TerabithiaConfig<LayoutProps> = ConfigConstructor<
+  typeof TerabithiaLibConfig,
+  {
+    Layout: Layout<LayoutProps>;
+    layoutProps: LayoutProps;
+    documentProps: DocumentProps;
+  }
+>;

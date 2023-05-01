@@ -2,7 +2,7 @@
 // See https://vite-plugin-ssr.com/pageContext-anywhere
 
 import React, { useContext } from 'react'
-import { PageContext } from "terabithia-types";
+import { PageContext } from "../types/internal";
 
 export { PageContextProvider }
 export { usePageContext }

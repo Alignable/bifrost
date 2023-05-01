@@ -3,7 +3,7 @@ import { getSnapshot } from "../../lib/snapshots";
 
 export default function onBeforeRoute(_pageContext: any) {
   const snapshot = getSnapshot();
-  if (!!snapshot) {
+  if (!!snapshot?.proxySendClient) {
     console.log("onBeforeRoute: restorationIdentifier found", getSnapshot());
     return {
       pageContext: {

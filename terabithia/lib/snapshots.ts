@@ -1,4 +1,4 @@
-import { PageContextProxyClient, Proxy } from "terabithia-types";
+import { PageContextProxyClient, Proxy } from "../types/internal";
 import { dispatchTurbolinks } from "./dispatchTurbolinks";
 import { v4 as uuidv4 } from "uuid";
 

@@ -1,7 +1,7 @@
 import React from "react";
 import ReactDOMServer from "react-dom/server";
 import { dangerouslySkipEscape, escapeInject } from "vite-plugin-ssr/server";
-import { PageContextProxyServer } from "terabithia-types";
+import { PageContextProxyServer } from "../../types/internal";
 import { PageShell } from "../../lib/PageShell";
 
 export default async function onRenderHtml(
@@ -14,7 +14,7 @@ export default async function onRenderHtml(
       layout,
     } = pageContext;
 
-    const Layout = pageContext.config.layouts[layout];
+    const Layout = pageContext.config.layoutMap[layout];
     if (!Layout) throw new Error(`${layout} layout not found`);
     const pageHtml = ReactDOMServer.renderToString(
       <PageShell pageContext={pageContext}>

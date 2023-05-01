@@ -8,8 +8,8 @@
     "jsx": "react",
     "skipLibCheck": true,
     "esModuleInterop": true,
-    "outDir": "./dist"
+    "outDir": "../terabithia/dist"
   },
   "references": [{ "path": "../types" }],
-  "include": ["pages", "proxy", "vite-plugin-ssr.config.ts", "lib"]
+  "include": ["../terabithia/pages", "../terabithia/proxy", "../terabithia/vite-plugin-ssr.config.ts", "../terabithia/lib"]
 }
