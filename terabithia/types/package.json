@@ -1,5 +1,5 @@
 {
-  "name": "@vite-turbolinks-bridge/types",
+  "name": "terabithia-types",
   "version": "1.0.0",
   "types": "index.d.ts",
   "dependencies": {

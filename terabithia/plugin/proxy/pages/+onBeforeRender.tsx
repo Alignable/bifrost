@@ -1,4 +1,4 @@
-import { PageContextProxyServer } from "@vite-turbolinks-bridge/types";
+import { PageContextProxyServer } from "terabithia-types";
 
 // Indicates to VPS that this route requires a data fetch to grab pageContext
 export default async function onBeforeRender(pageContext: PageContextProxyServer) {

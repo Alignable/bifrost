@@ -43,7 +43,7 @@ async function replyWithPage(
   return reply.status(statusCode).type(contentType).send(body);
 }
 
-const proxyPageId = "@vite-turbolinks-bridge/stem-plugin/proxy/pages";
+const proxyPageId = "terabithia/proxy/pages";
 
 interface ViteProxyPluginOptions {
   upstream: URL;

@@ -1,8 +1,9 @@
 {
-  "name": "vite-turbolinks-bridge",
+  "name": "terabithia",
+  "description": "Bridge from Turbolinks to Vite",
   "private": true,
   "workspaces": [
-    "vite-turbolinks-bridge/*",
+    "terabithia/*",
     "tests/*"
   ],
   "devDependencies": {

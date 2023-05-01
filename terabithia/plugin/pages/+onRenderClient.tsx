@@ -1,6 +1,6 @@
 import React from "react";
 import { renderReact } from "../lib/renderReact";
-import { PageContextNoProxyClient } from "@vite-turbolinks-bridge/types";
+import { PageContextNoProxyClient } from "terabithia-types";
 import { PageShell } from "../lib/PageShell";
 import { turbolinksClickListener } from "../lib/linkInterceptor";
 import { getDocumentProps } from "./getDocumentProps";

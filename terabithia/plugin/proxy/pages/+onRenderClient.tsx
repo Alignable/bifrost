@@ -1,7 +1,7 @@
 import React from "react";
 import { renderReact } from "../../lib/renderReact";
 import { PageShell } from "../../lib/PageShell";
-import { PageContextProxyClient } from "@vite-turbolinks-bridge/types";
+import { PageContextProxyClient } from "terabithia-types";
 import { turbolinksClickListener } from "../../lib/linkInterceptor";
 import { dispatchTurbolinks } from "../../lib/dispatchTurbolinks";
 import { mergeHead } from "../../lib/mergeHead";

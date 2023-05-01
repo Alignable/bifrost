@@ -8,7 +8,7 @@ export default function onBeforeRoute(_pageContext: any) {
     return {
       pageContext: {
         ...snapshot,
-        _pageId: "@vite-turbolinks-bridge/stem-plugin/proxy/pages/restorationVisit",
+        _pageId: "terabithia/proxy/pages/restorationVisit",
       },
     };
   } else {

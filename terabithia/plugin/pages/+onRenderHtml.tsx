@@ -2,7 +2,7 @@ import ReactDOMServer from "react-dom/server";
 import React from "react";
 import { PageShell } from "../lib/PageShell";
 import { escapeInject, dangerouslySkipEscape } from "vite-plugin-ssr/server";
-import { PageContextNoProxyServer } from "@vite-turbolinks-bridge/types";
+import { PageContextNoProxyServer } from "terabithia-types";
 import { getDocumentProps } from "./getDocumentProps";
 
 export default async function onRenderHtml(

@@ -11,14 +11,14 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "@vite-turbolinks-bridge/fastify-server": "1.0.0",
-    "@vite-turbolinks-bridge/stem-plugin": "1.0.0",
-    "@vite-turbolinks-bridge/types": "1.0.0",
+    "terabithia-fastify": "1.0.0",
+    "terabithia": "1.0.0",
+    "terabithia-types": "1.0.0",
     "nodemon": "^2.0.21",
     "ts-node": "^10.9.1",
     "uuid": "^9.0.0",
     "vite": "^4.3.2",
-    "vite-plugin-ssr": "^0.4.115"
+    "vite-plugin-ssr": "^0.4.120"
   },
   "devDependencies": {
     "@types/uuid": "^9.0.1"

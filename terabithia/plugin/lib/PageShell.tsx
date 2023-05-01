@@ -1,6 +1,6 @@
 import React, { ReactNode } from "react";
 import { PageContextProvider } from "../pages/usePageContext";
-import { PageContext, PageContextNoProxy } from "@vite-turbolinks-bridge/types";
+import { PageContext, PageContextNoProxy } from "terabithia-types";
 
 export function PageShell({
   pageContext,

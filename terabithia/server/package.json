@@ -1,5 +1,5 @@
 {
-  "name": "@vite-turbolinks-bridge/fastify-server",
+  "name": "terabithia-fastify",
   "version": "1.0.0",
   "main": "index.ts",
   "type": "module",
@@ -31,7 +31,7 @@
     "@types/node": "^18.11.9",
     "@types/react": "^18.0.8",
     "@types/react-dom": "^18.0.3",
-    "@vite-turbolinks-bridge/types": "1.0.0",
+    "terabithia-types": "1.0.0",
     "nodemon": "^2.0.21",
     "react": "^18.2.0",
     "react-dom": "^18.2.0"

@@ -1,7 +1,7 @@
 import React from "react";
 import ReactDOMServer from "react-dom/server";
 import { dangerouslySkipEscape, escapeInject } from "vite-plugin-ssr/server";
-import { PageContextProxyServer } from "@vite-turbolinks-bridge/types";
+import { PageContextProxyServer } from "terabithia-types";
 import { PageShell } from "../../lib/PageShell";
 
 export default async function onRenderHtml(

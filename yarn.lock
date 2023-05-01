@@ -220,6 +220,11 @@
   resolved "https://registry.yarnpkg.com/@brillout/json-serializer/-/json-serializer-0.5.3.tgz#3bce6e7560e7e9b6a89a915c26df3b49c347fbcc"
   integrity sha512-IxlOMD5gOM0WfFGdeR98jHKiC82Ad1tUnSjvLS5jnRkfMEKBI+YzHA32Umw8W3Ccp5N4fNEX229BW6RaRpxRWQ==
 
+"@brillout/picocolors@^1.0.4":
+  version "1.0.4"
+  resolved "https://registry.yarnpkg.com/@brillout/picocolors/-/picocolors-1.0.4.tgz#e7f64ff2756be519c668246aabc69c73af687212"
+  integrity sha512-rhZBVyrRCb53T9xIGoEjZQ6O4Um3XQWcQ1z2VL2eBQBtJYCsABUUNE/isqbnts3XD1sAkisDF2L3OjJeIgrznQ==
+
 "@brillout/vite-plugin-import-build@^0.2.16":
   version "0.2.16"
   resolved "https://registry.yarnpkg.com/@brillout/vite-plugin-import-build/-/vite-plugin-import-build-0.2.16.tgz#7e7a89c623d373f91ccb550c9e97c0646e898530"
@@ -2816,7 +2821,23 @@ vary@~1.1.2:
   resolved "https://registry.yarnpkg.com/vary/-/vary-1.1.2.tgz#2299f02c6ded30d4a5961b0b9f74524a18f634fc"
   integrity sha512-BNGbWLfd0eUPabhkXUVm0j8uuvREyTh5ovRa/dyow/BqAbZJyC+5fU+IzQOzmAKzYqYRAISoRhdQr3eIZ/PXqg==
 
-vite-plugin-ssr@^0.4.115, vite-plugin-ssr@^0.4.98:
+vite-plugin-ssr@^0.4.120:
+  version "0.4.120"
+  resolved "https://registry.yarnpkg.com/vite-plugin-ssr/-/vite-plugin-ssr-0.4.120.tgz#1c47f0926fb66d7935397626d096d3ed4bd79ebb"
+  integrity sha512-crttExXYt98bEVeLJgqlJ6peaMgzN7YrL0TNIAWEjabWHaXgpQUO+pRXOf0MIyI/xcNh13e6kvalSPo9UEpPxQ==
+  dependencies:
+    "@brillout/import" "0.2.3"
+    "@brillout/json-serializer" "^0.5.3"
+    "@brillout/picocolors" "^1.0.4"
+    "@brillout/vite-plugin-import-build" "^0.2.16"
+    acorn "^8.0.0"
+    cac "^6.0.0"
+    es-module-lexer "^0.10.0"
+    esbuild "^0.17.0"
+    fast-glob "^3.0.0"
+    sirv "^2.0.0"
+
+vite-plugin-ssr@^0.4.98:
   version "0.4.115"
   resolved "https://registry.yarnpkg.com/vite-plugin-ssr/-/vite-plugin-ssr-0.4.115.tgz#2e2703cbc67c5aff436e8820b94fb9a4c316bdb0"
   integrity sha512-SXoru+rFEwSBgYXvQXzG73nfN8x+MGhlW4pcJI2BX0p6Tei8ys0tyg1yNu1VI95Uux2rBZip6ra/43rvKSNsag==

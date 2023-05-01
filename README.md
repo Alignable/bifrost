@@ -4,22 +4,6 @@
 3. If Rails returns layout, wrap in layout
 4. Else just return as-is
 
-Key files:
-
-[pages/[[...fallback]].tsx]( pages/[[...fallback]].tsx )
-getServerSideProps in fallback does proxying. I also tried Next.js middleware and rewrites to no avail.
-there 
-there is some weird stuff to make sure scripts run in the right order
-
-[pages/_app.tsx](pages/_app.tsx)
-handles firing turbolinks events
-
-[modules/turbolinks-bridge/use_turbolinks_click.ts](modules/turbolinks-bridge/use_turbolinks_click.ts)
-copied all this from turbolinks to intercept all clicks and use vite to do routing
-
-[components/even_more_dangerously_set_inner_html.tsx](components/even_more_dangerously_set_inner_html.tsx)
-handles running scripts in body
-
 
 ## Things turbolinks does that dont work for us
 - loads inline body scripts before blocking head scripts on client navigation. normally no one cares, but we do because we move in and out of legacy pages so may load critical things in head on client navigation (application_biz.js)

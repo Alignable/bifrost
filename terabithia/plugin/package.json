@@ -1,5 +1,5 @@
 {
-  "name": "@vite-turbolinks-bridge/stem-plugin",
+  "name": "terabithia",
   "version": "1.0.0",
   "type": "module",
   "types": "./dist/index.d.ts",
@@ -30,19 +30,19 @@
     "cross-env": "^7.0.3",
     "react": "^18.x.x",
     "react-dom": "^18.x.x",
-    "vite-plugin-ssr": "^0.4.115"
+    "vite-plugin-ssr": "^0.4.120"
   },
   "peerDependencies": {
     "react": "^18.x.x",
     "react-dom": "^18.x.x",
-    "vite-plugin-ssr": "^0.4.115"
+    "vite-plugin-ssr": "^0.4.120"
   },
   "devDependencies": {
     "@types/node": "^18.11.9",
     "@types/react": "^18.0.8",
     "@types/react-dom": "^18.0.3",
     "@vitejs/plugin-react": "^3.0.0",
-    "@vite-turbolinks-bridge/types": "1.0.0",
+    "terabithia-types": "1.0.0",
     "typescript": "^4.9.4",
     "vite": "^4.0.3"
   }

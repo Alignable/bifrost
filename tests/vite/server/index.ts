@@ -6,7 +6,7 @@ import fastify from "fastify";
 import path from "path";
 import fs from "fs/promises";
 import { fileURLToPath } from "url";
-import { viteProxyPlugin } from "@vite-turbolinks-bridge/fastify-server";
+import { viteProxyPlugin } from "terabithia-fastify";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);

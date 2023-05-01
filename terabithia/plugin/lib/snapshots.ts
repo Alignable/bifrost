@@ -1,4 +1,4 @@
-import { PageContextProxyClient, Proxy } from "@vite-turbolinks-bridge/types";
+import { PageContextProxyClient, Proxy } from "terabithia-types";
 import { dispatchTurbolinks } from "./dispatchTurbolinks";
 import { v4 as uuidv4 } from "uuid";
 
