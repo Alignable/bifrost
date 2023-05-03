@@ -7,6 +7,7 @@ type Snapshot = Pick<
   "proxySendClient" | "layout" | "layoutProps"
 >;
 
+// TODO: Check turbolinks but probably set a limit on # of pages to save
 const snapshots: Record<string, Snapshot> = {};
 
 let lastRestorationIdentifier: string;

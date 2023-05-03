@@ -1,5 +1,4 @@
 {
-  "name": "terabithia",
   "description": "Bridge from Turbolinks to Vite",
   "private": true,
   "workspaces": [
@@ -11,5 +10,6 @@
     "concurrently": "^7.6.0"
   },
   "scripts": {
+    "test": "yarn workspace tests-playwright test"
   }
 }

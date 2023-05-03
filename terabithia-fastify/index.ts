@@ -188,7 +188,7 @@ export const viteProxyPlugin: FastifyPluginAsync<
           layoutProps,
         };
         // proxySendClient is serialized and sent to client on subsequent navigation. proxy is ONLY included server-side to avoid doubling page size
-        if (isPageContext) {
+        if (isPageContext) { //TODO: send whole string instead of parsing and let browser do the parsing (turbolinks bridge lib)
           Object.assign(pageContextInit, { proxySendClient: proxy });
         } else {
           Object.assign(pageContextInit, { proxy });

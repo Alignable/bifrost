@@ -1,3 +1,5 @@
+Terabithia is the framework for incremental migration from Rails/Turbolinks to Vite-powered React SSR.
+
 # How does it work?
 1. vite-ssr-plugin tries to handle request
 2. If it cannot, proxy to Rails
