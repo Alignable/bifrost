@@ -21,7 +21,8 @@
   },
   "scripts": {
     "dev": "vite",
-    "release": "release-me patch"
+    "release": "release-me patch",
+    "build": "rm -rf dist/ && yarn tsc"
   },
   "files": [
     "dist/"

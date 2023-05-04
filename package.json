@@ -10,6 +10,8 @@
     "concurrently": "^7.6.0"
   },
   "scripts": {
-    "test": "yarn workspace tests-playwright test"
+    "test": "yarn workspace tests-playwright test",
+    "build": "yarn workspace terabithia build && yarn workspace terabithia-fastify build"
+
   }
 }
