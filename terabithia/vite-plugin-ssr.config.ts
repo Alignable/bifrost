@@ -16,7 +16,6 @@ export default {
         "terabithia/proxy/pages/+onBeforeRoute.js",
         "terabithia/proxy/pages/restorationVisit/+config.js",
         "terabithia/proxy/pages/restorationVisit/+route.js",
-        // "terabithia/proxy/pages/restorationVisit/+Page.js",
       ],
     },
   ],

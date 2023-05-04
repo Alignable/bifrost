@@ -1,5 +1,5 @@
 import { dispatchTurbolinks } from "./dispatchTurbolinks";
-import { activateNewBodyScriptElements, createScriptElement } from "./turbolinks";
+import { activateNewBodyScriptElements, createScriptElement } from "./domUtils";
 
 interface ElementDetails {
   tracked: boolean;
@@ -14,7 +14,6 @@ export function mergeHead(head: string) {
   const oldHead = categorizeHead(document.head);
 
   if (!trackedScriptsIdentical(oldHead.scripts, newHead.scripts)) {
-    console.log("tracked elements changed: reloading");
     window.location.reload();
   }
 

@@ -3,7 +3,7 @@ import { FastifyReply, RawServerBase, FastifyPluginAsync } from "fastify";
 import { FastifyRequest, RequestGenericInterface } from "fastify/types/request";
 import proxy from "@fastify/http-proxy";
 import accepts from "@fastify/accepts";
-import { PageContextProxy, Proxy } from "../terabithia/types/internal";
+import { type PageContextProxy, type Proxy } from "../terabithia/types/internal";
 import forwarded from "@fastify/forwarded";
 import { Writable } from "stream";
 import jsdom from "jsdom";
@@ -121,7 +121,6 @@ export const viteProxyPlugin: FastifyPluginAsync<
         }
 
         if ([301, 302, 303, 307, 308].includes(reply.statusCode)) {
-          console.log(`redirecting to ${reply.getHeader("location")}`);
           const location = reply.getHeader("location") as string;
           if (location) {
             const url = new URL(location);

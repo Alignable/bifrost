@@ -10,6 +10,7 @@ import {
   writeRestorationIdentifier,
 } from "../../lib/snapshots";
 import { navigateAnywhere } from "../../lib/navigateAnywhere";
+import "../../lib/turbolinks";
 
 export default async function onRenderClient(
   pageContext: PageContextProxyClient

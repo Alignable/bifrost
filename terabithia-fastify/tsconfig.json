@@ -2,12 +2,11 @@
   "compilerOptions": {
     "strict": true,
     "target": "ES2020",
-    "module": "CommonJS",
     "declaration": true,
     "moduleResolution": "node",
     "skipLibCheck": true,
     "esModuleInterop": true,
-    "outDir": "./dist"
+    "noEmit": true
   },
-  "include": ["index.ts"]
+  "files": ["./index.ts"],
 }

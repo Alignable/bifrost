@@ -2,6 +2,7 @@ import { Config } from "vite-plugin-ssr/types";
 import { DocumentProps, Layout, LayoutMap } from "./types/internal";
 import ProxyLibConfig from "./proxy/pages/+config";
 import TerabithiaLibConfig from "./pages/+config";
+import { Turbolinks } from "./lib/turbolinks";
 export { usePageContext } from "./pages/usePageContext";
 
 export { LayoutMap, DocumentProps };
@@ -27,3 +28,9 @@ export type TerabithiaConfig<LayoutProps> = ConfigConstructor<
     documentProps: DocumentProps;
   }
 >;
+
+declare global {
+  interface Window {
+    Turbolinks: typeof Turbolinks;
+  }
+}

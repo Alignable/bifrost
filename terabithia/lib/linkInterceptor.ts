@@ -1,5 +1,6 @@
 import { dispatchTurbolinks } from "./dispatchTurbolinks";
 import { navigateAnywhere } from "./navigateAnywhere";
+import { Turbolinks } from "./turbolinks";
 
 // Stole all this from turbolinks
 
@@ -85,13 +86,7 @@ export function turbolinksClickListener(event: MouseEvent) {
         dispatchTurbolinks("turbolinks:click", { url: location }, link);
         dispatchTurbolinks("turbolinks:before-visit", { url: location });
         dispatchTurbolinks("turbolinks:visit", { url: location });
-        switch (action) {
-          case "replace":
-            return navigateAnywhere(location, { overwriteLastHistoryEntry: true });
-          case "advance":
-          case "restore":
-            return navigateAnywhere(location);
-        }
+        Turbolinks.visit(location, {action})
       }
     }
   }

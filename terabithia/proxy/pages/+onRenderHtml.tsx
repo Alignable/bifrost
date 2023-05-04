@@ -35,7 +35,6 @@ export default async function onRenderHtml(
             // TODO: figure out how to bundle this better. at least read from a .js file
             dangerouslySkipEscape(`<script>
           addEventListener("DOMContentLoaded", () => {
-            console.log("dcl")
             const event = new Event("turbolinks:load", { bubbles: true, cancelable: true });
             event.data = {url: window.location.href};
             document.dispatchEvent(event);  

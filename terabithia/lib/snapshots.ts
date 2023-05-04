@@ -1,14 +1,14 @@
 import { PageContextProxyClient, Proxy } from "../types/internal";
 import { dispatchTurbolinks } from "./dispatchTurbolinks";
 import { v4 as uuidv4 } from "uuid";
+import { LruCache } from "./lruCache";
 
 type Snapshot = Pick<
   Extract<PageContextProxyClient, { isHydration: false }>,
   "proxySendClient" | "layout" | "layoutProps"
 >;
 
-// TODO: Check turbolinks but probably set a limit on # of pages to save
-const snapshots: Record<string, Snapshot> = {};
+const snapshots = new LruCache<Snapshot>(10);
 
 let lastRestorationIdentifier: string;
 
@@ -27,10 +27,10 @@ export function writeRestorationIdentifier(
     },
     ""
   );
-  snapshots[lastRestorationIdentifier] = {
+  snapshots.put(lastRestorationIdentifier, {
     layout: pageContext.layout,
     layoutProps: pageContext.layoutProps,
-  };
+  });
 }
 
 /*
@@ -48,18 +48,19 @@ export function cacheProxiedBody() {
     document.body.getAttributeNames().forEach((name) => {
       bodyAttrs[name] = document.body.getAttribute(name)!;
     }, {});
-    snapshots[lastRestorationIdentifier] = {
-      ...snapshots[lastRestorationIdentifier],
+    snapshots.put(lastRestorationIdentifier, {
+      ...snapshots.get(lastRestorationIdentifier)!,
       proxySendClient: {
         head: document.head.innerHTML,
         body: document.getElementById("proxied-body")!.innerHTML,
         bodyAttrs,
       },
-    };
+    });
   }
 }
+
 const onBrowser = typeof window !== "undefined";
 export function getSnapshot(): Snapshot | undefined {
   if (!onBrowser) return;
-  return snapshots[history.state.restorationIdentifier];
+  return snapshots.get(history.state.restorationIdentifier);
 }
