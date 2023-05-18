@@ -1,6 +1,10 @@
 import { Config } from "vite-plugin-ssr/types";
+import route from "terabithia/proxy/pages/restorationVisit/+route";
+import Page from "terabithia/proxy/pages/+Page";
 
 export default {
+  route,
+  Page,
   meta: {
     onBeforeRender: {
       // We tell vite-plugin-ssr to load and execute onBeforeRender()

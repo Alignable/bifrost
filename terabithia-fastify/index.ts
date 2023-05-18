@@ -43,7 +43,7 @@ async function replyWithPage(
   return reply.status(statusCode).type(contentType).send(body);
 }
 
-const proxyPageId = "terabithia/proxy/pages";
+const proxyPageId = "/proxy/pages";
 
 interface ViteProxyPluginOptions {
   upstream: URL;

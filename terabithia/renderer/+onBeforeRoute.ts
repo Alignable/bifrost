@@ -1,5 +1,4 @@
-import { getSnapshot } from "../../lib/snapshots";
-
+import { getSnapshot } from "../lib/snapshots";
 
 export default function onBeforeRoute(_pageContext: any) {
   const snapshot = getSnapshot();
@@ -7,7 +6,7 @@ export default function onBeforeRoute(_pageContext: any) {
     return {
       pageContext: {
         ...snapshot,
-        _pageId: "terabithia/proxy/pages/restorationVisit",
+        _pageId: "/proxy/pages/restorationVisit",
       },
     };
   } else {

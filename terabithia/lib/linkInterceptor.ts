@@ -1,5 +1,4 @@
 import { dispatchTurbolinks } from "./dispatchTurbolinks";
-import { navigateAnywhere } from "./navigateAnywhere";
 import { Turbolinks } from "./turbolinks";
 
 // Stole all this from turbolinks
@@ -12,18 +11,18 @@ function isAction(action: any): action is Action {
 
 // TODO: polyfilled closest may not be required. check caniuse?
 const closest = (() => {
-  const html = document.documentElement;
+  const html = typeof window !== 'undefined' && document.documentElement;
 
   type MatchesSelector = (this: Element, selector: string) => boolean;
   const match: MatchesSelector =
-    html.matches ||
+    (html as any).matches ||
     (html as any).webkitMatchesSelector ||
     (html as any).msMatchesSelector ||
     (html as any).mozMatchesSelector;
 
   type Closest = (this: Element, selector: string) => Element | null;
   const closest: Closest =
-    html.closest ||
+    (html && html.closest) ||
     function (selector: string) {
       let element: Element | null = this;
       while (element) {

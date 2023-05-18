@@ -11,5 +11,5 @@
     "esModuleInterop": true,
     "outDir": "./dist"
   },
-  "include": ["pages", "proxy", "vite-plugin-ssr.config.ts", "lib", "index.ts"]
+  "include": ["renderer", "proxy", "lib", "index.ts"]
 }

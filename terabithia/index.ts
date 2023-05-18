@@ -1,9 +1,11 @@
 import { Config } from "vite-plugin-ssr/types";
 import { DocumentProps, Layout, LayoutMap } from "./types/internal";
 import ProxyLibConfig from "./proxy/pages/+config";
-import TerabithiaLibConfig from "./pages/+config";
+import TerabithiaLibConfig from "./renderer/+config";
 import { Turbolinks } from "./lib/turbolinks";
-export { usePageContext } from "./pages/usePageContext";
+export { usePageContext } from "./renderer/usePageContext";
+
+// ===========   Types   =========== //
 
 export { LayoutMap, DocumentProps };
 
