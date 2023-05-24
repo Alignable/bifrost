@@ -15,7 +15,7 @@
     "@fastify/middie": "^8.1.0",
     "@fastify/static": "^6.10.1",
     "nodemon": "^2.0.21",
-    "bifrost": "1.0.0",
+    "bifrost": "0.0.1",
     "bifrost-fastify": "1.0.0",
     "ts-node": "^10.9.1",
     "uuid": "^9.0.0",
