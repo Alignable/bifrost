@@ -6,7 +6,9 @@ import { turbolinksClickListener } from "../lib/linkInterceptor.js";
 import { getDocumentProps } from "./getDocumentProps.js";
 import { cacheProxiedBody } from "../lib/snapshots.js";
 import { navigateAnywhere } from "../lib/navigateAnywhere.js";
-import "../../lib/turbolinks.js";
+import { setupTurbolinks } from "../lib/turbolinks.js";
+
+setupTurbolinks()
 
 export default async function onRenderClient(
   pageContext: PageContextNoProxyClient

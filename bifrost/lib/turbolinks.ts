@@ -10,6 +10,8 @@ export const Turbolinks = {
   } as (typeof turbolinks)["visit"],
 };
 
-if (typeof window !== "undefined" && !window.Turbolinks) {
-  window.Turbolinks = Turbolinks;
+export function setupTurbolinks() {
+  if (typeof window !== "undefined" && !window.Turbolinks) {
+    window.Turbolinks = Turbolinks;
+  }
 }
