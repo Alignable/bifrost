@@ -1,7 +1,7 @@
-import { PageContextProxyClient, Proxy } from "../types/internal";
-import { dispatchTurbolinks } from "./dispatchTurbolinks";
+import { PageContextProxyClient, Proxy } from "../types/internal.js";
+import { dispatchTurbolinks } from "./dispatchTurbolinks.js";
 import { v4 as uuidv4 } from "uuid";
-import { LruCache } from "./lruCache";
+import { LruCache } from "./lruCache.js";
 
 type Snapshot = Pick<
   Extract<PageContextProxyClient, { isHydration: false }>,

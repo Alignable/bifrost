@@ -1,5 +1,5 @@
-import { dispatchTurbolinks } from "./dispatchTurbolinks";
-import { activateNewBodyScriptElements, createScriptElement } from "./domUtils";
+import { dispatchTurbolinks } from "./dispatchTurbolinks.js";
+import { activateNewBodyScriptElements, createScriptElement } from "./domUtils.js";
 
 interface ElementDetails {
   tracked: boolean;

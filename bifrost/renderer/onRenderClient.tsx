@@ -1,12 +1,12 @@
 import React from "react";
-import { renderReact } from "../lib/renderReact";
-import { PageContextNoProxyClient } from "../types/internal";
-import { PageShell } from "../lib/PageShell";
-import { turbolinksClickListener } from "../lib/linkInterceptor";
-import { getDocumentProps } from "./getDocumentProps";
-import { cacheProxiedBody } from "../lib/snapshots";
-import { navigateAnywhere } from "../lib/navigateAnywhere";
-import "../../lib/turbolinks";
+import { renderReact } from "../lib/renderReact.js";
+import { PageContextNoProxyClient } from "../types/internal.js";
+import { PageShell } from "../lib/PageShell.js";
+import { turbolinksClickListener } from "../lib/linkInterceptor.js";
+import { getDocumentProps } from "./getDocumentProps.js";
+import { cacheProxiedBody } from "../lib/snapshots.js";
+import { navigateAnywhere } from "../lib/navigateAnywhere.js";
+import "../../lib/turbolinks.js";
 
 export default async function onRenderClient(
   pageContext: PageContextNoProxyClient

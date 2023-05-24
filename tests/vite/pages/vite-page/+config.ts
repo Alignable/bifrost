@@ -1,5 +1,5 @@
 import { MainNavLayout } from "../../layouts/MainNavLayout";
-import { bifrostConfig } from "@alignable/bifrost";
+import { BifrostConfig } from "@alignable/bifrost";
 import { LayoutProps } from "../../layouts/types";
 
 export default {
@@ -8,4 +8,4 @@ export default {
   documentProps: {
     title: "vite page",
   },
-} satisfies bifrostConfig<LayoutProps>;
+} satisfies BifrostConfig<LayoutProps>;

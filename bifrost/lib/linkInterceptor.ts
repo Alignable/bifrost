@@ -1,5 +1,5 @@
-import { dispatchTurbolinks } from "./dispatchTurbolinks";
-import { Turbolinks } from "./turbolinks";
+import { dispatchTurbolinks } from "./dispatchTurbolinks.js";
+import { Turbolinks } from "./turbolinks.js";
 
 // Stole all this from turbolinks
 

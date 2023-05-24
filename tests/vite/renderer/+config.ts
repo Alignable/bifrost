@@ -1,5 +1,5 @@
-import bifrostLibConfig from "@alignable/bifrost/renderer/+config";
+import BifrostLibConfig from "@alignable/bifrost/renderer/+config";
 
 export default {
-  extends: bifrostLibConfig,
+  extends: BifrostLibConfig,
 };

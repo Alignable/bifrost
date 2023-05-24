@@ -1,9 +1,9 @@
 import { Config } from "vite-plugin-ssr/types";
 import { DocumentProps, Layout, LayoutMap } from "./types/internal";
-import ProxyLibConfig from "./proxy/pages/+config";
-import bifrostLibConfig from "./renderer/+config";
-import { Turbolinks } from "./lib/turbolinks";
-export { usePageContext } from "./renderer/usePageContext";
+import ProxyLibConfig from "./proxy/pages/+config.js";
+import bifrostLibConfig from "./renderer/+config.js";
+import { Turbolinks } from "./lib/turbolinks.js";
+export { usePageContext } from "./renderer/usePageContext.js";
 
 // ===========   Types   =========== //
 
@@ -22,7 +22,7 @@ export type ProxyConfig<LayoutProps> = ConfigConstructor<
   }
 >;
 
-export type bifrostConfig<LayoutProps> = ConfigConstructor<
+export type BifrostConfig<LayoutProps> = ConfigConstructor<
   typeof bifrostLibConfig,
   {
     Layout: Layout<LayoutProps>;

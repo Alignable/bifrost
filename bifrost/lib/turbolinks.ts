@@ -1,5 +1,5 @@
 import turbolinks from "turbolinks";
-import { navigateAnywhere } from "./navigateAnywhere";
+import { navigateAnywhere } from "./navigateAnywhere.js";
 
 export const Turbolinks = {
   visit: function (location, options?): void {

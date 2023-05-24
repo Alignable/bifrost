@@ -1,8 +1,8 @@
 import React from "react";
 import ReactDOMServer from "react-dom/server";
 import { dangerouslySkipEscape, escapeInject } from "vite-plugin-ssr/server";
-import { PageContextProxyServer } from "../../types/internal";
-import { PageShell } from "../../lib/PageShell";
+import { PageContextProxyServer } from "../../types/internal.js";
+import { PageShell } from "../../lib/PageShell.js";
 
 export default async function onRenderHtml(
   pageContext: PageContextProxyServer

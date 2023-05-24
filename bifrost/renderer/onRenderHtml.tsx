@@ -1,9 +1,9 @@
 import ReactDOMServer from "react-dom/server";
 import React from "react";
-import { PageShell } from "../lib/PageShell";
+import { PageShell } from "../lib/PageShell.js";
 import { escapeInject, dangerouslySkipEscape } from "vite-plugin-ssr/server";
-import { PageContextNoProxyServer } from "../types/internal";
-import { getDocumentProps } from "./getDocumentProps";
+import { PageContextNoProxyServer } from "../types/internal.js";
+import { getDocumentProps } from "./getDocumentProps.js";
 
 export default async function onRenderHtml(
   pageContext: PageContextNoProxyServer

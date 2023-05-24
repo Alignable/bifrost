@@ -1,4 +1,4 @@
-import { getSnapshot } from "../lib/snapshots";
+import { getSnapshot } from "../lib/snapshots.js";
 
 export default function onBeforeRoute(_pageContext: any) {
   const snapshot = getSnapshot();
