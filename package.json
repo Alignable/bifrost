@@ -11,8 +11,5 @@
   "scripts": {
     "test": "npm tests-playwright --workspace test",
     "build": "npm run build --workspace=bifrost --workspace bifrost-fastify"
-  },
-  "publishConfig": {
-    "@alignable:registry": "https://npm.pkg.github.com"
   }
 }
