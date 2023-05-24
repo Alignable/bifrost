@@ -1,6 +1,5 @@
 {
   "description": "Bridge from Turbolinks to Vite",
-  "private": true,
   "workspaces": [
     "bifrost",
     "bifrost-fastify",
@@ -10,8 +9,10 @@
     "concurrently": "^7.6.0"
   },
   "scripts": {
-    "test": "yarn workspace tests-playwright test",
-    "build": "yarn workspace bifrost build && yarn workspace bifrost-fastify build"
-
+    "test": "npm tests-playwright --workspace test",
+    "build": "npm run build --workspace=bifrost --workspace bifrost-fastify"
+  },
+  "publishConfig": {
+    "@alignable:registry": "https://npm.pkg.github.com"
   }
 }
