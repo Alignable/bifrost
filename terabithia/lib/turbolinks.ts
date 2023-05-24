@@ -7,7 +7,7 @@ export const Turbolinks = {
     navigateAnywhere(href, {
       overwriteLastHistoryEntry: options?.action === "replace",
     });
-  } satisfies (typeof turbolinks)["visit"],
+  } as (typeof turbolinks)["visit"],
 };
 
 if (typeof window !== "undefined" && !window.Turbolinks) {
