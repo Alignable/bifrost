@@ -6,7 +6,7 @@ import fastify from "fastify";
 import path from "path";
 import fs from "fs/promises";
 import { fileURLToPath } from "url";
-import { viteProxyPlugin } from "bifrost-fastify";
+import { viteProxyPlugin } from "@alignable/bifrost-fastify";
 import { LayoutProps } from "../layouts/types";
 
 const __filename = fileURLToPath(import.meta.url);

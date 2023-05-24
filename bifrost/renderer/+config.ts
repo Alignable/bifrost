@@ -1,7 +1,7 @@
 import { Config } from "vite-plugin-ssr/types";
-import onRenderClient from "bifrost/renderer/onRenderClient";
-import onRenderHtml from "bifrost/renderer/onRenderHtml";
-import onBeforeRoute from "bifrost/renderer/onBeforeRoute";
+import onRenderClient from "@alignable/bifrost/renderer/onRenderClient";
+import onRenderHtml from "@alignable/bifrost/renderer/onRenderHtml";
+import onBeforeRoute from "@alignable/bifrost/renderer/onBeforeRoute";
 
 export default {
   passToClient: [

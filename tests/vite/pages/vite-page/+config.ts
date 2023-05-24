@@ -1,5 +1,5 @@
 import { MainNavLayout } from "../../layouts/MainNavLayout";
-import { bifrostConfig } from "bifrost";
+import { bifrostConfig } from "@alignable/bifrost";
 import { LayoutProps } from "../../layouts/types";
 
 export default {

@@ -1,6 +1,6 @@
 import { Config } from "vite-plugin-ssr/types";
-import route from "bifrost/proxy/pages/restorationVisit/route";
-import Page from "bifrost/proxy/pages/Page";
+import route from "@alignable/bifrost/proxy/pages/restorationVisit/route";
+import Page from "@alignable/bifrost/proxy/pages/Page";
 
 export default {
   route,
