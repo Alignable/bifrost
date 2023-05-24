@@ -1,7 +1,7 @@
 import { Config } from "vite-plugin-ssr/types";
 import { DocumentProps, Layout, LayoutMap } from "./types/internal";
 import ProxyLibConfig from "./proxy/pages/+config";
-import TerabithiaLibConfig from "./renderer/+config";
+import bifrostLibConfig from "./renderer/+config";
 import { Turbolinks } from "./lib/turbolinks";
 export { usePageContext } from "./renderer/usePageContext";
 
@@ -22,8 +22,8 @@ export type ProxyConfig<LayoutProps> = ConfigConstructor<
   }
 >;
 
-export type TerabithiaConfig<LayoutProps> = ConfigConstructor<
-  typeof TerabithiaLibConfig,
+export type bifrostConfig<LayoutProps> = ConfigConstructor<
+  typeof bifrostLibConfig,
   {
     Layout: Layout<LayoutProps>;
     layoutProps: LayoutProps;

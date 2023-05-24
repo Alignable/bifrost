@@ -1,8 +1,8 @@
 import { Config } from "vite-plugin-ssr/types";
-import onBeforeRender from "terabithia/proxy/pages/onBeforeRender";
-import onRenderClient from "terabithia/proxy/pages/onRenderClient";
-import onRenderHtml from "terabithia/proxy/pages/onRenderHtml";
-import Page from "terabithia/proxy/pages/Page";
+import onBeforeRender from "bifrost/proxy/pages/onBeforeRender";
+import onRenderClient from "bifrost/proxy/pages/onRenderClient";
+import onRenderHtml from "bifrost/proxy/pages/onRenderHtml";
+import Page from "bifrost/proxy/pages/Page";
 
 export default {
   route: "/*",

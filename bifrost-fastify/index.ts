@@ -3,7 +3,7 @@ import { FastifyReply, RawServerBase, FastifyPluginAsync } from "fastify";
 import { FastifyRequest, RequestGenericInterface } from "fastify/types/request";
 import proxy from "@fastify/http-proxy";
 import accepts from "@fastify/accepts";
-import { type PageContextProxy, type Proxy } from "../terabithia/types/internal";
+import { type PageContextProxy, type Proxy } from "../bifrost/types/internal";
 import forwarded from "@fastify/forwarded";
 import { Writable } from "stream";
 import jsdom from "jsdom";

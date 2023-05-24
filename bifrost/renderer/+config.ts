@@ -1,7 +1,7 @@
 import { Config } from "vite-plugin-ssr/types";
-import onRenderClient from "terabithia/renderer/onRenderClient";
-import onRenderHtml from "terabithia/renderer/onRenderHtml";
-import onBeforeRoute from "terabithia/renderer/onBeforeRoute";
+import onRenderClient from "bifrost/renderer/onRenderClient";
+import onRenderHtml from "bifrost/renderer/onRenderHtml";
+import onBeforeRoute from "bifrost/renderer/onBeforeRoute";
 
 export default {
   passToClient: [

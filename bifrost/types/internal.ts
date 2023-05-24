@@ -46,7 +46,7 @@ export type PageContextProxyClient = PageContextBuiltInClient<Page> &
 export type PageContextProxy = PageContextProxyServer | PageContextProxyClient;
 
 // =============== Types for new non-proxy pages ================= //
-// ===============   You've entered Terabithia!   ================ //
+// ===============   You've entered bifrost!   ================ //
 
 export interface DocumentProps {
   title?: string;

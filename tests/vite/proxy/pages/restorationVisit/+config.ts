@@ -1,4 +1,4 @@
-import RestorationConfig from "terabithia/proxy/pages/restorationVisit/+config";
+import RestorationConfig from "bifrost/proxy/pages/restorationVisit/+config";
 import { Config } from "vite-plugin-ssr/types";
 
 export default {

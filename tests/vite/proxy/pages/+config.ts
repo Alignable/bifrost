@@ -1,4 +1,4 @@
-import ProxyConfig from "terabithia/proxy/pages/+config";
+import ProxyConfig from "bifrost/proxy/pages/+config";
 import { Config } from "vite-plugin-ssr/types";
 
 export default {

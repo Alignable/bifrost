@@ -1,5 +1,5 @@
 {
-  "name": "terabithia-fastify",
+  "name": "bifrost-fastify",
   "version": "1.0.0",
   "type": "module",
   "main": "./dist/index.js",

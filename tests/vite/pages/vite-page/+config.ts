@@ -1,5 +1,5 @@
 import { MainNavLayout } from "../../layouts/MainNavLayout";
-import { TerabithiaConfig } from "terabithia";
+import { bifrostConfig } from "bifrost";
 import { LayoutProps } from "../../layouts/types";
 
 export default {
@@ -8,4 +8,4 @@ export default {
   documentProps: {
     title: "vite page",
   },
-} satisfies TerabithiaConfig<LayoutProps>;
+} satisfies bifrostConfig<LayoutProps>;

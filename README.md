@@ -1,4 +1,4 @@
-Terabithia is the framework for incremental migration from Rails/Turbolinks to Vite-powered React SSR.
+bifrost is the framework for incremental migration from Rails/Turbolinks to Vite-powered React SSR.
 
 # How does it work?
 1. vite-ssr-plugin tries to handle request
@@ -6,7 +6,7 @@ Terabithia is the framework for incremental migration from Rails/Turbolinks to V
 3. If Rails returns layout, wrap in layout
 4. Else just return as-is
 
-## Breaking changes moving from turbolinks to terabithia:
+## Breaking changes moving from turbolinks to bifrost:
 - turbolinks-permanent is gone
 - request:start and request:end events removed
 - Some discrepency in event data and exactly when they fire

@@ -1,5 +1,5 @@
-import TerabithiaLibConfig from "terabithia/renderer/+config";
+import bifrostLibConfig from "bifrost/renderer/+config";
 
 export default {
-  extends: TerabithiaLibConfig,
+  extends: bifrostLibConfig,
 };

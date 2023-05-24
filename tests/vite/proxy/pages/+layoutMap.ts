@@ -1,4 +1,4 @@
-import { LayoutMap } from "terabithia";
+import { LayoutMap } from "bifrost";
 import { MainNavLayout } from "../../layouts/MainNavLayout";
 import { VisitorLayout } from "../../layouts/VisitorLayout";
 import { LayoutProps } from "../../layouts/types";

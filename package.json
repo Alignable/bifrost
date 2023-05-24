@@ -2,8 +2,8 @@
   "description": "Bridge from Turbolinks to Vite",
   "private": true,
   "workspaces": [
-    "terabithia",
-    "terabithia-fastify",
+    "bifrost",
+    "bifrost-fastify",
     "tests/*"
   ],
   "devDependencies": {
@@ -11,7 +11,7 @@
   },
   "scripts": {
     "test": "yarn workspace tests-playwright test",
-    "build": "yarn workspace terabithia build && yarn workspace terabithia-fastify build"
+    "build": "yarn workspace bifrost build && yarn workspace bifrost-fastify build"
 
   }
 }
