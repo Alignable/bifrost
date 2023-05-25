@@ -5,19 +5,54 @@
   "type": "module",
   "types": "./dist/index.d.ts",
   "exports": {
-    "./renderer/+config": "./dist/renderer/+config.js",
-    "./renderer/onRenderClient": "./dist/renderer/onRenderClient.js",
-    "./renderer/onRenderHtml": "./dist/renderer/onRenderHtml.js",
-    "./renderer/onBeforeRoute": "./dist/renderer/onBeforeRoute.js",
-    "./proxy/pages/+config": "./dist/proxy/pages/+config.js",
-    "./proxy/pages/onRenderClient": "./dist/proxy/pages/onRenderClient.js",
-    "./proxy/pages/onRenderHtml": "./dist/proxy/pages/onRenderHtml.js",
-    "./proxy/pages/Page": "./dist/proxy/pages/Page.js",
-    "./proxy/pages/onBeforeRender": "./dist/proxy/pages/onBeforeRender.js",
-    "./proxy/pages/restorationVisit/+config": "./dist/proxy/pages/restorationVisit/+config.js",
-    "./proxy/pages/restorationVisit/route": "./dist/proxy/pages/restorationVisit/route.js",
-    "./package.json": "./package.json",
-    ".": "./dist/index.js"
+    "./renderer/+config": {
+      "default": "./dist/renderer/+config.js"
+    },
+    "./renderer/onRenderClient": {
+      "types": "./dist/renderer/onRenderClient.d.ts",
+      "default": "./dist/renderer/onRenderClient.js"
+    },
+    "./renderer/onRenderHtml": {
+      "types": "./dist/renderer/onRenderHtml.d.ts",
+      "default": "./dist/renderer/onRenderHtml.js"
+    },
+    "./renderer/onBeforeRoute": {
+      "types": "./dist/renderer/onBeforeRoute.d.ts",
+      "default": "./dist/renderer/onBeforeRoute.js"
+    },
+    "./proxy/pages/+config": {
+      "types": "./dist/proxy/pages/+config.d.ts",
+      "default": "./dist/proxy/pages/+config.js"
+    },
+    "./proxy/pages/onRenderClient": {
+      "types": "./dist/proxy/pages/onRenderClient.d.ts",
+      "default": "./dist/proxy/pages/onRenderClient.js"
+    },
+    "./proxy/pages/onRenderHtml": {
+      "types": "./dist/proxy/pages/onRenderHtml.d.ts",
+      "default": "./dist/proxy/pages/onRenderHtml.js"
+    },
+    "./proxy/pages/Page": {
+      "types": "./dist/proxy/pages/Page.d.ts",
+      "default": "./dist/proxy/pages/Page.js"
+    },
+    "./proxy/pages/onBeforeRender": {
+      "types": "./dist/proxy/pages/onBeforeRender.d.ts",
+      "default": "./dist/proxy/pages/onBeforeRender.js"
+    },
+    "./proxy/pages/restorationVisit/+config": {
+      "types": "./dist/proxy/pages/restorationVisit/+config.d.ts",
+      "default": "./dist/proxy/pages/restorationVisit/+config.js"
+    },
+    "./proxy/pages/restorationVisit/route": {
+      "types": "./dist/proxy/pages/restorationVisit/route.d.ts",
+      "default": "./dist/proxy/pages/restorationVisit/route.js"
+    },
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    },
+    "./package.json": "./package.json"
   },
   "scripts": {
     "dev": "vite",
@@ -32,12 +67,13 @@
     "react": "^18.x.x",
     "react-dom": "^18.x.x",
     "uuid": "^9.0.0",
-    "vite-plugin-ssr": "0.4.125"
+    "vite-plugin-ssr": "0.4.127"
   },
   "peerDependencies": {
     "react": "^18.x.x",
     "react-dom": "^18.x.x",
-    "vite-plugin-ssr": "0.4.125"
+    "vite-plugin-ssr": "0.4.127",
+    "typescript": ">=4.7"
   },
   "devDependencies": {
     "@types/node": "^18.11.9",

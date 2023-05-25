@@ -1,4 +1,5 @@
 {
+  "name": "bifrost",
   "description": "Bridge from Turbolinks to Vite",
   "workspaces": [
     "bifrost",
