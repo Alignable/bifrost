@@ -6,6 +6,7 @@
   "types": "./dist/index.d.ts",
   "exports": {
     "./renderer/+config": {
+      "types": "./dist/renderer/+config.d.ts",
       "default": "./dist/renderer/+config.js"
     },
     "./renderer/onRenderClient": {
