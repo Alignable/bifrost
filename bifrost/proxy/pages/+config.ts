@@ -1,19 +1,15 @@
-import { Config } from "vite-plugin-ssr/types";
-import onBeforeRender from "@alignable/bifrost/proxy/pages/onBeforeRender";
-import onRenderClient from "@alignable/bifrost/proxy/pages/onRenderClient";
-import onRenderHtml from "@alignable/bifrost/proxy/pages/onRenderHtml";
-import Page from "@alignable/bifrost/proxy/pages/Page";
+import { type ConfigNonHeaderFile } from "vite-plugin-ssr/types";
 
 export default {
   route: "/*",
-  onBeforeRender,
-  onRenderClient,
-  onRenderHtml,
-  Page,
+  onBeforeRenderPath: "@alignable/bifrost/proxy/pages/onBeforeRender",
+  onRenderClientPath: "@alignable/bifrost/proxy/pages/onRenderClient",
+  onRenderHtmlPath: "@alignable/bifrost/proxy/pages/onRenderHtml",
+  PagePath: "@alignable/bifrost/proxy/pages/Page",
   passToClient: ["proxySendClient", "layout", "layoutProps", "redirectTo"],
   clientRouting: true,
   hydrationCanBeAborted: true,
   meta: {
     layoutMap: { env: "server-and-client" },
   },
-} satisfies Config;
+} satisfies ConfigNonHeaderFile;
