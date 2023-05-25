@@ -26,7 +26,7 @@ export default async function onRenderClient(
   document.removeEventListener("click", turbolinksClickListener);
   cacheProxiedBody();
 
-  const { title = "", description = "" } = getDocumentProps(pageContext);
+  const { metadata: { title = "", description = "" } = {} } = getDocumentProps(pageContext);
   document.title = title;
   document.head
     .querySelector("meta[name='description']")

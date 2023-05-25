@@ -5,6 +5,10 @@ import { escapeInject, dangerouslySkipEscape } from "vite-plugin-ssr/server";
 import { PageContextNoProxyServer } from "../types/internal.js";
 import { getDocumentProps } from "./getDocumentProps.js";
 
+function formatMetaObject(obj: { [key: string]: string }) {
+  return Object.entries(obj).map((e) => e.join("=")).join(", ");
+}
+
 export default async function onRenderHtml(
   pageContext: PageContextNoProxyServer
 ) {
@@ -25,7 +29,7 @@ export default async function onRenderHtml(
   );
 
   // // See https://vite-plugin-ssr.com/head
-  const { title = "", description = "" } = getDocumentProps(pageContext);
+  const { isLoggedIn = false, metadata: { title = "", description = "", viewport = {} } = {} } = getDocumentProps(pageContext);
   if (!title) {
     console.warn(`No title set for ${pageContext.urlOriginal}!`);
   }
@@ -36,6 +40,7 @@ export default async function onRenderHtml(
       <title>${title}</title>
       <meta name="title" property="og:title" content="${title}"/>
       <meta name="description" content="${description}"/>
+      <meta content="${formatMetaObject(viewport)}" name="viewport">
       </head>
       <body>
         <div id="page-view">${dangerouslySkipEscape(pageHtml)}</div>
