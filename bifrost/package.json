@@ -76,12 +76,12 @@
     "react": "^18.x.x",
     "react-dom": "^18.x.x",
     "uuid": "^9.0.0",
-    "vite-plugin-ssr": "0.4.127"
+    "vite-plugin-ssr": "0.4.130"
   },
   "peerDependencies": {
     "react": "^18.x.x",
     "react-dom": "^18.x.x",
-    "vite-plugin-ssr": "0.4.127",
+    "vite-plugin-ssr": "0.4.130",
     "typescript": ">=4.7"
   },
   "devDependencies": {

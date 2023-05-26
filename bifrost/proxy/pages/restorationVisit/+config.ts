@@ -1,8 +1,8 @@
 import { ConfigNonHeaderFile } from "vite-plugin-ssr/types";
 
 export default {
-  routePath: "@alignable/bifrost/proxy/pages/restorationVisit/route",
-  PagePath: "@alignable/bifrost/proxy/pages/Page",
+  route: "import:@alignable/bifrost/proxy/pages/restorationVisit/route",
+  Page: "import:@alignable/bifrost/proxy/pages/Page",
   meta: {
     onBeforeRender: {
       // We tell vite-plugin-ssr to load and execute onBeforeRender()

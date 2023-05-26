@@ -2,9 +2,9 @@ import { type ConfigNonHeaderFile } from "vite-plugin-ssr/types";
 
 export default {
   passToClient: ["layoutProps", "pageProps", "redirectTo", "documentProps"],
-  onRenderClientPath: "@alignable/bifrost/renderer/onRenderClient",
-  onRenderHtmlPath: "@alignable/bifrost/renderer/onRenderHtml",
-  onBeforeRoutePath: "@alignable/bifrost/renderer/onBeforeRoute",
+  onRenderClient: "import:@alignable/bifrost/renderer/onRenderClient",
+  onRenderHtml: "import:@alignable/bifrost/renderer/onRenderHtml",
+  onBeforeRoute: "import:@alignable/bifrost/renderer/onBeforeRoute",
   clientRouting: true,
   hydrationCanBeAborted: true,
   meta: {
