@@ -1,11 +1,12 @@
 {
   "name": "@alignable/bifrost",
   "repository": "https://github.com/Alignable/bifrost.git",
-  "version": "0.0.6",
+  "version": "0.0.8",
   "type": "module",
   "types": "./dist/index.d.ts",
   "exports": {
     "./renderer/+config": {
+      "types": "./dist/renderer/+config.d.ts",
       "default": "./dist/renderer/+config.js"
     },
     "./renderer/onRenderClient": {
@@ -53,6 +54,14 @@
       "default": "./dist/index.js"
     },
     "./package.json": "./package.json"
+  },
+  "typesVersions": {
+    "*": {
+      "*": [
+        "./dist/*",
+        "./dist/index.d.ts"
+      ]
+    }
   },
   "scripts": {
     "dev": "vite",

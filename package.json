@@ -10,7 +10,8 @@
     "concurrently": "^7.6.0"
   },
   "scripts": {
-    "test": "npm run test --workspace tests-playwright",
-    "build": "npm run build --workspace=bifrost --workspace bifrost-fastify"
+    "test": "npm run -w=tests-playwright test",
+    "build": "npm run -w=bifrost -w=bifrost-fastify build",
+    "publish": "npm -w=bifrost -w=bifrost-fastify publish --access public"
   }
 }
