@@ -67,6 +67,7 @@ interface PageContextNoProxyCommon<LayoutProps = Record<string, unknown>> {
     Layout: Layout<LayoutProps>;
     layoutProps?: LayoutProps;
     documentProps?: DocumentProps;
+    isLoggedIn?: boolean;
   };
 }
 

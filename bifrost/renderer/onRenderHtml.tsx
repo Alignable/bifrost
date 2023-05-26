@@ -29,10 +29,12 @@ export default async function onRenderHtml(
   );
 
   // // See https://vite-plugin-ssr.com/head
-  const { title = "", description = "", viewport = {} } = getDocumentProps(pageContext);
+  const { title = "", description = "", viewport } = getDocumentProps(pageContext);
   if (!title) {
     console.warn(`No title set for ${pageContext.urlOriginal}!`);
   }
+
+  const viewportTag = !viewport ? "" : escapeInject`<meta content="${formatMetaObject(viewport)}" name="viewport">`
 
   const documentHtml = escapeInject`<!DOCTYPE html>
     <html lang="en">
@@ -40,7 +42,7 @@ export default async function onRenderHtml(
       <title>${title}</title>
       <meta name="title" property="og:title" content="${title}"/>
       <meta name="description" content="${description}"/>
-      <meta content="${formatMetaObject(viewport)}" name="viewport">
+      ${viewportTag}
       </head>
       <body>
         <div id="page-view">${dangerouslySkipEscape(pageHtml)}</div>
