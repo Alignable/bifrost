@@ -49,14 +49,11 @@ export type PageContextProxy = PageContextProxyServer | PageContextProxyClient;
 // ===============   You've crossed the Bifrost!   ================ //
 
 export interface DocumentProps {
-  isLoggedIn?: boolean;
-  // metadata obj inspired by NextJS's conventions
+  // props inspired by NextJS's metadata conventions
   // https://nextjs.org/docs/app/api-reference/functions/generate-metadata#the-metadata-object
-  metadata?: {
-    title?: string;
-    description?: string;
-    viewport?: { [key: string]: string }
-  }
+  title?: string;
+  description?: string;
+  viewport?: { [key: string]: string }
 }
 
 type PageProps = Record<string, unknown>;

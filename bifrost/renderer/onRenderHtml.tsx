@@ -29,7 +29,7 @@ export default async function onRenderHtml(
   );
 
   // // See https://vite-plugin-ssr.com/head
-  const { isLoggedIn = false, metadata: { title = "", description = "", viewport = {} } = {} } = getDocumentProps(pageContext);
+  const { title = "", description = "", viewport = {} } = getDocumentProps(pageContext);
   if (!title) {
     console.warn(`No title set for ${pageContext.urlOriginal}!`);
   }
