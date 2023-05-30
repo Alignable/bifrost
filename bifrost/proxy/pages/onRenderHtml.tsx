@@ -3,6 +3,7 @@ import ReactDOMServer from "react-dom/server";
 import { dangerouslySkipEscape, escapeInject } from "vite-plugin-ssr/server";
 import { PageContextProxyServer } from "../../types/internal.js";
 import { PageShell } from "../../lib/PageShell.js";
+import { v4 as uuidv4 } from "uuid";
 
 export default async function onRenderHtml(
   pageContext: PageContextProxyServer
@@ -34,6 +35,7 @@ export default async function onRenderHtml(
             // Vite loads scripts with type="module" so the rest of our code will show up too late.
             // TODO: figure out how to bundle this better. at least read from a .js file
             dangerouslySkipEscape(`<script>
+          window.Turbolinks = {p:1,controller:{restorationIdentifier: ''}};
           addEventListener("DOMContentLoaded", () => {
             const event = new Event("turbolinks:load", { bubbles: true, cancelable: true });
             event.data = {url: window.location.href};

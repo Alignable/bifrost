@@ -6,18 +6,23 @@ import { turbolinksClickListener } from "../../lib/linkInterceptor.js";
 import { dispatchTurbolinks } from "../../lib/dispatchTurbolinks.js";
 import { mergeHead } from "../../lib/mergeHead.js";
 import {
+  Turbolinks,
   cacheProxiedBody,
+  getAdapter,
+  setupTurbolinks,
   writeRestorationIdentifier,
-} from "../../lib/snapshots.js";
-import { navigateAnywhere } from "../../lib/navigateAnywhere.js";
-import { setupTurbolinks } from "../../lib/turbolinks.js";
-
-setupTurbolinks()
+} from "../../lib/turbolinks.js";
+import { Visit as TVisit } from "turbolinks/dist/visit";
 
 export default async function onRenderClient(
   pageContext: PageContextProxyClient
 ) {
-  if (navigateAnywhere(pageContext.redirectTo)) return;
+  if (pageContext.redirectTo) {
+    Turbolinks.visit(pageContext.redirectTo);
+    return;
+  }
+  console.log("help");
+  setupTurbolinks();
 
   let body: string;
 
@@ -39,6 +44,11 @@ export default async function onRenderClient(
 
     cacheProxiedBody();
     dispatchTurbolinks("turbolinks:before-render", { newBody: proxy.body });
+
+    const v = window.Turbolinks.controller.currentVisit;
+    console.log("visitreqcomplete", v);
+    getAdapter()?.visitRequestCompleted(v as TVisit);
+    getAdapter()?.visitRequestFinished(v as TVisit);
 
     body = proxy.body;
 

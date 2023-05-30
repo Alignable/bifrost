@@ -1,5 +1,7 @@
 import { dispatchTurbolinks } from "./dispatchTurbolinks.js";
 import { activateNewBodyScriptElements, createScriptElement } from "./domUtils.js";
+import { Turbolinks, getAdapter } from "./turbolinks.js";
+import { Visit as TVisit } from "turbolinks/dist/visit";
 
 interface ElementDetails {
   tracked: boolean;
@@ -66,8 +68,12 @@ function copyNewHeadScriptElements(next: Element[]) {
     activateNewBodyScriptElements(Array.from(scripts));
     focusFirstAutofocusableElement();
 
+    const v = window.Turbolinks.controller.currentVisit;
     dispatchTurbolinks("turbolinks:render", {});
+    getAdapter()?.visitRendered(v as TVisit);
+
     dispatchTurbolinks("turbolinks:load", { url: window.location.href });
+    getAdapter()?.visitCompleted(v as TVisit);
   }
   for (const element of next as HTMLScriptElement[]) {
     const runBefore = element.outerHTML in allHeadScriptsEverRun;

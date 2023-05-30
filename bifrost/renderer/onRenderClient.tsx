@@ -1,28 +1,31 @@
-import React from "react";
+import React, { PropsWithChildren } from "react";
 import { renderReact } from "../lib/renderReact.js";
 import { PageContextNoProxyClient } from "../types/internal.js";
 import { PageShell } from "../lib/PageShell.js";
 import { turbolinksClickListener } from "../lib/linkInterceptor.js";
 import { getDocumentProps } from "./getDocumentProps.js";
-import { cacheProxiedBody } from "../lib/snapshots.js";
-import { navigateAnywhere } from "../lib/navigateAnywhere.js";
-import { setupTurbolinks } from "../lib/turbolinks.js";
+import { Turbolinks, cacheProxiedBody, setupTurbolinks } from "../lib/turbolinks.js";
 import { formatMetaObject } from "./utils/formatMetaObject.js";
 
-setupTurbolinks()
+setupTurbolinks();
+
+const PassThruLayout: React.ComponentType<PropsWithChildren> = ({
+  children,
+}) => <>{children}</>;
 
 export default async function onRenderClient(
   pageContext: PageContextNoProxyClient
 ) {
-  if (navigateAnywhere(pageContext.redirectTo)) return;
+  if (pageContext.redirectTo) {
+    Turbolinks.visit(pageContext.redirectTo);
+    return;
+  }
 
   const { Page, pageProps } = pageContext;
-  const { Layout, layoutProps } = pageContext.config;
+  const { Layout = PassThruLayout, layoutProps } = pageContext.config;
 
   if (!Page)
     throw new Error("Client-side render() hook expects Page to be exported");
-  if (!Layout)
-    throw new Error("Client-side render() hook expects Layout to be exported");
 
   document.removeEventListener("click", turbolinksClickListener);
   cacheProxiedBody();

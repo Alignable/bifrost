@@ -1,4 +1,4 @@
-import { getSnapshot } from "../lib/snapshots.js";
+import { getSnapshot } from "../lib/turbolinks";
 
 export default function onBeforeRoute(_pageContext: any) {
   const snapshot = getSnapshot();

@@ -41,6 +41,10 @@
       "types": "./dist/proxy/pages/onBeforeRender.d.ts",
       "default": "./dist/proxy/pages/onBeforeRender.js"
     },
+    "./proxy/pages/onPageTransitionStart": {
+      "types": "./dist/proxy/pages/onPageTransitionStart.d.ts",
+      "default": "./dist/proxy/pages/onPageTransitionStart.js"
+    },
     "./proxy/pages/restorationVisit/+config": {
       "types": "./dist/proxy/pages/restorationVisit/+config.d.ts",
       "default": "./dist/proxy/pages/restorationVisit/+config.js"
@@ -66,7 +70,8 @@
   "scripts": {
     "dev": "vite",
     "release": "release-me patch",
-    "build": "rm -rf dist/ && yarn tsc"
+    "build": "rm -rf dist/ && npm run tsc",
+    "tsc": "tsc"
   },
   "files": [
     "dist/"
