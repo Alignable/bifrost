@@ -49,8 +49,11 @@ export type PageContextProxy = PageContextProxyServer | PageContextProxyClient;
 // ===============   You've crossed the Bifrost!   ================ //
 
 export interface DocumentProps {
+  // props inspired by NextJS's metadata conventions
+  // https://nextjs.org/docs/app/api-reference/functions/generate-metadata#the-metadata-object
   title?: string;
   description?: string;
+  viewport?: { [key: string]: string }
 }
 
 type PageProps = Record<string, unknown>;
@@ -64,6 +67,7 @@ interface PageContextNoProxyCommon<LayoutProps = Record<string, unknown>> {
     Layout: Layout<LayoutProps>;
     layoutProps?: LayoutProps;
     documentProps?: DocumentProps;
+    isLoggedIn?: boolean;
   };
 }
 

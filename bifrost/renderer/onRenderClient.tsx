@@ -7,6 +7,7 @@ import { getDocumentProps } from "./getDocumentProps.js";
 import { cacheProxiedBody } from "../lib/snapshots.js";
 import { navigateAnywhere } from "../lib/navigateAnywhere.js";
 import { setupTurbolinks } from "../lib/turbolinks.js";
+import { formatMetaObject } from "./utils/formatMetaObject.js";
 
 setupTurbolinks()
 
@@ -26,11 +27,16 @@ export default async function onRenderClient(
   document.removeEventListener("click", turbolinksClickListener);
   cacheProxiedBody();
 
-  const { title = "", description = "" } = getDocumentProps(pageContext);
+  const { title = "", description = "", viewport } = getDocumentProps(pageContext);
   document.title = title;
   document.head
     .querySelector("meta[name='description']")
     ?.setAttribute("content", description);
+  if (viewport) {
+    document.head
+      .querySelector("meta[name='viewport']")
+      ?.setAttribute("content", formatMetaObject(viewport));
+  }
 
   const page = (
     <PageShell pageContext={pageContext}>

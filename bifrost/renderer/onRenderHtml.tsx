@@ -4,6 +4,7 @@ import { PageShell } from "../lib/PageShell.js";
 import { escapeInject, dangerouslySkipEscape } from "vite-plugin-ssr/server";
 import { PageContextNoProxyServer } from "../types/internal.js";
 import { getDocumentProps } from "./getDocumentProps.js";
+import { formatMetaObject } from "./utils/formatMetaObject.js";
 
 export default async function onRenderHtml(
   pageContext: PageContextNoProxyServer
@@ -25,10 +26,12 @@ export default async function onRenderHtml(
   );
 
   // // See https://vite-plugin-ssr.com/head
-  const { title = "", description = "" } = getDocumentProps(pageContext);
+  const { title = "", description = "", viewport } = getDocumentProps(pageContext);
   if (!title) {
     console.warn(`No title set for ${pageContext.urlOriginal}!`);
   }
+
+  const viewportTag = !viewport ? "" : escapeInject`<meta content="${formatMetaObject(viewport)}" name="viewport">`
 
   const documentHtml = escapeInject`<!DOCTYPE html>
     <html lang="en">
@@ -36,6 +39,7 @@ export default async function onRenderHtml(
       <title>${title}</title>
       <meta name="title" property="og:title" content="${title}"/>
       <meta name="description" content="${description}"/>
+      ${viewportTag}
       </head>
       <body>
         <div id="page-view">${dangerouslySkipEscape(pageHtml)}</div>
