@@ -20,7 +20,7 @@
   },
   "peerDependencies": {
     "fastify": "^4.9.2",
-    "vite-plugin-ssr": "^0.4.120"
+    "vite-plugin-ssr": "^0.4.130"
   },
   "devDependencies": {
     "@types/connect": "^3.4.35",
