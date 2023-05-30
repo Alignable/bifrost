@@ -4,10 +4,7 @@ import { PageShell } from "../lib/PageShell.js";
 import { escapeInject, dangerouslySkipEscape } from "vite-plugin-ssr/server";
 import { PageContextNoProxyServer } from "../types/internal.js";
 import { getDocumentProps } from "./getDocumentProps.js";
-
-function formatMetaObject(obj: { [key: string]: string }) {
-  return Object.entries(obj).map((e) => e.join("=")).join(", ");
-}
+import { formatMetaObject } from "./utils/formatMetaObject.js";
 
 export default async function onRenderHtml(
   pageContext: PageContextNoProxyServer
