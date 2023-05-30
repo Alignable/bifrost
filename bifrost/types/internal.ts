@@ -56,6 +56,11 @@ export interface DocumentProps {
   viewport?: { [key: string]: string }
 }
 
+export interface ScriptProps {
+  googleAnalytics: string;
+  osano: string;
+}
+
 type PageProps = Record<string, unknown>;
 type Page = React.ComponentType<PageProps>;
 // Context for non-proxied pages
@@ -68,6 +73,7 @@ interface PageContextNoProxyCommon<LayoutProps = Record<string, unknown>> {
     layoutProps?: LayoutProps;
     documentProps?: DocumentProps;
     isLoggedIn?: boolean;
+    scripts: ScriptProps;
   };
 }
 

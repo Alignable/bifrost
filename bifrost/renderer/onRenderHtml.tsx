@@ -25,17 +25,23 @@ export default async function onRenderHtml(
     </PageShell>
   );
 
+  const { googleAnalytics, osano } = pageContext.config.scripts;
+  const googleAnalyticsTag = dangerouslySkipEscape(googleAnalytics);
+  const osanoTag = dangerouslySkipEscape(osano);
+
   // // See https://vite-plugin-ssr.com/head
   const { title = "", description = "", viewport } = getDocumentProps(pageContext);
   if (!title) {
     console.warn(`No title set for ${pageContext.urlOriginal}!`);
   }
 
-  const viewportTag = !viewport ? "" : escapeInject`<meta content="${formatMetaObject(viewport)}" name="viewport">`
+  const viewportTag = !viewport ? "" : escapeInject`<meta content="${formatMetaObject(viewport)}" name="viewport">`;
 
   const documentHtml = escapeInject`<!DOCTYPE html>
     <html lang="en">
       <head>
+      ${googleAnalyticsTag}
+      ${osanoTag}
       <title>${title}</title>
       <meta name="title" property="og:title" content="${title}"/>
       <meta name="description" content="${description}"/>
