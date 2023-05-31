@@ -5,9 +5,8 @@ export default {
   onBeforeRender: "import:@alignable/bifrost/proxy/pages/onBeforeRender",
   onRenderClient: "import:@alignable/bifrost/proxy/pages/onRenderClient",
   onRenderHtml: "import:@alignable/bifrost/proxy/pages/onRenderHtml",
-  onPageTransitionStart: "import:@alignable/bifrost/proxy/pages/onPageTransitionStart",
   Page: "import:@alignable/bifrost/proxy/pages/Page",
-  passToClient: ["proxySendClient", "layout", "layoutProps", "redirectTo"],
+  passToClient: ["proxySendClient", "snapshot", "layout", "layoutProps", "redirectTo"],
   clientRouting: true,
   hydrationCanBeAborted: true,
   meta: {

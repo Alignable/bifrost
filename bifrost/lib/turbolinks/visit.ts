@@ -1,11 +1,10 @@
+import { navigate } from "vite-plugin-ssr/client/router";
 import { Adapter } from "./adapter";
 import { Controller, RestorationData } from "./controller";
-import { HttpRequest } from "./http_request";
 import { Location } from "./location";
-import { RenderCallback } from "./renderer";
-import { Snapshot } from "./snapshot";
 import { Action } from "./types";
 import { uuid } from "./util";
+import { Renderer } from "./renderer";
 
 export enum TimingMetric {
   visitStart = "visitStart",
@@ -39,12 +38,13 @@ export class Visit {
   progress = 0;
   referrer?: Location;
   redirectedToLocation?: Location;
-  request?: HttpRequest;
-  response?: string;
   restorationData?: RestorationData;
   scrolled = false;
   snapshotCached = false;
   state = VisitState.initialized;
+
+  requestInFlight = false;
+  renderer?: Renderer;
 
   constructor(
     controller: Controller,
@@ -69,9 +69,7 @@ export class Visit {
 
   cancel() {
     if (this.state == VisitState.started) {
-      if (this.request) {
-        this.request.cancel();
-      }
+      this.requestInFlight = false;
       this.cancelRender();
       this.state = VisitState.canceled;
     }
@@ -94,21 +92,20 @@ export class Visit {
   }
 
   changeHistory() {
-    if (!this.historyChanged) {
-      const actionForHistory = this.location.isEqualTo(this.referrer)
-        ? "replace"
-        : this.action;
-      const method = this.getHistoryMethodForAction(actionForHistory);
-      method.call(this.controller, this.location, this.restorationIdentifier);
-      this.historyChanged = true;
-    }
+    // no-op since issueRequest calls navigate which handles all of this already
+    return;
   }
 
   issueRequest() {
-    if (this.shouldIssueRequest() && !this.request) {
+    if (!this.requestInFlight) {
+      if (this.shouldIssueRequest()) {
+      }
+      const url = new URL(this.location.toString(), this.location.getOrigin());
+      navigate(url.pathname + url.hash + url.search, {
+        overwriteLastHistoryEntry: this.action === "replace",
+      }).catch(console.error);
       this.progress = 0;
-      this.request = new HttpRequest(this, this.location, this.referrer);
-      this.request.send();
+      this.requestInFlight = true;
     }
   }
 
@@ -131,39 +128,31 @@ export class Visit {
   }
 
   loadCachedSnapshot() {
-    const snapshot = this.getCachedSnapshot();
-    if (snapshot) {
-      const isPreview = this.shouldIssueRequest();
-      this.render(() => {
-        this.cacheSnapshot();
-        this.controller.render({ snapshot, isPreview }, this.performScroll);
-        this.adapter.visitRendered(this);
-        if (!isPreview) {
-          this.complete();
-        }
-      });
-    }
+    // no-op since issueRequest calls navigate which handles all of this already
+    return;
+    // const snapshot = this.getCachedSnapshot();
+    // if (snapshot) {
+    //   const isPreview = this.shouldIssueRequest();
+    //   this.render(() => {
+    //     this.cacheSnapshot();
+    //     this.controller.render({ snapshot, isPreview }, this.performScroll);
+    //     this.adapter.visitRendered(this);
+    //     if (!isPreview) {
+    //       this.complete();
+    //     }
+    //   });
+    // }
   }
 
   loadResponse() {
-    const { request, response } = this;
-    if (request && response) {
-      this.render(() => {
-        this.cacheSnapshot();
-        if (request.failed) {
-          this.controller.render({ error: this.response }, this.performScroll);
-          this.adapter.visitRendered(this);
-          this.fail();
-        } else {
-          this.controller.render(
-            { snapshot: Snapshot.fromHTMLString(response) },
-            this.performScroll
-          );
-          this.adapter.visitRendered(this);
-          this.complete();
-        }
-      });
-    }
+    this.render(async () => {
+      if (!this.renderer) throw new Error("Renderer not set before rendering");
+      this.cacheSnapshot();
+      // await this.renderFn();
+      await this.renderer.render(this.controller, this.performScroll);
+      this.adapter.visitRendered(this);
+      this.complete();
+    });
   }
 
   followRedirect() {
@@ -179,6 +168,7 @@ export class Visit {
 
   // HTTP request delegate
 
+  /*
   requestStarted() {
     this.recordTimingMetric(TimingMetric.requestStart);
     this.adapter.visitRequestStarted(this);
@@ -209,6 +199,7 @@ export class Visit {
     this.recordTimingMetric(TimingMetric.requestEnd);
     this.adapter.visitRequestFinished(this);
   }
+  */
 
   // Scrolling
 
@@ -277,7 +268,7 @@ export class Visit {
     }
   }
 
-  render(callback: RenderCallback) {
+  render(callback: () => Promise<void>) {
     this.cancelRender();
     this.frame = requestAnimationFrame(() => {
       delete this.frame;

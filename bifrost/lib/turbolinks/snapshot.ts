@@ -16,6 +16,10 @@ export class Snapshot {
   static fromHTMLString(html: string) {
     const element = document.createElement("html");
     element.innerHTML = html;
+    element
+      .querySelectorAll("a[rel='external']")
+      .forEach((e) => e.setAttribute("data-turbolinks", "false"));
+    element.querySelectorAll("a").forEach((e) => (e.rel = "external"));
     return this.fromHTMLElement(element);
   }
 
@@ -36,10 +40,7 @@ export class Snapshot {
   }
 
   clone(): Snapshot {
-    return new Snapshot(
-      this.headDetails,
-      this.bodyElement.cloneNode(true) as HTMLBodyElement
-    );
+    return new Snapshot(this.headDetails, this.bodyElement.cloneNode(true));
   }
 
   getRootLocation() {
@@ -90,7 +91,10 @@ export class Snapshot {
   }
 
   isCacheable() {
-    return this.getCacheControlValue() != "no-cache";
+    return (
+      this.bodyElement.querySelector("#proxied-body") &&
+      this.getCacheControlValue() != "no-cache"
+    );
   }
 
   isVisitable() {

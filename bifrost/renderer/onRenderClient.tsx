@@ -2,12 +2,13 @@ import React, { PropsWithChildren } from "react";
 import { renderReact } from "../lib/renderReact.js";
 import { PageContextNoProxyClient } from "../types/internal.js";
 import { PageShell } from "../lib/PageShell.js";
-import { turbolinksClickListener } from "../lib/linkInterceptor.js";
 import { getDocumentProps } from "./getDocumentProps.js";
-import { Turbolinks, cacheProxiedBody, setupTurbolinks } from "../lib/turbolinks.js";
-import { formatMetaObject } from "./utils/formatMetaObject.js";
+import { Turbolinks } from "../lib/turbolinks/index.js";
+import { PassthruRenderer } from "../lib/turbolinks/passthrough_renderer.js";
+import { HeadDetails } from "../lib/turbolinks/head_details.js";
+import { buildHead } from "./utils/buildHead.js";
 
-setupTurbolinks();
+Turbolinks.start();
 
 const PassThruLayout: React.ComponentType<PropsWithChildren> = ({
   children,
@@ -27,20 +28,6 @@ export default async function onRenderClient(
   if (!Page)
     throw new Error("Client-side render() hook expects Page to be exported");
 
-  document.removeEventListener("click", turbolinksClickListener);
-  cacheProxiedBody();
-
-  const { title = "", description = "", viewport } = getDocumentProps(pageContext);
-  document.title = title;
-  document.head
-    .querySelector("meta[name='description']")
-    ?.setAttribute("content", description);
-  if (viewport) {
-    document.head
-      .querySelector("meta[name='viewport']")
-      ?.setAttribute("content", formatMetaObject(viewport));
-  }
-
   const page = (
     <PageShell pageContext={pageContext}>
       <Layout {...layoutProps}>
@@ -48,6 +35,34 @@ export default async function onRenderClient(
       </Layout>
     </PageShell>
   );
+  if (pageContext.isHydration) {
+    // During hydration of initial ssr, body is in dom, not page props (to avoid double-send)
+    renderReact(page, pageContext.isHydration);
+  } else {
+    Turbolinks._vpsRenderClientWith(
+      new PassthruRenderer(
+        HeadDetails.fromHeadElement(document.head),
+        HeadDetails.fromHeadString(buildHead(pageContext)),
+        () => {
+          const { title = "", description = "" } =
+            getDocumentProps(pageContext);
+          document.title = title;
+          document.head
+            .querySelector("meta[name='description']")
+            ?.setAttribute("content", description);
 
-  renderReact(page, pageContext.isHydration);
+          renderReact(page, pageContext.isHydration);
+        }
+      )
+    );
+    // Turbolinks._vpsOnRenderClient(async () => {
+    //   const { title = "", description = "" } = getDocumentProps(pageContext);
+    //   document.title = title;
+    //   document.head
+    //     .querySelector("meta[name='description']")
+    //     ?.setAttribute("content", description);
+
+    //   renderReact(page, pageContext.isHydration);
+    // });
+  }
 }

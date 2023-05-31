@@ -3,10 +3,9 @@ import { FastifyReply, RawServerBase, FastifyPluginAsync } from "fastify";
 import { FastifyRequest, RequestGenericInterface } from "fastify/types/request";
 import proxy from "@fastify/http-proxy";
 import accepts from "@fastify/accepts";
-import { type PageContextProxy, type Proxy } from "../bifrost/types/internal.js";
+import { type PageContextProxy } from "../bifrost/types/internal.js";
 import forwarded from "@fastify/forwarded";
 import { Writable } from "stream";
-import jsdom from "jsdom";
 import { IncomingHttpHeaders, IncomingMessage } from "http";
 import {
   Http2ServerRequest,
@@ -153,43 +152,21 @@ export const viteProxyPlugin: FastifyPluginAsync<
           return reply.send(res);
         }
 
-        const html = await streamToString(res);
-        const dom = new jsdom.JSDOM(html);
-        const doc = dom.window.document;
-        const bodyEl = doc.querySelector("body");
-        const head = doc.querySelector("head");
-
-        if (!bodyEl || !head) {
-          return reply.code(404).type("text/html").send("proxy failed");
-        }
-
-        // disable vite-plugin-ssr link interceptor. May not be neccessary in future:
-        // https://github.com/brillout/vite-plugin-ssr/discussions/728#discussioncomment-5634111
-        bodyEl
-          .querySelectorAll("a[rel='external']")
-          .forEach((e) => e.setAttribute("data-turbolinks", "false"));
-        bodyEl.querySelectorAll("a").forEach((e) => (e.rel = "external"));
-
-        const bodyAttrs: Record<string, string> = {};
-        bodyEl.getAttributeNames().forEach((name) => {
-          bodyAttrs[name] = bodyEl.getAttribute(name)!;
-        });
-
-        const proxy: Proxy = {
-          body: bodyEl.innerHTML,
-          head: head.innerHTML,
-          bodyAttrs,
-        };
+        const proxy = await streamToString(res);
+        // if (!bodyEl || !head) {
+        //   return reply.code(404).type("text/html").send("proxy failed");
+        // }
 
         const pageContextInit: Partial<PageContextProxy> = {
           urlOriginal: req.url,
           layout,
           layoutProps,
         };
-        // proxySendClient is serialized and sent to client on subsequent navigation. proxy is ONLY included server-side to avoid doubling page size
-        if (isPageContext) { //TODO: send whole string instead of parsing and let browser do the parsing (turbolinks bridge lib)
+        if (isPageContext) {
+          //  roxySendClient is serialized and sent to client on subsequent navigation.
           Object.assign(pageContextInit, { proxySendClient: proxy });
         } else {
+          // proxy is ONLY included server-side to avoid doubling page size
           Object.assign(pageContextInit, { proxy });
         }
         const pageContext = await renderPage(pageContextInit);

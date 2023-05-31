@@ -2,7 +2,6 @@ import { Adapter } from "./adapter";
 import { BrowserAdapter } from "./browser_adapter";
 import { History } from "./history";
 import { Location, Locatable } from "./location";
-import { RenderCallback } from "./renderer";
 import { ScrollManager } from "./scroll_manager";
 import { SnapshotCache } from "./snapshot_cache";
 import { Action, Position, isAction } from "./types";
@@ -22,16 +21,17 @@ export type VisitProperties = {
 
 export class Controller {
   static supported = !!(
+    typeof window !== "undefined" &&
     window.history.pushState &&
     window.requestAnimationFrame &&
     window.addEventListener
   );
 
-  readonly adapter: Adapter = new BrowserAdapter(this);
+  adapter: Adapter = new BrowserAdapter(this);
   readonly history = new History(this);
   readonly restorationData: RestorationDataMap = {};
   readonly scrollManager = new ScrollManager(this);
-  readonly view = new View(this);
+  readonly view = new View();
 
   cache = new SnapshotCache(10);
   currentVisit?: Visit;
@@ -44,7 +44,9 @@ export class Controller {
 
   start() {
     if (Controller.supported && !this.started) {
-      addEventListener("click", this.clickCaptured, true);
+      // TODO: delete document.body in this file. We are doing this to pre-empt VPS interceptor.
+      // https://github.com/brillout/vite-plugin-ssr/issues/918 fixes this.
+      document.body.addEventListener("click", this.clickCaptured, true);
       addEventListener("DOMContentLoaded", this.pageLoaded, false);
       this.scrollManager.start();
       this.startHistory();
@@ -59,7 +61,7 @@ export class Controller {
 
   stop() {
     if (this.started) {
-      removeEventListener("click", this.clickCaptured, true);
+      document.body.removeEventListener("click", this.clickCaptured, true);
       removeEventListener("DOMContentLoaded", this.pageLoaded, false);
       this.scrollManager.stop();
       this.stopHistory();
@@ -202,17 +204,12 @@ export class Controller {
   }
 
   // View
-
-  render(options: Partial<RenderOptions>, callback: RenderCallback) {
-    this.view.render(options, callback);
-  }
-
   viewInvalidated() {
     this.adapter.pageInvalidated();
   }
 
-  viewWillRender(newBody: HTMLBodyElement) {
-    this.notifyApplicationBeforeRender(newBody);
+  viewWillRender() {
+    this.notifyApplicationBeforeRender();
   }
 
   viewRendered() {
@@ -228,8 +225,8 @@ export class Controller {
   };
 
   clickCaptured = () => {
-    removeEventListener("click", this.clickBubbled, false);
-    addEventListener("click", this.clickBubbled, false);
+    document.body.removeEventListener("click", this.clickBubbled, false);
+    document.body.addEventListener("click", this.clickBubbled, false);
   };
 
   clickBubbled = (event: MouseEvent) => {
@@ -242,6 +239,7 @@ export class Controller {
           this.applicationAllowsFollowingLinkToLocation(link, location)
         ) {
           event.preventDefault();
+          event.stopPropagation();
           const action = this.getActionForLink(link);
           this.visit(location, { action });
         }
@@ -292,8 +290,8 @@ export class Controller {
     return dispatch("turbolinks:before-cache");
   }
 
-  notifyApplicationBeforeRender(newBody: HTMLBodyElement) {
-    return dispatch("turbolinks:before-render", { data: { newBody } });
+  notifyApplicationBeforeRender() {
+    return dispatch("turbolinks:before-render");
   }
 
   notifyApplicationAfterRender() {

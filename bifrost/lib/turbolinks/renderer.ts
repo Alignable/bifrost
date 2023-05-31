@@ -1,45 +1,27 @@
-import { array } from "./util";
-
-export type RenderCallback = () => void;
+export type RenderCallback = () => Promise<void>;
 
 export interface RenderDelegate {
-  viewWillRender(newBody: HTMLBodyElement): void;
-  viewRendered(newBody: HTMLBodyElement): void;
+  viewWillRender(): void;
+  viewRendered(): void;
   viewInvalidated(): void;
 }
 
 export abstract class Renderer {
-  abstract delegate: RenderDelegate;
-  abstract newBody: HTMLBodyElement;
+  abstract delegate?: RenderDelegate;
 
-  renderView(callback: RenderCallback) {
-    this.delegate.viewWillRender(this.newBody);
-    callback();
-    this.delegate.viewRendered(this.newBody);
+  abstract render(
+    delegate: RenderDelegate,
+    callback: RenderCallback
+  ): Promise<void>;
+
+  async renderView(callback: RenderCallback) {
+    if (!this.delegate) throw new Error("delegate not set before rendering");
+    this.delegate.viewWillRender();
+    await callback();
+    this.delegate.viewRendered();
   }
 
   invalidateView() {
-    this.delegate.viewInvalidated();
-  }
-
-  createScriptElement(element: Element) {
-    if (element.getAttribute("data-turbolinks-eval") == "false") {
-      return element;
-    } else {
-      const createdScriptElement = document.createElement("script");
-      createdScriptElement.textContent = element.textContent;
-      createdScriptElement.async = false;
-      copyElementAttributes(createdScriptElement, element);
-      return createdScriptElement;
-    }
-  }
-}
-
-function copyElementAttributes(
-  destinationElement: Element,
-  sourceElement: Element
-) {
-  for (const { name, value } of array(sourceElement.attributes)) {
-    destinationElement.setAttribute(name, value);
+    this.delegate?.viewInvalidated();
   }
 }

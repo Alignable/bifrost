@@ -74,9 +74,6 @@ export function buildPage(data: PageData) {
   <head>
   <title>${title}</title>
   ${headScripts.map((h) => HEAD_SCRIPTS[h]).join("\n")}
-  <script>${Object.values(Turbolinks).map(
-    (e) => `document.addEventListener("${e}",(e)=>console.log("${e}"));`
-  ).join("")}</script>
   </head>
   <body ${bodyAttrs}>
   ${bodyScripts.map((h) => BODY_SCRIPTS[h]).join("\n")}

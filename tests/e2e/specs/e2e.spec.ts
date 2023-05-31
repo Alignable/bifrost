@@ -136,9 +136,6 @@ test.describe("redirects", () => {
 });
 
 test.describe("turbolinks: events", () => {
-  // also test that the dom looks the way it should at exact moment of event
-  // test initial load and nav from proxy=>proxy page
-  // maybe not possible this way on initial load
   test("on SSR load of proxy page, it just fires turbolinks:load", async ({
     page,
   }) => {
@@ -173,7 +170,7 @@ test.describe("turbolinks: events", () => {
         [T.beforeVisit, head1, body1],
         [T.visit, head1, body1],
         [T.beforeCache, head1, body1],
-        [T.beforeRender, head1, body1], // Breaking change: Actual Turbolinks would have been head2, body1
+        [T.beforeRender, head2, body1], // Breaking change: Actual Turbolinks would have been head2, body1
         [T.render, head2, body2],
         [T.load, head2, body2],
       ]
@@ -215,8 +212,8 @@ test.describe("turbolinks: events", () => {
       T.beforeVisit,
       T.visit,
       T.beforeCache,
-      T.beforeRender,
       "head script: inline 1",
+      T.beforeRender,
       "head script: blocking",
       "body script: inline 1",
       T.render,
@@ -234,7 +231,7 @@ test.describe("turbolinks: events", () => {
     expect(logs.filter((l) => l.startsWith("turbolinks:")).length).toBe(0);
   });
 
-  test("navigating proxy => vite page only fires leaving events", async ({
+  test("navigating proxy => vite page fires all events", async ({
     page,
   }) => {
     const customProxy = new CustomProxyPage(page, {
@@ -244,7 +241,9 @@ test.describe("turbolinks: events", () => {
     await customProxy.goto();
 
     const head1 = (m: StringMatcher) => m.toEqual("first page");
+    const head2 = (m: StringMatcher) => m.toEqual("vite page");
     const body1 = (m: StringMatcher) => m.toContain("first page body content");
+    const body2 = (m: StringMatcher) => m.toContain("vite is here");
 
     // assert we arent on the second page until load fires
     const waitForTurbolinks = validateDOMOnTurbolinks(
@@ -255,6 +254,9 @@ test.describe("turbolinks: events", () => {
         [T.beforeVisit, head1, body1],
         [T.visit, head1, body1],
         [T.beforeCache, head1, body1],
+        [T.beforeRender, head2, body1],
+        [T.render, head2, body2],
+        [T.load, head2, body2],
       ]
     );
     await customProxy.clickLink("vite page");
@@ -264,10 +266,14 @@ test.describe("turbolinks: events", () => {
       T.beforeVisit,
       T.visit,
       T.beforeCache,
+      T.beforeRender,
+      T.render,
+      T.load,
     ]);
   });
 
-  test("leaving vite page to proxy page only fires loading events", async ({
+  // We do not want to cache new pages
+  test("leaving vite page to proxy page fires all events EXCEPT cache", async ({
     page,
   }) => {
     ensureAllNetworkSucceeds(page);
@@ -278,7 +284,9 @@ test.describe("turbolinks: events", () => {
     });
     await expect(page).toHaveTitle("vite page");
 
+    const head1 = (m: StringMatcher) => m.toEqual("vite page");
     const head2 = (m: StringMatcher) => m.toEqual("legacy page");
+    const body1 = (m: StringMatcher) => m.toContain("vite is here");
     const body2 = (m: StringMatcher) => m.toContain("legacy body");
 
     // assert we arent on the second page until load fires
@@ -286,16 +294,25 @@ test.describe("turbolinks: events", () => {
       page,
       ["title", "body"],
       [
+        [T.click, head1, body1],
+        [T.beforeVisit, head1, body1],
+        [T.visit, head1, body1],
+        [T.beforeRender, head2, body1],
         [T.render, head2, body2],
         [T.load, head2, body2],
       ]
     );
+
     await ensureNoBrowserNavigation(page, () =>
       page.getByText("legacy page").click()
     );
     await expect(page).toHaveTitle("legacy page");
     await waitForTurbolinks;
     expect(logs.filter((s) => s.startsWith("turbolinks:"))).toEqual([
+      T.click,
+      T.beforeVisit,
+      T.visit,
+      T.beforeRender,
       T.render,
       T.load,
     ]);
@@ -349,7 +366,7 @@ test.describe("back button restoration", () => {
       links: [{ title: "second page", content: "second page body content" }],
     });
     await customProxy.goto();
-    const edit = page.getByRole("link").first()
+    const edit = page.getByRole("link").first();
 
     await page.evaluate((rRoot: any) => {
       rRoot.appendChild(document.createTextNode("edit1"));
@@ -372,7 +389,7 @@ test.describe("back button restoration", () => {
 
   test("does not restore vite pages", async ({ page }) => {
     await page.goto("./vite-page");
-    const edit = page.getByRole("link").first()
+    const edit = page.getByRole("link").first();
     await page.evaluate((rRoot: any) => {
       rRoot.appendChild(document.createTextNode("edit1"));
       document.addEventListener("turbolinks:before-cache", () => {
@@ -628,7 +645,18 @@ test.describe("script loading order", () => {
       await customProxy.clickLink("trackedA", { browserReload: true });
     });
 
-    test("moving from tracked page to unproxied page", async ({ page }) => {});
+    test("moving from tracked page to unproxied page", async ({ page }) => {
+      ensureAllNetworkSucceeds(page);
+
+      const customProxy = new CustomProxyPage(page, {
+        title: "tracked",
+        headScripts: ["inline1", "trackedB", "defer"],
+      });
+
+      await customProxy.goto();
+
+      await customProxy.clickLink("vite page", { browserReload: false });
+    });
   });
 
   test("moving from new to legacy loads scripts in correct order", async ({
@@ -637,10 +665,12 @@ test.describe("script loading order", () => {
     ensureAllNetworkSucceeds(page);
     const logs = storeConsoleLog(page);
 
-    await page.goto("./vite-page");
+    await page.goto("./vite-page", {
+      waitUntil: "networkidle",
+    });
     await expect(page).toHaveTitle("vite page");
     expect(logs.filter((s) => s.includes("script"))).toEqual([]);
-    await sleep(50)
+    await sleep(50);
 
     await ensureNoBrowserNavigation(page, () =>
       page.getByText("legacy page").click()
@@ -648,7 +678,7 @@ test.describe("script loading order", () => {
     await expect(page).toHaveTitle("legacy page");
 
     // regular client-side load order
-    expect(logs.filter((s)=>s.includes("script"))).toEqual([
+    expect(logs.filter((s) => s.includes("script"))).toEqual([
       "head script: inline 1",
       "head script: blocking",
       "body script: inline 1",

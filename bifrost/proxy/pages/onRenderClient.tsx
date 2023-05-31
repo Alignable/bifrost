@@ -2,17 +2,11 @@ import React from "react";
 import { renderReact } from "../../lib/renderReact.js";
 import { PageShell } from "../../lib/PageShell.js";
 import { PageContextProxyClient } from "../../types/internal.js";
-import { turbolinksClickListener } from "../../lib/linkInterceptor.js";
-import { dispatchTurbolinks } from "../../lib/dispatchTurbolinks.js";
-import { mergeHead } from "../../lib/mergeHead.js";
-import {
-  Turbolinks,
-  cacheProxiedBody,
-  getAdapter,
-  setupTurbolinks,
-  writeRestorationIdentifier,
-} from "../../lib/turbolinks.js";
-import { Visit as TVisit } from "turbolinks/dist/visit";
+import { Turbolinks } from "../../lib/turbolinks/index.js";
+import { Snapshot } from "../../lib/turbolinks/snapshot.js";
+import { SnapshotRenderer } from "../../lib/turbolinks/snapshot_renderer.js";
+
+Turbolinks.start();
 
 export default async function onRenderClient(
   pageContext: PageContextProxyClient
@@ -21,56 +15,58 @@ export default async function onRenderClient(
     Turbolinks.visit(pageContext.redirectTo);
     return;
   }
-  console.log("help");
-  setupTurbolinks();
 
   let body: string;
 
   const { layoutProps, layout } = pageContext;
   const Layout = pageContext.config.layoutMap[layout];
 
+  function render(body: string) {
+    renderReact(
+      <PageShell key={pageContext.urlOriginal} pageContext={pageContext}>
+        <Layout {...layoutProps}>
+          <div id="proxied-body" dangerouslySetInnerHTML={{ __html: body }} />
+        </Layout>
+      </PageShell>,
+      pageContext.isHydration
+    );
+  }
+
   if (pageContext.isHydration) {
     // During hydration of initial ssr, body is in dom, not page props (to avoid double-send)
     body = document.getElementById("proxied-body")!.innerHTML;
+    render(body);
   } else {
     const { proxySendClient: proxy } = pageContext;
 
-    if (!proxy) {
+    const snapshot =
+      pageContext.snapshot || (proxy && Snapshot.fromHTMLString(proxy));
+
+    if (!snapshot) {
       console.error(
         "proxy/+onRenderClient did not receive proxySendClient nor is there a cached snapshot"
       );
       return;
     }
 
-    cacheProxiedBody();
-    dispatchTurbolinks("turbolinks:before-render", { newBody: proxy.body });
+    Turbolinks._vpsRenderClientWith(
+      new SnapshotRenderer(
+        Snapshot.fromHTMLElement(document.documentElement as HTMLHtmlElement),
+        snapshot,
+        false,
+        render
+      )
+    );
 
-    const v = window.Turbolinks.controller.currentVisit;
-    console.log("visitreqcomplete", v);
-    getAdapter()?.visitRequestCompleted(v as TVisit);
-    getAdapter()?.visitRequestFinished(v as TVisit);
+    //   document.body
+    //     .getAttributeNames()
+    //     .forEach((n) => document.body.removeAttribute(n));
+    //   for (const [name, value] of Object.entries(proxy.bodyAttrs)) {
+    //     document.body.setAttribute(name, value);
+    //   }
 
-    body = proxy.body;
-
-    document.body
-      .getAttributeNames()
-      .forEach((n) => document.body.removeAttribute(n));
-    for (const [name, value] of Object.entries(proxy.bodyAttrs)) {
-      document.body.setAttribute(name, value);
-    }
-
-    mergeHead(proxy.head);
+    //   await mergeHead(proxy.head);
+    // });
+    // writeRestorationIdentifier(pageContext);
   }
-  writeRestorationIdentifier(pageContext);
-  // addEventListener de-dupes so we are safe to just blindly call this every time
-  // non-proxy pages remove the listener
-  document.addEventListener("click", turbolinksClickListener);
-  renderReact(
-    <PageShell key={pageContext.urlOriginal} pageContext={pageContext}>
-      <Layout {...layoutProps}>
-        <div id="proxied-body" dangerouslySetInnerHTML={{ __html: body }} />
-      </Layout>
-    </PageShell>,
-    pageContext.isHydration
-  );
 }

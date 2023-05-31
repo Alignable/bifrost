@@ -2,7 +2,6 @@ import { Config, ConfigNonHeaderFile } from "vite-plugin-ssr/types";
 import { DocumentProps, Layout, LayoutMap } from "./types/internal";
 import ProxyLibConfig from "./proxy/pages/+config.js";
 import bifrostLibConfig from "./renderer/+config.js";
-import { Turbolinks } from "./lib/turbolinks.js";
 export { usePageContext } from "./renderer/usePageContext.js";
 
 // ===========   Types   =========== //
@@ -30,9 +29,3 @@ export type BifrostConfig<LayoutProps> = ConfigConstructor<
     documentProps: DocumentProps;
   }
 >;
-
-declare global {
-  interface Window {
-    Turbolinks: typeof Turbolinks;
-  }
-}

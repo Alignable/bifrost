@@ -1,11 +1,12 @@
-import { getSnapshot } from "../lib/turbolinks";
 
 export default function onBeforeRoute(_pageContext: any) {
-  const snapshot = getSnapshot();
-  if (!!snapshot?.proxySendClient) {
+  const snapshot =
+    typeof window !== "undefined" &&
+    window.Turbolinks.controller.currentVisit?.getCachedSnapshot();
+  if (!!snapshot) {
     return {
       pageContext: {
-        ...snapshot,
+        snapshot,
         _pageId: "/proxy/pages/restorationVisit",
       },
     };

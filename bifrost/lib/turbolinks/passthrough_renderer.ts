@@ -10,49 +10,25 @@ export type Placeholder = {
   permanentElement: PermanentElement;
 };
 
-type BodyRenderer = (body: string) => void;
+type BodyRenderer = () => void;
 
 const allHeadScriptsEverRun: { [outerHTML: string]: boolean } = {};
 let firstLoad = true;
 
-export class SnapshotRenderer extends Renderer {
+export class PassthruRenderer extends Renderer {
   delegate?: RenderDelegate;
-  readonly currentSnapshot: Snapshot;
   readonly currentHeadDetails: HeadDetails;
-  readonly newSnapshot: Snapshot;
   readonly newHeadDetails: HeadDetails;
-  readonly newBody: HTMLBodyElement;
-  readonly isPreview: boolean;
   renderBody: BodyRenderer;
 
-  // todo: dont need this?
-  static render(
-    delegate: RenderDelegate,
-    callback: RenderCallback,
-    currentSnapshot: Snapshot,
-    newSnapshot: Snapshot,
-    isPreview: boolean,
-    renderBody: BodyRenderer
-  ) {
-    return new this(currentSnapshot, newSnapshot, isPreview, renderBody).render(
-      delegate,
-      callback
-    );
-  }
-
   constructor(
-    currentSnapshot: Snapshot,
-    newSnapshot: Snapshot,
-    isPreview: boolean,
+    currentHeadDetails: HeadDetails,
+    newHeadDetails: HeadDetails,
     renderBody: BodyRenderer
   ) {
     super();
-    this.currentSnapshot = currentSnapshot;
-    this.currentHeadDetails = currentSnapshot.headDetails;
-    this.newSnapshot = newSnapshot;
-    this.newHeadDetails = newSnapshot.headDetails;
-    this.newBody = newSnapshot.bodyElement;
-    this.isPreview = isPreview;
+    this.currentHeadDetails = currentHeadDetails;
+    this.newHeadDetails = newHeadDetails;
     this.renderBody = renderBody;
   }
 
@@ -61,7 +37,7 @@ export class SnapshotRenderer extends Renderer {
     if (this.shouldRender()) {
       const scriptsLoaded = this.mergeHead();
       await this.renderView(async () => {
-        this.replaceBody();
+        this.renderBody();
         await scriptsLoaded;
         callback();
       });
@@ -89,14 +65,8 @@ export class SnapshotRenderer extends Renderer {
     });
   }
 
-  replaceBody() {
-    const placeholders = this.relocateCurrentBodyPermanentElements();
-    this.renderBody(this.newBody.innerHTML);
-    this.replacePlaceholderElementsWithClonedPermanentElements(placeholders);
-  }
-
   shouldRender() {
-    return this.newSnapshot.isVisitable() && this.trackedElementsAreIdentical();
+    return true;
   }
 
   trackedElementsAreIdentical() {
@@ -115,8 +85,7 @@ export class SnapshotRenderer extends Renderer {
   copyNewHeadScriptElements(onScriptsLoaded: () => void) {
     let blockingLoaded: boolean[] = [];
     const dispatch = () => {
-      this.activateNewBodyScriptElements();
-      focusFirstAutofocusableElement()
+      focusFirstAutofocusableElement();
 
       onScriptsLoaded();
     };
@@ -136,7 +105,6 @@ export class SnapshotRenderer extends Renderer {
         }
         const script = createScriptElement(element);
         if (cb) {
-          console.log("added event");
           script.addEventListener("load", cb);
         }
         document.head.appendChild(script);
@@ -161,42 +129,6 @@ export class SnapshotRenderer extends Renderer {
     }
   }
 
-  relocateCurrentBodyPermanentElements() {
-    return this.getCurrentBodyPermanentElements().reduce(
-      (placeholders, permanentElement) => {
-        const newElement = this.newSnapshot.getPermanentElementById(
-          permanentElement.id
-        );
-        if (newElement) {
-          const placeholder =
-            createPlaceholderForPermanentElement(permanentElement);
-          replaceElementWithElement(permanentElement, placeholder.element);
-          replaceElementWithElement(newElement, permanentElement);
-          return [...placeholders, placeholder];
-        } else {
-          return placeholders;
-        }
-      },
-      [] as Placeholder[]
-    );
-  }
-
-  replacePlaceholderElementsWithClonedPermanentElements(
-    placeholders: Placeholder[]
-  ) {
-    for (const { element, permanentElement } of placeholders) {
-      const clonedElement = permanentElement.cloneNode(true) as Element;
-      replaceElementWithElement(element, clonedElement);
-    }
-  }
-
-  activateNewBodyScriptElements() {
-    for (const inertScriptElement of this.getNewBodyScriptElements()) {
-      const activatedScriptElement = createScriptElement(inertScriptElement);
-      replaceElementWithElement(inertScriptElement, activatedScriptElement);
-    }
-  }
-
   getNewHeadStylesheetElements() {
     return this.newHeadDetails.getStylesheetElementsNotInDetails(
       this.currentHeadDetails
@@ -215,33 +147,5 @@ export class SnapshotRenderer extends Renderer {
 
   getNewHeadProvisionalElements() {
     return this.newHeadDetails.getProvisionalElements();
-  }
-
-  getCurrentBodyPermanentElements(): PermanentElement[] {
-    return this.currentSnapshot.getPermanentElementsPresentInSnapshot(
-      this.newSnapshot
-    );
-  }
-
-  getNewBodyScriptElements() {
-    return Array.from(
-      document.body.querySelector("#proxied-body")!.querySelectorAll("script")
-    );
-  }
-}
-
-function createPlaceholderForPermanentElement(
-  permanentElement: PermanentElement
-) {
-  const element = document.createElement("meta");
-  element.setAttribute("name", "turbolinks-permanent-placeholder");
-  element.setAttribute("content", permanentElement.id);
-  return { element, permanentElement };
-}
-
-function replaceElementWithElement(fromElement: Element, toElement: Element) {
-  const parentElement = fromElement.parentElement;
-  if (parentElement) {
-    return parentElement.replaceChild(toElement, fromElement);
   }
 }

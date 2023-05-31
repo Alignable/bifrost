@@ -18,6 +18,12 @@ export class HeadDetails {
     return new this(children);
   }
 
+  static fromHeadString(head: string): HeadDetails {
+    const element = document.createElement("head");
+    element.innerHTML = head;
+    return this.fromHeadElement(element);
+  }
+
   constructor(children: Element[]) {
     this.detailsByOuterHTML = children.reduce((result, element) => {
       const { outerHTML } = element;

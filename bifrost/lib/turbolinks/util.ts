@@ -108,3 +108,32 @@ export function uuid() {
     })
     .join("");
 }
+
+
+export function createScriptElement(element: Element): HTMLScriptElement {
+  if (element.getAttribute("data-turbolinks-eval") == "false") {
+    return element as HTMLScriptElement;
+  } else {
+    const createdScriptElement = document.createElement("script");
+    createdScriptElement.textContent = element.textContent;
+    createdScriptElement.async = false;
+    copyElementAttributes(createdScriptElement, element);
+    return createdScriptElement;
+  }
+}
+
+function copyElementAttributes(
+  destinationElement: Element,
+  sourceElement: Element
+) {
+  for (const { name, value } of array(sourceElement.attributes)) {
+    destinationElement.setAttribute(name, value);
+  }
+}
+
+export function focusFirstAutofocusableElement() {
+  const element = document.body.querySelector("[autofocus]");
+  if (element && "focus" in element && typeof element.focus === "function") {
+    element.focus();
+  }
+}

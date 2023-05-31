@@ -26,7 +26,4 @@ bifrost is the framework for incremental migration from Rails/Turbolinks to Vite
   - All navbars
 - Authentication
 - proxy performance: jsdom likely can be replaced with something ~10x faster.
-- BAN raw navigate from VPS: IT WILL BREAK IOS.
--   fake turbolinks needs to run in new pages for iOS's sake.
 
-- scroll position restoration?

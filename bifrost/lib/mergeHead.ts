@@ -1,7 +1,9 @@
-import { dispatchTurbolinks } from "./dispatchTurbolinks.js";
-import { activateNewBodyScriptElements, createScriptElement } from "./domUtils.js";
-import { Turbolinks, getAdapter } from "./turbolinks.js";
-import { Visit as TVisit } from "turbolinks/dist/visit";
+import {
+  activateNewBodyScriptElements,
+  createScriptElement,
+} from "./domUtils.js";
+import { HeadDetails } from "./turbolinks/head_details.js";
+import { focusFirstAutofocusableElement } from "./turbolinks/util.js";
 
 interface ElementDetails {
   tracked: boolean;
@@ -10,7 +12,7 @@ const allHeadScriptsEverRun: { [outerHTML: string]: ElementDetails } = {};
 let firstLoad = true;
 
 // takes in innerHTML of head
-export function mergeHead(head: string) {
+export async function mergeHead(head: string) {
   const parsed = document.createRange().createContextualFragment(head); // Create a 'tiny' document and parse the html string
   const newHead = categorizeHead(parsed);
   const oldHead = categorizeHead(document.head);
@@ -32,7 +34,10 @@ export function mergeHead(head: string) {
   copyNewHeadStylesheetElements(newHead.stylesheets, oldHead.stylesheets);
   removeCurrentHeadProvisionalElements(oldHead.provisional);
   copyNewHeadProvisionalElements(newHead.provisional);
-  copyNewHeadScriptElements(newHead.scripts);
+
+  return new Promise<void>((resolve) => {
+    copyNewHeadScriptElements(newHead.scripts, resolve);
+  });
 }
 
 function trackedScriptsIdentical(prev: Element[], next: Element[]) {
@@ -57,23 +62,20 @@ function copyNewHeadStylesheetElements(next: Element[], prev: Element[]) {
   }
 }
 
-function copyNewHeadScriptElements(next: Element[]) {
+function copyNewHeadScriptElements(
+  next: Element[],
+  onScriptsLoaded: () => void
+) {
   let blockingLoaded: boolean[] = [];
   function dispatch() {
     const scripts = document.body
       .querySelector("#proxied-body")!
       .querySelectorAll("script");
 
-    // TODO: maybe this goes in onTransitionEnd? Need to test.
     activateNewBodyScriptElements(Array.from(scripts));
     focusFirstAutofocusableElement();
 
-    const v = window.Turbolinks.controller.currentVisit;
-    dispatchTurbolinks("turbolinks:render", {});
-    getAdapter()?.visitRendered(v as TVisit);
-
-    dispatchTurbolinks("turbolinks:load", { url: window.location.href });
-    getAdapter()?.visitCompleted(v as TVisit);
+    onScriptsLoaded();
   }
   for (const element of next as HTMLScriptElement[]) {
     const runBefore = element.outerHTML in allHeadScriptsEverRun;
@@ -96,8 +98,8 @@ function copyNewHeadScriptElements(next: Element[]) {
     }
   }
   if (blockingLoaded.length === 0) {
-    //TODO: raf waits for react to run... not 100% sure of the reliability
-    requestAnimationFrame(() => requestAnimationFrame(dispatch));
+    // //TODO: raf waits for react to finish... not 100% sure of the reliability
+    requestAnimationFrame(dispatch);
   }
 }
 
@@ -110,13 +112,6 @@ function removeCurrentHeadProvisionalElements(prev: Element[]) {
 function copyNewHeadProvisionalElements(next: Element[]) {
   for (const element of next) {
     document.head.appendChild(element);
-  }
-}
-
-function focusFirstAutofocusableElement() {
-  const element = document.body.querySelector("[autofocus]");
-  if (element && "focus" in element && typeof element.focus === "function") {
-    element.focus();
   }
 }
 

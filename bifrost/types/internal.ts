@@ -3,14 +3,15 @@ import {
   PageContextBuiltIn,
   PageContextBuiltInClientWithClientRouting as PageContextBuiltInClient,
 } from "vite-plugin-ssr/types";
+import { Snapshot } from "../lib/turbolinks/snapshot";
 
 // =============== Types for proxy pages ================= //
 // ===============  Crossing the bridge  ================ //
-export interface Proxy {
-  body: string;
-  head: string;
-  bodyAttrs: Record<string, string>;
-}
+// export interface Proxy {
+//   body: string;
+//   head: string;
+//   bodyAttrs: Record<string, string>;
+// }
 
 export type Layout<LayoutProps> = React.ComponentType<PropsWithChildren<LayoutProps>>;
 export type LayoutMap<LayoutProps> = Record<string, Layout<LayoutProps>>;
@@ -35,10 +36,11 @@ type PageContextProxyClientNav = {
   redirectTo?: string;
   /// same as proxy but is allowed to be sent to client.
   /// Should not exist on initial render since it'll double page size!!
-  proxySendClient?: Proxy;
+  proxySendClient?: string;
+  snapshot?: Snapshot;
 };
 export type PageContextProxyServer = PageContextBuiltIn<Page> &
-  PageContextProxyCommon & { proxy: Proxy };
+  PageContextProxyCommon & { proxy: string };
 export type PageContextProxyClient = PageContextBuiltInClient<Page> &
   PageContextProxyCommon &
   (PageContextProxyClientHydration | PageContextProxyClientNav);
