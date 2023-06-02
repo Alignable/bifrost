@@ -68,12 +68,14 @@ interface PageContextNoProxyCommon<LayoutProps = Record<string, unknown>> {
   pageProps: PageProps;
   redirectTo?: string;
   documentProps?: DocumentProps;
+  cmsStoryData?: any;
   config: {
     Layout: Layout<LayoutProps>;
     layoutProps?: LayoutProps;
     documentProps?: DocumentProps;
     isLoggedIn?: boolean;
     scripts: ScriptProps;
+    cmsEnabled?: boolean;
   };
 }
 
