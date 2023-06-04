@@ -39,22 +39,12 @@ export default async function onRenderClient(
     // During hydration of initial ssr, body is in dom, not page props (to avoid double-send)
     renderReact(page, pageContext.isHydration);
   } else {
-    Turbolinks._vpsRenderClientWith(
-      new PassthruRenderer(
-        HeadDetails.fromHeadElement(document.head),
-        HeadDetails.fromHeadString(buildHead(pageContext)),
-        () => {
-          const { title = "", description = "" } =
-            getDocumentProps(pageContext);
-          document.title = title;
-          document.head
-            .querySelector("meta[name='description']")
-            ?.setAttribute("content", description);
+    const head = document.createElement("head");
+    head.innerHTML = buildHead(pageContext); //TODO: this is not safe
+    Turbolinks._vpsOnRenderClient(head, () => {
 
-          renderReact(page, pageContext.isHydration);
-        }
-      )
-    );
+      renderReact(page, pageContext.isHydration);
+    });
     // Turbolinks._vpsOnRenderClient(async () => {
     //   const { title = "", description = "" } = getDocumentProps(pageContext);
     //   document.title = title;

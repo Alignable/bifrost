@@ -49,6 +49,10 @@
       "types": "./dist/proxy/pages/restorationVisit/route.d.ts",
       "default": "./dist/proxy/pages/restorationVisit/route.js"
     },
+    "./proxy/pages/restorationVisit/onRenderClient": {
+      "types": "./dist/proxy/pages/restorationVisit/onRenderClient.d.ts",
+      "default": "./dist/proxy/pages/restorationVisit/onRenderClient.js"
+    },
     ".": {
       "types": "./dist/index.d.ts",
       "default": "./dist/index.js"

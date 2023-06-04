@@ -1,6 +1,9 @@
+import { activateNewBodyScriptElements } from "../domUtils";
+import { mergeHead } from "../mergeHead";
 import { Controller, VisitOptions } from "./controller";
 import { Locatable } from "./location";
 import { Renderer } from "./renderer";
+import { focusFirstAutofocusableElement } from "./util";
 
 const controller = new Controller();
 
@@ -36,27 +39,39 @@ export const Turbolinks = {
     controller.start();
   },
 
-  _vpsRenderClientWith(renderer: Renderer) {
-    if (controller.currentVisit) {
-      // TODO: move to controller
-      controller.currentVisit.renderer = renderer;
-      controller.adapter.visitRequestCompleted(controller.currentVisit);
-      controller.adapter.visitRequestFinished(controller.currentVisit);
-    } else {
-      console.error(
-        "controller.currentVisit should exist when onRenderClient fires"
-      );
-    }
+  _vpsCachePageContext(pageContext: any) {
+    controller.pageContext = pageContext;
   },
 
-  _vpsOnRenderClient(renderFn: () => Promise<void>) {
+  _vpsWriteRestorationIdentifier() {
+    controller.restorationIdentifier
+  },
+
+  _vpsOnRenderClient(
+    newHead: HTMLHeadElement,
+    renderBody: () => void
+  ) {
     if (controller.currentVisit) {
-      // TODO: move to controller
-      controller.currentVisit.renderFn = async () => {
+      const { currentVisit } = controller;
+      // TODO: handle render.shouldRender logic
+      // TODO: move to controller?
+      currentVisit.renderFn = async () => {
+        const scriptsLoaded = mergeHead(newHead);
+
         controller.viewWillRender();
-        await renderFn();
+        renderBody();
+        await scriptsLoaded;
+
+        activateNewBodyScriptElements(
+          Array.from(document.body.querySelectorAll("script"))
+        );
+        focusFirstAutofocusableElement();
+        currentVisit.performScroll();
+
         controller.viewRendered();
+        controller.adapter.visitRendered(currentVisit);
       };
+
       controller.adapter.visitRequestCompleted(controller.currentVisit);
       controller.adapter.visitRequestFinished(controller.currentVisit);
     } else {

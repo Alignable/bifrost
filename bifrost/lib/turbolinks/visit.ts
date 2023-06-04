@@ -1,10 +1,9 @@
 import { navigate } from "vite-plugin-ssr/client/router";
 import { Adapter } from "./adapter";
-import { Controller, RestorationData } from "./controller";
+import { Controller, RestorationData } from "./controller.js";
 import { Location } from "./location";
 import { Action } from "./types";
 import { uuid } from "./util";
-import { Renderer } from "./renderer";
 
 export enum TimingMetric {
   visitStart = "visitStart",
@@ -31,7 +30,6 @@ export class Visit {
   readonly restorationIdentifier: string;
   readonly timingMetrics: TimingMetrics = {};
 
-  followedRedirect = false;
   frame?: number;
   historyChanged = false;
   location: Location;
@@ -44,7 +42,7 @@ export class Visit {
   state = VisitState.initialized;
 
   requestInFlight = false;
-  renderer?: Renderer;
+  renderFn?: () => Promise<void>;
 
   constructor(
     controller: Controller,
@@ -99,13 +97,16 @@ export class Visit {
   issueRequest() {
     if (!this.requestInFlight) {
       if (this.shouldIssueRequest()) {
+        const url = new URL(
+          this.location.toString(),
+          this.location.getOrigin()
+        );
+        navigate(url.pathname + url.hash + url.search, {
+          overwriteLastHistoryEntry: this.action === "replace",
+        }).catch(console.error);
+        this.progress = 0;
+        this.requestInFlight = true;
       }
-      const url = new URL(this.location.toString(), this.location.getOrigin());
-      navigate(url.pathname + url.hash + url.search, {
-        overwriteLastHistoryEntry: this.action === "replace",
-      }).catch(console.error);
-      this.progress = 0;
-      this.requestInFlight = true;
     }
   }
 
@@ -114,10 +115,10 @@ export class Visit {
       this.location
     );
     if (
-      snapshot &&
-      (!this.location.anchor || snapshot.hasAnchor(this.location.anchor))
+      snapshot 
+      // TODO: restore functionality: && (!this.location.anchor || snapshot.hasAnchor(this.location.anchor))
     ) {
-      if (this.action == "restore" || snapshot.isPreviewable()) {
+      if (this.action == "restore") {
         return snapshot;
       }
     }
@@ -130,40 +131,16 @@ export class Visit {
   loadCachedSnapshot() {
     // no-op since issueRequest calls navigate which handles all of this already
     return;
-    // const snapshot = this.getCachedSnapshot();
-    // if (snapshot) {
-    //   const isPreview = this.shouldIssueRequest();
-    //   this.render(() => {
-    //     this.cacheSnapshot();
-    //     this.controller.render({ snapshot, isPreview }, this.performScroll);
-    //     this.adapter.visitRendered(this);
-    //     if (!isPreview) {
-    //       this.complete();
-    //     }
-    //   });
-    // }
   }
 
   loadResponse() {
     this.render(async () => {
-      if (!this.renderer) throw new Error("Renderer not set before rendering");
+      if (!this.renderFn)
+        throw new Error("Render details not set before rendering");
       this.cacheSnapshot();
-      // await this.renderFn();
-      await this.renderer.render(this.controller, this.performScroll);
-      this.adapter.visitRendered(this);
+      await this.renderFn();
       this.complete();
     });
-  }
-
-  followRedirect() {
-    if (this.redirectedToLocation && !this.followedRedirect) {
-      this.location = this.redirectedToLocation;
-      this.controller.replaceHistoryWithLocationAndRestorationIdentifier(
-        this.redirectedToLocation,
-        this.restorationIdentifier
-      );
-      this.followedRedirect = true;
-    }
   }
 
   // HTTP request delegate
@@ -247,16 +224,6 @@ export class Visit {
 
   // Private
 
-  getHistoryMethodForAction(action: Action) {
-    switch (action) {
-      case "replace":
-        return this.controller
-          .replaceHistoryWithLocationAndRestorationIdentifier;
-      case "advance":
-      case "restore":
-        return this.controller.pushHistoryWithLocationAndRestorationIdentifier;
-    }
-  }
   shouldIssueRequest() {
     return this.action == "restore" ? !this.hasCachedSnapshot() : true;
   }

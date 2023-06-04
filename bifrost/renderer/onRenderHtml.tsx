@@ -29,7 +29,6 @@ export default async function onRenderHtml(
       <head>
       ${buildHead(pageContext, escapeInject, dangerouslySkipEscape)}
       ${dangerouslySkipEscape(`<script>
-      console.log('resetting turb')
       window.Turbolinks = {controller:{restorationIdentifier: ''}};
       addEventListener("DOMContentLoaded", () => {
         const event = new Event("turbolinks:load", { bubbles: true, cancelable: true });

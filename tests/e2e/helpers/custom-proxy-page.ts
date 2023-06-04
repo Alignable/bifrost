@@ -21,6 +21,7 @@ export class CustomProxyPage {
   pageData?: PageDataOk;
   private initialPageData: PageData;
   private back?: PageDataOk;
+  private forward?: PageDataOk;
   consoleLog: string[];
 
   constructor(page: Page, pageData: PageData) {
@@ -41,7 +42,15 @@ export class CustomProxyPage {
 
   async goBack() {
     await this.page.goBack();
+    this.forward = this.pageData;
     this.pageData = this.back!;
+    await expect(this.page).toHaveTitle(this.pageData.title);
+  }
+
+  async goForward() {
+    await this.page.goForward();
+    this.back = this.pageData;
+    this.pageData = this.forward!;
     await expect(this.page).toHaveTitle(this.pageData.title);
   }
 

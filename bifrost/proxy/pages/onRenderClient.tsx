@@ -3,8 +3,7 @@ import { renderReact } from "../../lib/renderReact.js";
 import { PageShell } from "../../lib/PageShell.js";
 import { PageContextProxyClient } from "../../types/internal.js";
 import { Turbolinks } from "../../lib/turbolinks/index.js";
-import { Snapshot } from "../../lib/turbolinks/snapshot.js";
-import { SnapshotRenderer } from "../../lib/turbolinks/snapshot_renderer.js";
+import { copyElementAttributes, getElementAttributes } from "../../lib/domUtils.js";
 
 Turbolinks.start();
 
@@ -15,9 +14,6 @@ export default async function onRenderClient(
     Turbolinks.visit(pageContext.redirectTo);
     return;
   }
-
-  let body: string;
-
   const { layoutProps, layout } = pageContext;
   const Layout = pageContext.config.layoutMap[layout];
 
@@ -31,42 +27,59 @@ export default async function onRenderClient(
       pageContext.isHydration
     );
   }
+  let bodyEl: Element;
 
   if (pageContext.isHydration) {
     // During hydration of initial ssr, body is in dom, not page props (to avoid double-send)
-    body = document.getElementById("proxied-body")!.innerHTML;
-    render(body);
+    bodyEl = document.getElementById("proxied-body")!;
+    render(bodyEl.innerHTML);
   } else {
     const { proxySendClient: proxy } = pageContext;
 
-    const snapshot =
-      pageContext.snapshot || (proxy && Snapshot.fromHTMLString(proxy));
-
-    if (!snapshot) {
-      console.error(
-        "proxy/+onRenderClient did not receive proxySendClient nor is there a cached snapshot"
-      );
+    if (!proxy) {
+      console.error("proxy/+onRenderClient did not receive proxySendClient");
       return;
     }
 
-    Turbolinks._vpsRenderClientWith(
-      new SnapshotRenderer(
-        Snapshot.fromHTMLElement(document.documentElement as HTMLHtmlElement),
-        snapshot,
-        false,
-        render
-      )
+    const parsed = document.createElement("html");
+    parsed.innerHTML = proxy;
+    bodyEl = parsed.querySelector("body")!;
+    const headEl = parsed.querySelector("head")!;
+
+    Turbolinks._vpsOnRenderClient(
+      headEl,
+      () => {
+        // merge body attributes
+        document.body
+          .getAttributeNames()
+          .forEach((n) => document.body.removeAttribute(n));
+        copyElementAttributes(document.body, bodyEl);
+        // render body with react
+        render(bodyEl.innerHTML);
+      }
     );
 
-    //   document.body
-    //     .getAttributeNames()
-    //     .forEach((n) => document.body.removeAttribute(n));
-    //   for (const [name, value] of Object.entries(proxy.bodyAttrs)) {
-    //     document.body.setAttribute(name, value);
-    //   }
+    // const snapshot =
+    //   pageContext.snapshot || (proxy && Snapshot.fromHTMLString(proxy));
+
+    // Turbolinks._vpsRenderClientWith(
+    //   new SnapshotRenderer(
+    //     Snapshot.fromHTMLElement(document.documentElement as HTMLHtmlElement),
+    //     snapshot,
+    //     false,
+    //     render
+    //   )
+    // );
 
     //   await mergeHead(proxy.head);
     // });
     // writeRestorationIdentifier(pageContext);
   }
+
+  // cache page context will save it and return it to us during restoration visits
+  Turbolinks._vpsCachePageContext({
+    layoutProps,
+    layout,
+    bodyAttrs: getElementAttributes(bodyEl),
+  });
 }

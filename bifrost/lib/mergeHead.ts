@@ -2,7 +2,6 @@ import {
   activateNewBodyScriptElements,
   createScriptElement,
 } from "./domUtils.js";
-import { HeadDetails } from "./turbolinks/head_details.js";
 import { focusFirstAutofocusableElement } from "./turbolinks/util.js";
 
 interface ElementDetails {
@@ -12,9 +11,9 @@ const allHeadScriptsEverRun: { [outerHTML: string]: ElementDetails } = {};
 let firstLoad = true;
 
 // takes in innerHTML of head
-export async function mergeHead(head: string) {
-  const parsed = document.createRange().createContextualFragment(head); // Create a 'tiny' document and parse the html string
-  const newHead = categorizeHead(parsed);
+export async function mergeHead(head: HTMLHeadElement) {
+  // const parsed = document.createRange().createContextualFragment(head); // Create a 'tiny' document and parse the html string
+  const newHead = categorizeHead(head);
   const oldHead = categorizeHead(document.head);
 
   if (!trackedScriptsIdentical(oldHead.scripts, newHead.scripts)) {
@@ -68,12 +67,6 @@ function copyNewHeadScriptElements(
 ) {
   let blockingLoaded: boolean[] = [];
   function dispatch() {
-    const scripts = document.body
-      .querySelector("#proxied-body")!
-      .querySelectorAll("script");
-
-    activateNewBodyScriptElements(Array.from(scripts));
-    focusFirstAutofocusableElement();
 
     onScriptsLoaded();
   }

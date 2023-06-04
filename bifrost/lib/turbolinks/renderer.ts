@@ -1,4 +1,4 @@
-export type RenderCallback = () => Promise<void>;
+export type RenderCallback = () => void;
 
 export interface RenderDelegate {
   viewWillRender(): void;
@@ -14,7 +14,7 @@ export abstract class Renderer {
     callback: RenderCallback
   ): Promise<void>;
 
-  async renderView(callback: RenderCallback) {
+  async renderView(callback: () => Promise<void>) {
     if (!this.delegate) throw new Error("delegate not set before rendering");
     this.delegate.viewWillRender();
     await callback();

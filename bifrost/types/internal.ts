@@ -13,7 +13,9 @@ import { Snapshot } from "../lib/turbolinks/snapshot";
 //   bodyAttrs: Record<string, string>;
 // }
 
-export type Layout<LayoutProps> = React.ComponentType<PropsWithChildren<LayoutProps>>;
+export type Layout<LayoutProps> = React.ComponentType<
+  PropsWithChildren<LayoutProps>
+>;
 export type LayoutMap<LayoutProps> = Record<string, Layout<LayoutProps>>;
 
 type PageContextProxyCommon<LayoutProps = Record<string, unknown>> = {
@@ -47,6 +49,11 @@ export type PageContextProxyClient = PageContextBuiltInClient<Page> &
 
 export type PageContextProxy = PageContextProxyServer | PageContextProxyClient;
 
+export type PageContextProxyRestorationVisit = PageContextBuiltInClient<Page> & {
+  bodyEl: Element;
+  headEl: HTMLHeadElement;
+} & PageContextProxyCommon;
+
 // =============== Types for new non-proxy pages ================= //
 // ===============   You've crossed the Bifrost!   ================ //
 
@@ -55,7 +62,7 @@ export interface DocumentProps {
   // https://nextjs.org/docs/app/api-reference/functions/generate-metadata#the-metadata-object
   title?: string;
   description?: string;
-  viewport?: { [key: string]: string }
+  viewport?: { [key: string]: string };
 }
 
 export interface ScriptProps {
@@ -88,4 +95,4 @@ export type PageContextNoProxy =
   | PageContextNoProxyServer
   | PageContextNoProxyClient;
 
-export type PageContext = PageContextNoProxy | PageContextProxy;
+export type PageContext = PageContextNoProxy | PageContextProxy | PageContextProxyRestorationVisit;

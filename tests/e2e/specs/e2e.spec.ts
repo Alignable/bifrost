@@ -170,7 +170,7 @@ test.describe("turbolinks: events", () => {
         [T.beforeVisit, head1, body1],
         [T.visit, head1, body1],
         [T.beforeCache, head1, body1],
-        [T.beforeRender, head2, body1], // Breaking change: Actual Turbolinks would have been head2, body1
+        [T.beforeRender, head2, body1],
         [T.render, head2, body2],
         [T.load, head2, body2],
       ]
@@ -355,6 +355,7 @@ test.describe("back button restoration", () => {
       throw new Error("Back button should not make network request");
     });
     await customProxy.goBack();
+    await customProxy.goForward();
   });
 
   test("saves changes made to dom, including before:cache", async ({

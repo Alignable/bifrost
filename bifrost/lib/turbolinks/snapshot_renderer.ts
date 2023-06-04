@@ -1,6 +1,6 @@
 import { HeadDetails } from "./head_details";
 import { Renderer, RenderDelegate, RenderCallback } from "./renderer";
-import { Snapshot } from "./snapshot";
+import { ProxySnapshot } from "./snapshot2";
 import { array, createScriptElement, focusFirstAutofocusableElement } from "./util";
 
 export type PermanentElement = Element & { id: string };
@@ -17,11 +17,11 @@ let firstLoad = true;
 
 export class SnapshotRenderer extends Renderer {
   delegate?: RenderDelegate;
-  readonly currentSnapshot: Snapshot;
+  readonly currentSnapshot: ProxySnapshot;
   readonly currentHeadDetails: HeadDetails;
-  readonly newSnapshot: Snapshot;
+  readonly newSnapshot: ProxySnapshot;
   readonly newHeadDetails: HeadDetails;
-  readonly newBody: HTMLBodyElement;
+  readonly newBody: string;
   readonly isPreview: boolean;
   renderBody: BodyRenderer;
 
@@ -29,8 +29,8 @@ export class SnapshotRenderer extends Renderer {
   static render(
     delegate: RenderDelegate,
     callback: RenderCallback,
-    currentSnapshot: Snapshot,
-    newSnapshot: Snapshot,
+    currentSnapshot: ProxySnapshot,
+    newSnapshot: ProxySnapshot,
     isPreview: boolean,
     renderBody: BodyRenderer
   ) {
@@ -41,8 +41,8 @@ export class SnapshotRenderer extends Renderer {
   }
 
   constructor(
-    currentSnapshot: Snapshot,
-    newSnapshot: Snapshot,
+    currentSnapshot: ProxySnapshot,
+    newSnapshot: ProxySnapshot,
     isPreview: boolean,
     renderBody: BodyRenderer
   ) {
@@ -51,7 +51,7 @@ export class SnapshotRenderer extends Renderer {
     this.currentHeadDetails = currentSnapshot.headDetails;
     this.newSnapshot = newSnapshot;
     this.newHeadDetails = newSnapshot.headDetails;
-    this.newBody = newSnapshot.bodyElement;
+    this.newBody = newSnapshot.body;
     this.isPreview = isPreview;
     this.renderBody = renderBody;
   }
@@ -90,9 +90,7 @@ export class SnapshotRenderer extends Renderer {
   }
 
   replaceBody() {
-    const placeholders = this.relocateCurrentBodyPermanentElements();
-    this.renderBody(this.newBody.innerHTML);
-    this.replacePlaceholderElementsWithClonedPermanentElements(placeholders);
+    this.renderBody(this.newBody);
   }
 
   shouldRender() {
@@ -161,35 +159,6 @@ export class SnapshotRenderer extends Renderer {
     }
   }
 
-  relocateCurrentBodyPermanentElements() {
-    return this.getCurrentBodyPermanentElements().reduce(
-      (placeholders, permanentElement) => {
-        const newElement = this.newSnapshot.getPermanentElementById(
-          permanentElement.id
-        );
-        if (newElement) {
-          const placeholder =
-            createPlaceholderForPermanentElement(permanentElement);
-          replaceElementWithElement(permanentElement, placeholder.element);
-          replaceElementWithElement(newElement, permanentElement);
-          return [...placeholders, placeholder];
-        } else {
-          return placeholders;
-        }
-      },
-      [] as Placeholder[]
-    );
-  }
-
-  replacePlaceholderElementsWithClonedPermanentElements(
-    placeholders: Placeholder[]
-  ) {
-    for (const { element, permanentElement } of placeholders) {
-      const clonedElement = permanentElement.cloneNode(true) as Element;
-      replaceElementWithElement(element, clonedElement);
-    }
-  }
-
   activateNewBodyScriptElements() {
     for (const inertScriptElement of this.getNewBodyScriptElements()) {
       const activatedScriptElement = createScriptElement(inertScriptElement);
@@ -217,26 +186,11 @@ export class SnapshotRenderer extends Renderer {
     return this.newHeadDetails.getProvisionalElements();
   }
 
-  getCurrentBodyPermanentElements(): PermanentElement[] {
-    return this.currentSnapshot.getPermanentElementsPresentInSnapshot(
-      this.newSnapshot
-    );
-  }
-
   getNewBodyScriptElements() {
     return Array.from(
       document.body.querySelector("#proxied-body")!.querySelectorAll("script")
     );
   }
-}
-
-function createPlaceholderForPermanentElement(
-  permanentElement: PermanentElement
-) {
-  const element = document.createElement("meta");
-  element.setAttribute("name", "turbolinks-permanent-placeholder");
-  element.setAttribute("content", permanentElement.id);
-  return { element, permanentElement };
 }
 
 function replaceElementWithElement(fromElement: Element, toElement: Element) {

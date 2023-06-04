@@ -1,12 +1,10 @@
+import { LruCache } from "../lruCache";
 import { Adapter } from "./adapter";
 import { BrowserAdapter } from "./browser_adapter";
-import { History } from "./history";
 import { Location, Locatable } from "./location";
 import { ScrollManager } from "./scroll_manager";
-import { SnapshotCache } from "./snapshot_cache";
 import { Action, Position, isAction } from "./types";
 import { closest, defer, dispatch, uuid } from "./util";
-import { RenderOptions, View } from "./view";
 import { Visit } from "./visit";
 
 export type RestorationData = { scrollPosition?: Position };
@@ -19,21 +17,23 @@ export type VisitProperties = {
   historyChanged: boolean;
 };
 
+interface Snapshot {
+  bodyEl: Element;
+  headEl: Element;
+  pageContext: any;
+}
+
 export class Controller {
   static supported = !!(
     typeof window !== "undefined" &&
-    window.history.pushState &&
-    window.requestAnimationFrame &&
     window.addEventListener
   );
 
   adapter: Adapter = new BrowserAdapter(this);
-  readonly history = new History(this);
   readonly restorationData: RestorationDataMap = {};
   readonly scrollManager = new ScrollManager(this);
-  readonly view = new View();
 
-  cache = new SnapshotCache(10);
+  cache = new LruCache<Snapshot>(10);
   currentVisit?: Visit;
   enabled = true;
   lastRenderedLocation?: Location;
@@ -41,15 +41,17 @@ export class Controller {
   progressBarDelay = 500;
   restorationIdentifier!: string;
   started = false;
+  pageContext: any;
 
   start() {
     if (Controller.supported && !this.started) {
       // TODO: delete document.body in this file. We are doing this to pre-empt VPS interceptor.
       // https://github.com/brillout/vite-plugin-ssr/issues/918 fixes this.
       document.body.addEventListener("click", this.clickCaptured, true);
-      addEventListener("DOMContentLoaded", this.pageLoaded, false);
       this.scrollManager.start();
-      this.startHistory();
+      this.location = Location.currentLocation;
+      this.restorationIdentifier = uuid();
+      this.lastRenderedLocation = this.location;
       this.started = true;
       this.enabled = true;
     }
@@ -62,15 +64,13 @@ export class Controller {
   stop() {
     if (this.started) {
       document.body.removeEventListener("click", this.clickCaptured, true);
-      removeEventListener("DOMContentLoaded", this.pageLoaded, false);
       this.scrollManager.stop();
-      this.stopHistory();
       this.started = false;
     }
   }
 
   clearCache() {
-    this.cache = new SnapshotCache(10);
+    this.cache = new LruCache(10);
   }
 
   visit(location: Locatable, options: Partial<VisitOptions> = {}) {
@@ -104,50 +104,19 @@ export class Controller {
     this.progressBarDelay = delay;
   }
 
-  // History
-
-  startHistory() {
-    this.location = Location.currentLocation;
-    this.restorationIdentifier = uuid();
-    this.history.start();
-    this.history.replace(this.location, this.restorationIdentifier);
-  }
-
-  stopHistory() {
-    this.history.stop();
-  }
-
-  pushHistoryWithLocationAndRestorationIdentifier(
-    locatable: Locatable,
-    restorationIdentifier: string
-  ) {
-    this.location = Location.wrap(locatable);
-    this.restorationIdentifier = restorationIdentifier;
-    this.history.push(this.location, this.restorationIdentifier);
-  }
-
-  replaceHistoryWithLocationAndRestorationIdentifier(
-    locatable: Locatable,
-    restorationIdentifier: string
-  ) {
-    this.location = Location.wrap(locatable);
-    this.restorationIdentifier = restorationIdentifier;
-    this.history.replace(this.location, this.restorationIdentifier);
-  }
-
   // History delegate
 
   historyPoppedToLocationWithRestorationIdentifier(
-    location: Location,
+    location: Locatable,
     restorationIdentifier: string
   ) {
     if (this.enabled) {
-      this.location = location;
+      this.location = Location.wrap(location);
       this.restorationIdentifier = restorationIdentifier;
       const restorationData = this.getRestorationDataForIdentifier(
         restorationIdentifier
       );
-      this.startVisit(location, "restore", {
+      this.startVisit(this.location, "restore", {
         restorationIdentifier,
         restorationData,
         historyChanged: true,
@@ -159,28 +128,38 @@ export class Controller {
 
   // Snapshot cache
 
-  getCachedSnapshotForLocation(location: Location) {
-    const snapshot = this.cache.get(location);
-    return snapshot ? snapshot.clone() : snapshot;
+  getCachedSnapshotForLocation(location: Locatable){
+    return this.cache.get(Location.wrap(location).toCacheKey());
   }
 
   shouldCacheSnapshot() {
-    return this.view.getSnapshot().isCacheable();
+    return (
+      document.body.querySelector("#proxied-body") &&
+      document.head
+        .querySelector("meta[name='turbolinks-no-cache']")
+        ?.getAttribute("content") != "no-cache"
+    );
   }
 
   cacheSnapshot() {
     if (this.shouldCacheSnapshot()) {
       this.notifyApplicationBeforeCachingSnapshot();
-      const snapshot = this.view.getSnapshot();
+      const snapshot = {
+        bodyEl: document.body.cloneNode(true),
+        headEl: document.head.cloneNode(true),
+        pageContext: this.pageContext,
+      };
       const location = this.lastRenderedLocation || Location.currentLocation;
-      defer(() => this.cache.put(location, snapshot.clone()));
+      defer(() => this.cache.put(location.toCacheKey(), snapshot));
     }
   }
 
   // Scrolling
 
   scrollToAnchor(anchor: string) {
-    const element = this.view.getElementForAnchor(anchor);
+    const element = document.body.querySelector(
+      `[id='${anchor}'], a[name='${anchor}']`
+    );
     if (element) {
       this.scrollToElement(element);
     } else {
@@ -218,11 +197,6 @@ export class Controller {
   }
 
   // Event handlers
-
-  pageLoaded = () => {
-    this.lastRenderedLocation = this.location;
-    this.notifyApplicationAfterPageLoad();
-  };
 
   clickCaptured = () => {
     document.body.removeEventListener("click", this.clickBubbled, false);
@@ -333,6 +307,10 @@ export class Controller {
     visit.restorationData = { ...(properties.restorationData || {}) };
     visit.historyChanged = !!properties.historyChanged;
     visit.referrer = this.location;
+    if(action === 'restore') { 
+      // dont issue navigate() because VPS already did.
+      visit.requestInFlight = true;
+     }
     return visit;
   }
 
@@ -380,9 +358,7 @@ export class Controller {
   }
 
   locationIsVisitable(location: Location) {
-    return (
-      location.isPrefixedBy(this.view.getRootLocation()) && location.isHTML()
-    );
+    return location.isPrefixedBy(new Location("/")) && location.isHTML();
   }
 
   getCurrentRestorationData(): RestorationData {

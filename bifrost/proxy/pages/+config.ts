@@ -6,7 +6,7 @@ export default {
   onRenderClient: "import:@alignable/bifrost/proxy/pages/onRenderClient",
   onRenderHtml: "import:@alignable/bifrost/proxy/pages/onRenderHtml",
   Page: "import:@alignable/bifrost/proxy/pages/Page",
-  passToClient: ["proxySendClient", "snapshot", "layout", "layoutProps", "redirectTo"],
+  passToClient: ["proxySendClient", "layout", "layoutProps", "redirectTo"],
   clientRouting: true,
   hydrationCanBeAborted: true,
   meta: {

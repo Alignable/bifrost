@@ -4,6 +4,7 @@ import { dangerouslySkipEscape, escapeInject } from "vite-plugin-ssr/server";
 import { PageContextProxyServer } from "../../types/internal.js";
 import { PageShell } from "../../lib/PageShell.js";
 import jsdom from "jsdom";
+import { getElementAttributes } from "../../lib/domUtils.js";
 
 export default async function onRenderHtml(
   pageContext: PageContextProxyServer
@@ -25,11 +26,6 @@ export default async function onRenderHtml(
       .querySelectorAll("a[rel='external']")
       .forEach((e) => e.setAttribute("data-turbolinks", "false"));
     bodyEl.querySelectorAll("a").forEach((e) => (e.rel = "external"));
-
-    const bodyAttrs: Record<string, string> = {};
-    bodyEl.getAttributeNames().forEach((name) => {
-      bodyAttrs[name] = bodyEl.getAttribute(name)!;
-    });
 
     const Layout = pageContext.config.layoutMap[layout];
     if (!Layout) throw new Error(`${layout} layout not found`);
@@ -54,7 +50,6 @@ export default async function onRenderHtml(
             // Vite loads scripts with type="module" so the rest of our code will show up too late.
             // TODO: figure out how to bundle this better. at least read from a .js file
             dangerouslySkipEscape(`<script>
-      console.log('resetting turb')
           window.Turbolinks = {controller:{restorationIdentifier: ''}};
           addEventListener("DOMContentLoaded", () => {
             const event = new Event("turbolinks:load", { bubbles: true, cancelable: true });
@@ -65,7 +60,7 @@ export default async function onRenderHtml(
           }
         </head>
         <body ${dangerouslySkipEscape(
-          Object.entries(bodyAttrs)
+          Object.entries(getElementAttributes(bodyEl))
             .map(([name, value]) => `${name}="${value}"`)
             .join(" ")
         )}>

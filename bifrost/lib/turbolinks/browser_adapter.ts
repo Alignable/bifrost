@@ -65,7 +65,6 @@ export class BrowserAdapter implements Adapter {
   }
 
   visitCompleted(visit: Visit) {
-    visit.followRedirect();
   }
 
   pageInvalidated() {

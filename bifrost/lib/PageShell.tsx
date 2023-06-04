@@ -1,6 +1,6 @@
 import React, { ReactNode } from "react";
 import { PageContextProvider } from "../renderer/usePageContext.js";
-import { PageContext, PageContextNoProxy } from "../types/internal.js";
+import { PageContext } from "../types/internal.js";
 
 export function PageShell({
   pageContext,
