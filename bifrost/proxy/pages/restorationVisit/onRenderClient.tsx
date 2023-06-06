@@ -30,7 +30,7 @@ export default async function onRenderClient(
     throw new Error("proxied body not found in cached snapshot");
   }
 
-  Turbolinks._vpsOnRenderClient(headEl, () => {
+  Turbolinks._vpsOnRenderClient(headEl, true, () => {
     // merge body attributes
     document.body
       .getAttributeNames()

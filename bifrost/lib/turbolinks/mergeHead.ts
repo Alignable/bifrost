@@ -1,23 +1,30 @@
-import {
-  activateNewBodyScriptElements,
-  createScriptElement,
-} from "./domUtils.js";
-import { focusFirstAutofocusableElement } from "./turbolinks/util.js";
+import { createScriptElement } from "../domUtils.js";
 
 interface ElementDetails {
   tracked: boolean;
 }
 const allHeadScriptsEverRun: { [outerHTML: string]: ElementDetails } = {};
 let firstLoad = true;
+let lastTrackedScriptSignature: string;
 
 // takes in innerHTML of head
-export async function mergeHead(head: HTMLHeadElement) {
+export async function mergeHead(
+  head: HTMLHeadElement,
+  trackScripts: boolean,
+  onTrackedScriptsChanged: () => void
+) {
   // const parsed = document.createRange().createContextualFragment(head); // Create a 'tiny' document and parse the html string
   const newHead = categorizeHead(head);
   const oldHead = categorizeHead(document.head);
 
-  if (!trackedScriptsIdentical(oldHead.scripts, newHead.scripts)) {
-    window.location.reload();
+  if (trackScripts) {
+    lastTrackedScriptSignature =
+      lastTrackedScriptSignature || trackedScriptSignature(oldHead.scripts);
+    if (
+      lastTrackedScriptSignature !== trackedScriptSignature(newHead.scripts)
+    ) {
+      onTrackedScriptsChanged();
+    }
   }
 
   if (firstLoad) {
@@ -39,17 +46,11 @@ export async function mergeHead(head: HTMLHeadElement) {
   });
 }
 
-function trackedScriptsIdentical(prev: Element[], next: Element[]) {
-  return (
-    prev
-      .filter(elementIsTracked)
-      .map((s) => s.outerHTML)
-      .join() ===
-    next
-      .filter(elementIsTracked)
-      .map((s) => s.outerHTML)
-      .join()
-  );
+function trackedScriptSignature(scripts: Element[]) {
+  return scripts
+    .filter(elementIsTracked)
+    .map((s) => s.outerHTML)
+    .join();
 }
 
 function copyNewHeadStylesheetElements(next: Element[], prev: Element[]) {
@@ -67,7 +68,6 @@ function copyNewHeadScriptElements(
 ) {
   let blockingLoaded: boolean[] = [];
   function dispatch() {
-
     onScriptsLoaded();
   }
   for (const element of next as HTMLScriptElement[]) {

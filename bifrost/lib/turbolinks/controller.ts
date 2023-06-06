@@ -1,37 +1,26 @@
-import { LruCache } from "../lruCache";
+import { LruCache } from "./lruCache";
 import { Adapter } from "./adapter";
 import { BrowserAdapter } from "./browser_adapter";
 import { Location, Locatable } from "./location";
-import { ScrollManager } from "./scroll_manager";
-import { Action, Position, isAction } from "./types";
+import { Action, isAction } from "./types";
 import { closest, defer, dispatch, uuid } from "./util";
 import { Visit } from "./visit";
 
-export type RestorationData = { scrollPosition?: Position };
-export type RestorationDataMap = { [uuid: string]: RestorationData };
 export type TimingData = {};
 export type VisitOptions = { action: Action };
 export type VisitProperties = {
   restorationIdentifier: string;
-  restorationData: RestorationData;
   historyChanged: boolean;
 };
 
-interface Snapshot {
+export interface Snapshot {
   bodyEl: Element;
   headEl: Element;
   pageContext: any;
 }
 
 export class Controller {
-  static supported = !!(
-    typeof window !== "undefined" &&
-    window.addEventListener
-  );
-
   adapter: Adapter = new BrowserAdapter(this);
-  readonly restorationData: RestorationDataMap = {};
-  readonly scrollManager = new ScrollManager(this);
 
   cache = new LruCache<Snapshot>(10);
   currentVisit?: Visit;
@@ -44,11 +33,10 @@ export class Controller {
   pageContext: any;
 
   start() {
-    if (Controller.supported && !this.started) {
+    if (!this.started) {
       // TODO: delete document.body in this file. We are doing this to pre-empt VPS interceptor.
       // https://github.com/brillout/vite-plugin-ssr/issues/918 fixes this.
       document.body.addEventListener("click", this.clickCaptured, true);
-      this.scrollManager.start();
       this.location = Location.currentLocation;
       this.restorationIdentifier = uuid();
       this.lastRenderedLocation = this.location;
@@ -64,7 +52,6 @@ export class Controller {
   stop() {
     if (this.started) {
       document.body.removeEventListener("click", this.clickCaptured, true);
-      this.scrollManager.stop();
       this.started = false;
     }
   }
@@ -90,14 +77,7 @@ export class Controller {
     action: Action,
     restorationIdentifier: string
   ) {
-    if (Controller.supported) {
-      const restorationData = this.getRestorationDataForIdentifier(
-        restorationIdentifier
-      );
-      this.startVisit(Location.wrap(location), action, { restorationData });
-    } else {
-      window.location.href = location.toString();
-    }
+    this.startVisit(Location.wrap(location), action);
   }
 
   setProgressBarDelay(delay: number) {
@@ -113,14 +93,7 @@ export class Controller {
     if (this.enabled) {
       this.location = Location.wrap(location);
       this.restorationIdentifier = restorationIdentifier;
-      const restorationData = this.getRestorationDataForIdentifier(
-        restorationIdentifier
-      );
-      this.startVisit(this.location, "restore", {
-        restorationIdentifier,
-        restorationData,
-        historyChanged: true,
-      });
+      this.startVisit(this.location, "restore");
     } else {
       this.adapter.pageInvalidated();
     }
@@ -128,7 +101,7 @@ export class Controller {
 
   // Snapshot cache
 
-  getCachedSnapshotForLocation(location: Locatable){
+  getCachedSnapshotForLocation(location: Locatable) {
     return this.cache.get(Location.wrap(location).toCacheKey());
   }
 
@@ -152,34 +125,6 @@ export class Controller {
       const location = this.lastRenderedLocation || Location.currentLocation;
       defer(() => this.cache.put(location.toCacheKey(), snapshot));
     }
-  }
-
-  // Scrolling
-
-  scrollToAnchor(anchor: string) {
-    const element = document.body.querySelector(
-      `[id='${anchor}'], a[name='${anchor}']`
-    );
-    if (element) {
-      this.scrollToElement(element);
-    } else {
-      this.scrollToPosition({ x: 0, y: 0 });
-    }
-  }
-
-  scrollToElement(element: Element) {
-    this.scrollManager.scrollToElement(element);
-  }
-
-  scrollToPosition(position: Position) {
-    this.scrollManager.scrollToPosition(position);
-  }
-
-  // Scroll manager delegate
-
-  scrollPositionChanged(position: Position) {
-    const restorationData = this.getCurrentRestorationData();
-    restorationData.scrollPosition = position;
   }
 
   // View
@@ -280,37 +225,22 @@ export class Controller {
 
   // Private
 
-  startVisit(
-    location: Location,
-    action: Action,
-    properties: Partial<VisitProperties>
-  ) {
+  startVisit(location: Location, action: Action) {
     if (this.currentVisit) {
       this.currentVisit.cancel();
     }
-    this.currentVisit = this.createVisit(location, action, properties);
+    this.currentVisit = this.createVisit(location, action);
     this.currentVisit.start();
     this.notifyApplicationAfterVisitingLocation(location);
   }
 
-  createVisit(
-    location: Location,
-    action: Action,
-    properties: Partial<VisitProperties>
-  ): Visit {
-    const visit = new Visit(
-      this,
-      location,
-      action,
-      properties.restorationIdentifier
-    );
-    visit.restorationData = { ...(properties.restorationData || {}) };
-    visit.historyChanged = !!properties.historyChanged;
+  createVisit(location: Location, action: Action): Visit {
+    const visit = new Visit(this, location, action);
     visit.referrer = this.location;
-    if(action === 'restore') { 
+    if (action === "restore") {
       // dont issue navigate() because VPS already did.
       visit.requestInFlight = true;
-     }
+    }
     return visit;
   }
 
@@ -359,16 +289,5 @@ export class Controller {
 
   locationIsVisitable(location: Location) {
     return location.isPrefixedBy(new Location("/")) && location.isHTML();
-  }
-
-  getCurrentRestorationData(): RestorationData {
-    return this.getRestorationDataForIdentifier(this.restorationIdentifier);
-  }
-
-  getRestorationDataForIdentifier(identifier: string): RestorationData {
-    if (!(identifier in this.restorationData)) {
-      this.restorationData[identifier] = {};
-    }
-    return this.restorationData[identifier];
   }
 }

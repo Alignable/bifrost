@@ -48,6 +48,7 @@ export default async function onRenderClient(
 
     Turbolinks._vpsOnRenderClient(
       headEl,
+      true,
       () => {
         // merge body attributes
         document.body

@@ -1,8 +1,12 @@
-interface Node {
-  // https://github.com/Microsoft/TypeScript/issues/283
-  cloneNode(deep?: boolean): this;
-}
+import type { Turbolinks } from ".";
 
-interface Window {
-  Turbolinks: any;
+declare global {
+  interface Node {
+    // https://github.com/Microsoft/TypeScript/issues/283
+    cloneNode(deep?: boolean): this;
+  }
+
+  interface Window {
+    Turbolinks: Turbolinks;
+  }
 }

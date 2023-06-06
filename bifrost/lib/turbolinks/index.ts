@@ -1,15 +1,14 @@
 import { activateNewBodyScriptElements } from "../domUtils";
-import { mergeHead } from "../mergeHead";
+import { mergeHead } from "./mergeHead";
 import { Controller, VisitOptions } from "./controller";
 import { Locatable } from "./location";
-import { Renderer } from "./renderer";
 import { focusFirstAutofocusableElement } from "./util";
 
 const controller = new Controller();
 
 export const Turbolinks = {
   get supported() {
-    return Controller.supported;
+    return true;
   },
 
   controller,
@@ -32,7 +31,7 @@ export const Turbolinks = {
       window.Turbolinks !== Turbolinks &&
       window.Turbolinks.controller.adapter
     ) {
-      window.Turbolinks.controller.adapter.controller = controller;
+      (window.Turbolinks.controller.adapter as any).controller = controller;
       controller.adapter = window.Turbolinks.controller.adapter;
     }
     window.Turbolinks = Turbolinks;
@@ -44,11 +43,12 @@ export const Turbolinks = {
   },
 
   _vpsWriteRestorationIdentifier() {
-    controller.restorationIdentifier
+    controller.restorationIdentifier;
   },
 
   _vpsOnRenderClient(
     newHead: HTMLHeadElement,
+    trackScripts: boolean,
     renderBody: () => void
   ) {
     if (controller.currentVisit) {
@@ -56,7 +56,9 @@ export const Turbolinks = {
       // TODO: handle render.shouldRender logic
       // TODO: move to controller?
       currentVisit.renderFn = async () => {
-        const scriptsLoaded = mergeHead(newHead);
+        const scriptsLoaded = mergeHead(newHead, trackScripts, () =>
+          controller.viewInvalidated()
+        );
 
         controller.viewWillRender();
         renderBody();
@@ -66,7 +68,6 @@ export const Turbolinks = {
           Array.from(document.body.querySelectorAll("script"))
         );
         focusFirstAutofocusableElement();
-        currentVisit.performScroll();
 
         controller.viewRendered();
         controller.adapter.visitRendered(currentVisit);
@@ -81,3 +82,5 @@ export const Turbolinks = {
     }
   },
 };
+
+export type Turbolinks = typeof Turbolinks;

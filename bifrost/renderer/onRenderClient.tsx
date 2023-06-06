@@ -2,10 +2,7 @@ import React, { PropsWithChildren } from "react";
 import { renderReact } from "../lib/renderReact.js";
 import { PageContextNoProxyClient } from "../types/internal.js";
 import { PageShell } from "../lib/PageShell.js";
-import { getDocumentProps } from "./getDocumentProps.js";
 import { Turbolinks } from "../lib/turbolinks/index.js";
-import { PassthruRenderer } from "../lib/turbolinks/passthrough_renderer.js";
-import { HeadDetails } from "../lib/turbolinks/head_details.js";
 import { buildHead } from "./utils/buildHead.js";
 
 Turbolinks.start();
@@ -39,10 +36,14 @@ export default async function onRenderClient(
     // During hydration of initial ssr, body is in dom, not page props (to avoid double-send)
     renderReact(page, pageContext.isHydration);
   } else {
+    // clear anything on body
+    document.body
+      .getAttributeNames()
+      .forEach((n) => document.body.removeAttribute(n));
+
     const head = document.createElement("head");
     head.innerHTML = buildHead(pageContext); //TODO: this is not safe
-    Turbolinks._vpsOnRenderClient(head, () => {
-
+    Turbolinks._vpsOnRenderClient(head, false, () => {
       renderReact(page, pageContext.isHydration);
     });
     // Turbolinks._vpsOnRenderClient(async () => {

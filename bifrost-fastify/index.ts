@@ -135,7 +135,6 @@ export const viteProxyPlugin: FastifyPluginAsync<
                 .send(
                   JSON.stringify({
                     pageContext: {
-                      // A bit hacky, but we manually construct the VPS pageContext here
                       _pageId: proxyPageId,
                       redirectTo: url,
                     },
@@ -153,9 +152,6 @@ export const viteProxyPlugin: FastifyPluginAsync<
         }
 
         const proxy = await streamToString(res);
-        // if (!bodyEl || !head) {
-        //   return reply.code(404).type("text/html").send("proxy failed");
-        // }
 
         const pageContextInit: Partial<PageContextProxy> = {
           urlOriginal: req.url,
@@ -163,7 +159,7 @@ export const viteProxyPlugin: FastifyPluginAsync<
           layoutProps,
         };
         if (isPageContext) {
-          //  roxySendClient is serialized and sent to client on subsequent navigation.
+          // proxySendClient is serialized and sent to client on subsequent navigation.
           Object.assign(pageContextInit, { proxySendClient: proxy });
         } else {
           // proxy is ONLY included server-side to avoid doubling page size

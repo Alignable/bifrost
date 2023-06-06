@@ -3,7 +3,6 @@ import {
   PageContextBuiltIn,
   PageContextBuiltInClientWithClientRouting as PageContextBuiltInClient,
 } from "vite-plugin-ssr/types";
-import { Snapshot } from "../lib/turbolinks/snapshot";
 
 // =============== Types for proxy pages ================= //
 // ===============  Crossing the bridge  ================ //
@@ -39,7 +38,6 @@ type PageContextProxyClientNav = {
   /// same as proxy but is allowed to be sent to client.
   /// Should not exist on initial render since it'll double page size!!
   proxySendClient?: string;
-  snapshot?: Snapshot;
 };
 export type PageContextProxyServer = PageContextBuiltIn<Page> &
   PageContextProxyCommon & { proxy: string };

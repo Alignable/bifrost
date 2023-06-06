@@ -1,6 +1,6 @@
 import { navigate } from "vite-plugin-ssr/client/router";
 import { Adapter } from "./adapter";
-import { Controller, RestorationData } from "./controller.js";
+import { Controller } from "./controller.js";
 import { Location } from "./location";
 import { Action } from "./types";
 import { uuid } from "./util";
@@ -31,13 +31,10 @@ export class Visit {
   readonly timingMetrics: TimingMetrics = {};
 
   frame?: number;
-  historyChanged = false;
   location: Location;
   progress = 0;
   referrer?: Location;
   redirectedToLocation?: Location;
-  restorationData?: RestorationData;
-  scrolled = false;
   snapshotCached = false;
   state = VisitState.initialized;
 
@@ -114,10 +111,7 @@ export class Visit {
     const snapshot = this.controller.getCachedSnapshotForLocation(
       this.location
     );
-    if (
-      snapshot 
-      // TODO: restore functionality: && (!this.location.anchor || snapshot.hasAnchor(this.location.anchor))
-    ) {
+    if (snapshot) {
       if (this.action == "restore") {
         return snapshot;
       }
@@ -177,40 +171,6 @@ export class Visit {
     this.adapter.visitRequestFinished(this);
   }
   */
-
-  // Scrolling
-
-  performScroll = () => {
-    if (!this.scrolled) {
-      if (this.action == "restore") {
-        this.scrollToRestoredPosition() || this.scrollToTop();
-      } else {
-        this.scrollToAnchor() || this.scrollToTop();
-      }
-      this.scrolled = true;
-    }
-  };
-
-  scrollToRestoredPosition() {
-    const position = this.restorationData
-      ? this.restorationData.scrollPosition
-      : undefined;
-    if (position) {
-      this.controller.scrollToPosition(position);
-      return true;
-    }
-  }
-
-  scrollToAnchor() {
-    if (this.location.anchor != null) {
-      this.controller.scrollToAnchor(this.location.anchor);
-      return true;
-    }
-  }
-
-  scrollToTop() {
-    this.controller.scrollToPosition({ x: 0, y: 0 });
-  }
 
   // Instrumentation
 

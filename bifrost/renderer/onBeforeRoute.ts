@@ -2,17 +2,17 @@
 
 export default function onBeforeRoute(_pageContext: any) {
   if (typeof window === "undefined") return undefined;
+  const Turbolinks = window.Turbolinks;
 
-  const currentVisit = window.Turbolinks.controller.currentVisit;
+  const currentVisit = Turbolinks.controller.currentVisit;
   if (!currentVisit || currentVisit.state === "completed") {
-    // old/nonexistent currentVisit means VPS is doing history navigation. Ideally we could turn of VPS' onpopstate listener.
-    const snapshot = window.Turbolinks.controller.getCachedSnapshotForLocation(
+    // old/nonexistent currentVisit means VPS is doing history navigation. Ideally we might turn off VPS' onpopstate listener.
+    const snapshot = Turbolinks.controller.getCachedSnapshotForLocation(
       window.location.href
     );
-    window.Turbolinks.controller.historyPoppedToLocationWithRestorationIdentifier(
+    Turbolinks.controller.historyPoppedToLocationWithRestorationIdentifier(
       window.location.href,
       ""
-      // history.state.turbolinks.restorationIdentifier
     );
 
     if (!!snapshot) {
