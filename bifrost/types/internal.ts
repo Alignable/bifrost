@@ -75,7 +75,7 @@ interface PageContextNoProxyCommon<LayoutProps = Record<string, unknown>> {
     documentProps?: DocumentProps;
     isLoggedIn?: boolean;
     scripts: ScriptProps;
-    cmsEnabled?: boolean;
+    storyblokSlug?: string;
   };
 }
 

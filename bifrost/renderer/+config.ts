@@ -1,7 +1,7 @@
 import { type ConfigNonHeaderFile } from "vite-plugin-ssr/types";
 
 export default {
-  passToClient: ["layoutProps", "pageProps", "redirectTo", "documentProps", "isLoggedIn", "scripts", "cmsEnabled", "cmsStoryData"],
+  passToClient: ["layoutProps", "pageProps", "redirectTo", "documentProps", "isLoggedIn", "scripts", "storyblokSlug", "cmsStoryData"],
   onRenderClient: "import:@alignable/bifrost/renderer/onRenderClient",
   onRenderHtml: "import:@alignable/bifrost/renderer/onRenderHtml",
   onBeforeRoute: "import:@alignable/bifrost/renderer/onBeforeRoute",
@@ -13,7 +13,7 @@ export default {
     documentProps: { env: "server-and-client" },
     isLoggedIn: { env: "server-and-client" },
     scripts: { env: "server-and-client" },
-    cmsEnabled: { env: "server-and-client" },
+    storyblokSlug: { env: "server-only" },
     onBeforeRender: { env: "server-and-client" },
   },
 } satisfies ConfigNonHeaderFile;
