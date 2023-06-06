@@ -1,7 +1,7 @@
 import { type ConfigNonHeaderFile } from "vite-plugin-ssr/types";
 
 export default {
-  passToClient: ["layoutProps", "pageProps", "redirectTo", "documentProps", "isLoggedIn", "scripts", "storyblokSlug", "cmsStoryData"],
+  passToClient: ["layoutProps", "pageProps", "redirectTo", "documentProps", "isLoggedIn", "scripts", "storyblokSlug", "storyblokStory"],
   onRenderClient: "import:@alignable/bifrost/renderer/onRenderClient",
   onRenderHtml: "import:@alignable/bifrost/renderer/onRenderHtml",
   onBeforeRoute: "import:@alignable/bifrost/renderer/onBeforeRoute",

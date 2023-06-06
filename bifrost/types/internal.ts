@@ -68,7 +68,7 @@ interface PageContextNoProxyCommon<LayoutProps = Record<string, unknown>> {
   pageProps: PageProps;
   redirectTo?: string;
   documentProps?: DocumentProps;
-  cmsStoryData?: any;
+  storyblokStory?: any;
   config: {
     Layout: Layout<LayoutProps>;
     layoutProps?: LayoutProps;
