@@ -3,7 +3,10 @@ import { renderReact } from "../lib/renderReact.js";
 import { PageContextNoProxyClient } from "../types/internal.js";
 import { PageShell } from "../lib/PageShell.js";
 import { Turbolinks } from "../lib/turbolinks/index.js";
-import { buildHead } from "./utils/buildHead.js";
+import { documentPropsToReact } from "./utils/buildHead.js";
+import { getDocumentProps } from "./getDocumentProps.js";
+import { createRoot } from "react-dom/client";
+import { createScriptElement } from "../lib/domUtils.js";
 
 Turbolinks.start();
 
@@ -36,14 +39,19 @@ export default async function onRenderClient(
     // During hydration of initial ssr, body is in dom, not page props (to avoid double-send)
     renderReact(page, pageContext.isHydration);
   } else {
-    // clear anything on body
-    document.body
-      .getAttributeNames()
-      .forEach((n) => document.body.removeAttribute(n));
-
     const head = document.createElement("head");
-    head.innerHTML = buildHead(pageContext); //TODO: this is not safe
+    createRoot(head).render(
+      documentPropsToReact(getDocumentProps(pageContext))
+    );
+    pageContext.config.scripts?.forEach((s) => {
+      head.insertAdjacentHTML("beforeend", s);
+    });
+
     Turbolinks._vpsOnRenderClient(head, false, () => {
+      // clear anything on body
+      document.body
+        .getAttributeNames()
+        .forEach((n) => document.body.removeAttribute(n));
       renderReact(page, pageContext.isHydration);
     });
     // Turbolinks._vpsOnRenderClient(async () => {

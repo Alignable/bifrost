@@ -27,7 +27,11 @@ export default async function onRenderHtml(
       .forEach((e) => e.setAttribute("data-turbolinks", "false"));
     bodyEl.querySelectorAll("a").forEach((e) => (e.rel = "external"));
 
-    const Layout = pageContext.config.layoutMap[layout];
+    const { layoutMap } = pageContext.config;
+    if (!layoutMap) {
+      throw new Error("layoutMap needs to be defined in config");
+    }
+    const Layout = layoutMap[layout];
     if (!Layout) throw new Error(`${layout} layout not found`);
     const pageHtml = ReactDOMServer.renderToString(
       <PageShell pageContext={pageContext}>

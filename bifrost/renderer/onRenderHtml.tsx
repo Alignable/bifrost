@@ -3,7 +3,8 @@ import React from "react";
 import { PageShell } from "../lib/PageShell.js";
 import { escapeInject, dangerouslySkipEscape } from "vite-plugin-ssr/server";
 import { PageContextNoProxyServer } from "../types/internal.js";
-import { buildHead } from "./utils/buildHead.js";
+import { documentPropsToReact } from "./utils/buildHead.js";
+import { getDocumentProps } from "./getDocumentProps.js";
 
 export default async function onRenderHtml(
   pageContext: PageContextNoProxyServer
@@ -24,10 +25,17 @@ export default async function onRenderHtml(
     </PageShell>
   );
 
+  const headHtml = ReactDOMServer.renderToString(
+    documentPropsToReact(getDocumentProps(pageContext))
+  );
+
   const documentHtml = escapeInject`<!DOCTYPE html>
     <html lang="en">
       <head>
-      ${buildHead(pageContext, escapeInject, dangerouslySkipEscape)}
+      ${dangerouslySkipEscape(headHtml)}
+      ${dangerouslySkipEscape(
+        Object.values(pageContext.config.scripts || {}).join("")
+      )}
       ${dangerouslySkipEscape(`<script>
       window.Turbolinks = {controller:{restorationIdentifier: ''}};
       addEventListener("DOMContentLoaded", () => {

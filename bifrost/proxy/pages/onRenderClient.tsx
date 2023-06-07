@@ -3,7 +3,10 @@ import { renderReact } from "../../lib/renderReact.js";
 import { PageShell } from "../../lib/PageShell.js";
 import { PageContextProxyClient } from "../../types/internal.js";
 import { Turbolinks } from "../../lib/turbolinks/index.js";
-import { copyElementAttributes, getElementAttributes } from "../../lib/domUtils.js";
+import {
+  copyElementAttributes,
+  getElementAttributes,
+} from "../../lib/domUtils.js";
 
 Turbolinks.start();
 
@@ -15,7 +18,12 @@ export default async function onRenderClient(
     return;
   }
   const { layoutProps, layout } = pageContext;
-  const Layout = pageContext.config.layoutMap[layout];
+
+  const { layoutMap } = pageContext.config;
+  if (!layoutMap) {
+    throw new Error("layoutMap needs to be defined in config");
+  }
+  const Layout = layoutMap[layout];
 
   function render(body: string) {
     renderReact(
@@ -46,19 +54,15 @@ export default async function onRenderClient(
     bodyEl = parsed.querySelector("body")!;
     const headEl = parsed.querySelector("head")!;
 
-    Turbolinks._vpsOnRenderClient(
-      headEl,
-      true,
-      () => {
-        // merge body attributes
-        document.body
-          .getAttributeNames()
-          .forEach((n) => document.body.removeAttribute(n));
-        copyElementAttributes(document.body, bodyEl);
-        // render body with react
-        render(bodyEl.innerHTML);
-      }
-    );
+    Turbolinks._vpsOnRenderClient(headEl, true, () => {
+      // merge body attributes
+      document.body
+        .getAttributeNames()
+        .forEach((n) => document.body.removeAttribute(n));
+      copyElementAttributes(document.body, bodyEl);
+      // render body with react
+      render(bodyEl.innerHTML);
+    });
 
     // const snapshot =
     //   pageContext.snapshot || (proxy && Snapshot.fromHTMLString(proxy));

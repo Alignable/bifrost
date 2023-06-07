@@ -1,7 +1,10 @@
 import React from "react";
 import { PageContextProxyRestorationVisit } from "../../../types/internal.js";
 import { PageShell } from "../../../lib/PageShell.js";
-import { copyElementAttributes, getElementAttributes } from "../../../lib/domUtils.js";
+import {
+  copyElementAttributes,
+  getElementAttributes,
+} from "../../../lib/domUtils.js";
 import { renderReact } from "../../../lib/renderReact.js";
 import { Turbolinks } from "../../../lib/turbolinks/index.js";
 
@@ -13,7 +16,11 @@ export default async function onRenderClient(
   }
 
   const { layoutProps, layout, bodyEl, headEl } = pageContext;
-  const Layout = pageContext.config.layoutMap[layout];
+  const { layoutMap } = pageContext.config;
+  if (!layoutMap) {
+    throw new Error("layoutMap needs to be defined in config");
+  }
+  const Layout = layoutMap[layout];
 
   function render(body: string) {
     renderReact(
