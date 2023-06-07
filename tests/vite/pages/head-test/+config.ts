@@ -9,5 +9,5 @@ export default {
     title: "head test",
     description: "a cool description",
   },
-  scripts: [`<script>console.log("hello i am a script")</script>`],
+  scripts: [`<script>console.log("script inserted by config")</script>`],
 } satisfies BifrostConfig<LayoutProps>;
