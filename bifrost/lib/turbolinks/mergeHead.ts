@@ -7,21 +7,21 @@ const allHeadScriptsEverRun: { [outerHTML: string]: ElementDetails } = {};
 let firstLoad = true;
 let lastTrackedScriptSignature: string;
 
-// takes in innerHTML of head
 export async function mergeHead(
   head: HTMLHeadElement,
   trackScripts: boolean,
   onTrackedScriptsChanged: () => void
 ) {
-  // const parsed = document.createRange().createContextualFragment(head); // Create a 'tiny' document and parse the html string
   const newHead = categorizeHead(head);
   const oldHead = categorizeHead(document.head);
 
   if (trackScripts) {
     lastTrackedScriptSignature =
-      lastTrackedScriptSignature || trackedScriptSignature(oldHead.scripts);
+      lastTrackedScriptSignature ||
+      trackedElementSignature([...oldHead.scripts, ...oldHead.stylesheets]);
     if (
-      lastTrackedScriptSignature !== trackedScriptSignature(newHead.scripts)
+      lastTrackedScriptSignature !==
+      trackedElementSignature([...newHead.scripts, ...oldHead.stylesheets])
     ) {
       onTrackedScriptsChanged();
     }
@@ -46,7 +46,7 @@ export async function mergeHead(
   });
 }
 
-function trackedScriptSignature(scripts: Element[]) {
+function trackedElementSignature(scripts: Element[]) {
   return scripts
     .filter(elementIsTracked)
     .map((s) => s.outerHTML)

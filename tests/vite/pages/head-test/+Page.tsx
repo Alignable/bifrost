@@ -6,6 +6,7 @@ const CUSTOM_HREF = {
   headScripts: ["inline1", "blocking", "defer"],
   bodyScripts: ["blocking", "inline1", "inline2", "blocking"],
 };
+import "./index.css"
 
 export default function Page() {
   return (
