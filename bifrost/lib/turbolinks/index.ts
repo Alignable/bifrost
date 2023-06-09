@@ -1,8 +1,7 @@
-import { activateNewBodyScriptElements } from "../domUtils";
 import { mergeHead } from "./mergeHead";
 import { Controller, VisitOptions } from "./controller";
 import { Locatable } from "./location";
-import { focusFirstAutofocusableElement } from "./util";
+import { activateNewBodyScriptElements, focusFirstAutofocusableElement } from "./util";
 
 const controller = new Controller();
 

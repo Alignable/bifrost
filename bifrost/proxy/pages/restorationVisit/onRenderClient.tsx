@@ -1,12 +1,9 @@
 import React from "react";
 import { PageContextProxyRestorationVisit } from "../../../types/internal.js";
 import { PageShell } from "../../../lib/PageShell.js";
-import {
-  copyElementAttributes,
-  getElementAttributes,
-} from "../../../lib/domUtils.js";
 import { renderReact } from "../../../lib/renderReact.js";
 import { Turbolinks } from "../../../lib/turbolinks/index.js";
+import { copyElementAttributes, getElementAttributes } from "../../../lib/turbolinks/util.js";
 
 export default async function onRenderClient(
   pageContext: PageContextProxyRestorationVisit

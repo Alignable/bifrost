@@ -6,7 +6,6 @@ import { Turbolinks } from "../lib/turbolinks/index.js";
 import { documentPropsToReact } from "./utils/buildHead.js";
 import { getDocumentProps } from "./getDocumentProps.js";
 import { createRoot } from "react-dom/client";
-import { createScriptElement } from "../lib/domUtils.js";
 
 Turbolinks.start();
 

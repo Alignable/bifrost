@@ -6,7 +6,7 @@ import { Turbolinks } from "../../lib/turbolinks/index.js";
 import {
   copyElementAttributes,
   getElementAttributes,
-} from "../../lib/domUtils.js";
+} from "../../lib/turbolinks/util.js";
 
 Turbolinks.start();
 

@@ -4,7 +4,7 @@ import { dangerouslySkipEscape, escapeInject } from "vite-plugin-ssr/server";
 import { PageContextProxyServer } from "../../types/internal.js";
 import { PageShell } from "../../lib/PageShell.js";
 import jsdom from "jsdom";
-import { getElementAttributes } from "../../lib/domUtils.js";
+import { getElementAttributes } from "../../lib/turbolinks/util.js";
 
 export default async function onRenderHtml(
   pageContext: PageContextProxyServer

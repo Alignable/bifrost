@@ -1,4 +1,4 @@
-import { createScriptElement } from "../domUtils.js";
+import { createScriptElement } from "./util";
 
 interface ElementDetails {
   tracked: boolean;
