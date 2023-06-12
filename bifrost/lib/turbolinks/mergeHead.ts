@@ -10,20 +10,27 @@ let lastTrackedScriptSignature: string;
 export async function mergeHead(
   head: HTMLHeadElement,
   trackScripts: boolean,
-  onTrackedScriptsChanged: () => void
+  reload: () => void
 ) {
   const newHead = categorizeHead(head);
   const oldHead = categorizeHead(document.head);
 
+  if (
+    head
+      .querySelector('meta[name="turbolinks-visit-control"]')
+      ?.getAttribute("content") === "reload"
+  ) {
+    reload();
+  }
   if (trackScripts) {
     lastTrackedScriptSignature =
       lastTrackedScriptSignature ||
       trackedElementSignature([...oldHead.scripts, ...oldHead.stylesheets]);
     if (
       lastTrackedScriptSignature !==
-      trackedElementSignature([...newHead.scripts, ...oldHead.stylesheets])
+      trackedElementSignature([...newHead.scripts, ...newHead.stylesheets])
     ) {
-      onTrackedScriptsChanged();
+      reload();
     }
   }
 
@@ -91,7 +98,7 @@ function copyNewHeadScriptElements(
     }
   }
   if (blockingLoaded.length === 0) {
-    // //TODO: raf waits for react to finish... not 100% sure of the reliability
+    // raf waits for react to finish
     requestAnimationFrame(dispatch);
   }
 }

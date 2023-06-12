@@ -52,7 +52,6 @@ export const Turbolinks = {
   ) {
     if (controller.currentVisit) {
       const { currentVisit } = controller;
-      // TODO: handle render.shouldRender logic
       // TODO: move to controller?
       currentVisit.renderFn = async () => {
         const scriptsLoaded = mergeHead(newHead, trackScripts, () =>

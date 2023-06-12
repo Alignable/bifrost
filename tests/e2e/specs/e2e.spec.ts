@@ -223,7 +223,6 @@ test.describe("turbolinks: events", () => {
     await expectNoMoreScripts(page);
   });
 
-  // TODO: not sure if this is actually the desired behavior
   test("loading vite page does not fire events", async ({ page }) => {
     const logs = storeConsoleLog(page);
     await page.goto("./vite-page");
