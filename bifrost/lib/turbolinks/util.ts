@@ -135,14 +135,6 @@ export function copyElementAttributes(
   }
 }
 
-export function getElementAttributes(element: Element) {
-  const bodyAttrs: Record<string, string> = {};
-  element.getAttributeNames().forEach((name) => {
-    bodyAttrs[name] = element.getAttribute(name)!;
-  });
-  return bodyAttrs;
-}
-
 function replaceElementWithElement(fromElement: Element, toElement: Element) {
   const parentElement = fromElement.parentElement;
   if (parentElement) {

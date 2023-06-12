@@ -19,7 +19,7 @@
   },
   "peerDependencies": {
     "fastify": "^4.9.2",
-    "vite-plugin-ssr": "^0.4.130"
+    "vite-plugin-ssr": "0.4.131-commit-35ca471f7"
   },
   "devDependencies": {
     "@types/connect": "^3.4.35",

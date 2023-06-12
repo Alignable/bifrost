@@ -5,8 +5,8 @@ import { PageContextProxyClient } from "../../types/internal.js";
 import { Turbolinks } from "../../lib/turbolinks/index.js";
 import {
   copyElementAttributes,
-  getElementAttributes,
 } from "../../lib/turbolinks/util.js";
+import { getElementAttributes } from "../../lib/getElementAttributes.js";
 
 Turbolinks.start();
 

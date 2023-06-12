@@ -33,6 +33,8 @@ export const Turbolinks = {
       (window.Turbolinks.controller.adapter as any).controller = controller;
       controller.adapter = window.Turbolinks.controller.adapter;
     }
+    // Tells vite-plugin-ssr not to do link interception
+    (window as any)._disableAutomaticLinkInterception = true
     window.Turbolinks = Turbolinks;
     controller.start();
   },

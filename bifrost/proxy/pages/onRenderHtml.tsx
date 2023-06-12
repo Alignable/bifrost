@@ -4,7 +4,7 @@ import { dangerouslySkipEscape, escapeInject } from "vite-plugin-ssr/server";
 import { PageContextProxyServer } from "../../types/internal.js";
 import { PageShell } from "../../lib/PageShell.js";
 import jsdom from "jsdom";
-import { getElementAttributes } from "../../lib/turbolinks/util.js";
+import { getElementAttributes } from "../../lib/getElementAttributes.js";
 
 export default async function onRenderHtml(
   pageContext: PageContextProxyServer
@@ -19,13 +19,6 @@ export default async function onRenderHtml(
     if (!bodyEl || !head) {
       throw new Error("Proxy failed");
     }
-
-    // disable vite-plugin-ssr link interceptor. May not be neccessary in future:
-    // https://github.com/brillout/vite-plugin-ssr/discussions/728#discussioncomment-5634111
-    bodyEl
-      .querySelectorAll("a[rel='external']")
-      .forEach((e) => e.setAttribute("data-turbolinks", "false"));
-    bodyEl.querySelectorAll("a").forEach((e) => (e.rel = "external"));
 
     const { layoutMap } = pageContext.config;
     if (!layoutMap) {
