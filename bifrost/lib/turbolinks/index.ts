@@ -43,10 +43,6 @@ export const Turbolinks = {
     controller.pageContext = pageContext;
   },
 
-  _vpsWriteRestorationIdentifier() {
-    controller.restorationIdentifier;
-  },
-
   _vpsOnRenderClient(
     newHead: HTMLHeadElement,
     trackScripts: boolean,

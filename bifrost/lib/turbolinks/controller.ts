@@ -8,10 +8,6 @@ import { Visit } from "./visit";
 
 export type TimingData = {};
 export type VisitOptions = { action: Action };
-export type VisitProperties = {
-  restorationIdentifier: string;
-  historyChanged: boolean;
-};
 
 export interface Snapshot {
   bodyEl: Element;
@@ -28,7 +24,7 @@ export class Controller {
   lastRenderedLocation?: Location;
   location!: Location;
   progressBarDelay = 500;
-  restorationIdentifier!: string;
+  restorationIdentifier!: string; // This only exists for compatibility with iOS
   started = false;
   pageContext: any;
 
@@ -75,7 +71,7 @@ export class Controller {
   startVisitToLocationWithAction(
     location: Locatable,
     action: Action,
-    restorationIdentifier: string
+    restorationIdentifier?: string
   ) {
     this.startVisit(Location.wrap(location), action);
   }

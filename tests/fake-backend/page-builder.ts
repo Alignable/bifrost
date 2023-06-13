@@ -58,6 +58,15 @@ const link = (href: string, text: string, { turbolinks = true } = {}) =>
 const turbo =
   '<script src="https://cdnjs.cloudflare.com/ajax/libs/turbolinks/5.2.0/turbolinks.js" integrity="sha512-G3jAqT2eM4MMkLMyQR5YBhvN5/Da3IG6kqgYqU9zlIH4+2a+GuMdLb5Kpxy6ItMdCfgaKlo2XFhI0dHtMJjoRw==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>';
 
+export const turboAnnouncer = `<script>if (!window.turboDebug) {
+    ${Object.values(Turbolinks)
+      .map(
+        (e) => `document.addEventListener('${e}', () => console.log('${e}'));`
+      )
+      .join("")}
+    window.turboDebug = true;
+  }</script>`;
+
 export function buildPage(data: PageData) {
   if ("redirectTo" in data) return;
   const {
@@ -73,6 +82,7 @@ export function buildPage(data: PageData) {
 <html>
   <head>
   <title>${title}</title>
+  ${turboAnnouncer}
   ${headScripts.map((h) => HEAD_SCRIPTS[h]).join("\n")}
   </head>
   <body ${bodyAttrs}>

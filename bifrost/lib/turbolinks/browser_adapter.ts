@@ -4,7 +4,6 @@ import { Locatable } from "./location";
 import { ProgressBar } from "./progress_bar";
 import { Action } from "./types";
 import { Visit } from "./visit";
-import { uuid } from "./util";
 
 export class BrowserAdapter implements Adapter {
   readonly controller: Controller;
@@ -17,11 +16,9 @@ export class BrowserAdapter implements Adapter {
   }
 
   visitProposedToLocationWithAction(location: Locatable, action: Action) {
-    const restorationIdentifier = uuid();
     this.controller.startVisitToLocationWithAction(
       location,
       action,
-      restorationIdentifier
     );
   }
 

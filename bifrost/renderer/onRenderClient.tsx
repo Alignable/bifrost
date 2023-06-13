@@ -46,21 +46,14 @@ export default async function onRenderClient(
       head.insertAdjacentHTML("beforeend", s);
     });
 
-    Turbolinks._vpsOnRenderClient(head, false, () => {
-      // clear anything on body
-      document.body
-        .getAttributeNames()
-        .forEach((n) => document.body.removeAttribute(n));
-      renderReact(page, pageContext.isHydration);
+    requestAnimationFrame(() => {
+      Turbolinks._vpsOnRenderClient(head, false, () => {
+        // clear anything on body
+        document.body
+          .getAttributeNames()
+          .forEach((n) => document.body.removeAttribute(n));
+        renderReact(page, pageContext.isHydration);
+      });
     });
-    // Turbolinks._vpsOnRenderClient(async () => {
-    //   const { title = "", description = "" } = getDocumentProps(pageContext);
-    //   document.title = title;
-    //   document.head
-    //     .querySelector("meta[name='description']")
-    //     ?.setAttribute("content", description);
-
-    //   renderReact(page, pageContext.isHydration);
-    // });
   }
 }

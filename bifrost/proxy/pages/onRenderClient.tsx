@@ -63,22 +63,6 @@ export default async function onRenderClient(
       // render body with react
       render(bodyEl.innerHTML);
     });
-
-    // const snapshot =
-    //   pageContext.snapshot || (proxy && Snapshot.fromHTMLString(proxy));
-
-    // Turbolinks._vpsRenderClientWith(
-    //   new SnapshotRenderer(
-    //     Snapshot.fromHTMLElement(document.documentElement as HTMLHtmlElement),
-    //     snapshot,
-    //     false,
-    //     render
-    //   )
-    // );
-
-    //   await mergeHead(proxy.head);
-    // });
-    // writeRestorationIdentifier(pageContext);
   }
 
   // cache page context will save it and return it to us during restoration visits
