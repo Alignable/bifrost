@@ -3,23 +3,36 @@ import ReactDOMServer from "react-dom/server";
 import { dangerouslySkipEscape, escapeInject } from "vite-plugin-ssr/server";
 import { PageContextProxyServer } from "../../types/internal.js";
 import { PageShell } from "../../lib/PageShell.js";
+import jsdom from "jsdom";
+import { getElementAttributes } from "../../lib/getElementAttributes.js";
 
 export default async function onRenderHtml(
   pageContext: PageContextProxyServer
 ) {
   if (pageContext.proxy) {
-    const {
-      proxy: { head, body, bodyAttrs },
-      layoutProps,
-      layout,
-    } = pageContext;
+    const { proxy, layoutProps, layout } = pageContext;
 
-    const Layout = pageContext.config.layoutMap[layout];
+    const dom = new jsdom.JSDOM(proxy);
+    const doc = dom.window.document;
+    const bodyEl = doc.querySelector("body");
+    const head = doc.querySelector("head");
+    if (!bodyEl || !head) {
+      throw new Error("Proxy failed");
+    }
+
+    const { layoutMap } = pageContext.config;
+    if (!layoutMap) {
+      throw new Error("layoutMap needs to be defined in config");
+    }
+    const Layout = layoutMap[layout];
     if (!Layout) throw new Error(`${layout} layout not found`);
     const pageHtml = ReactDOMServer.renderToString(
       <PageShell pageContext={pageContext}>
         <Layout {...layoutProps}>
-          <div id="proxied-body" dangerouslySetInnerHTML={{ __html: body }} />
+          <div
+            id="proxied-body"
+            dangerouslySetInnerHTML={{ __html: bodyEl.innerHTML }}
+          />
         </Layout>
       </PageShell>
     );
@@ -28,12 +41,13 @@ export default async function onRenderHtml(
     <!DOCTYPE html>
     <html>
         <head>
-          ${dangerouslySkipEscape(head)}
+          ${dangerouslySkipEscape(head.innerHTML)}
           ${
             // We need to fire turbolinks:load exactly on DCL, so it must be a blocking head script to catch DCL event.
             // Vite loads scripts with type="module" so the rest of our code will show up too late.
             // TODO: figure out how to bundle this better. at least read from a .js file
             dangerouslySkipEscape(`<script>
+          window.Turbolinks = {controller:{restorationIdentifier: ''}};
           addEventListener("DOMContentLoaded", () => {
             const event = new Event("turbolinks:load", { bubbles: true, cancelable: true });
             event.data = {url: window.location.href};
@@ -43,7 +57,7 @@ export default async function onRenderHtml(
           }
         </head>
         <body ${dangerouslySkipEscape(
-          Object.entries(bodyAttrs)
+          Object.entries(getElementAttributes(bodyEl))
             .map(([name, value]) => `${name}="${value}"`)
             .join(" ")
         )}>

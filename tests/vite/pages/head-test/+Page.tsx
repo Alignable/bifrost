@@ -6,15 +6,12 @@ const CUSTOM_HREF = {
   headScripts: ["inline1", "blocking", "defer"],
   bodyScripts: ["blocking", "inline1", "inline2", "blocking"],
 };
+import "./index.css"
 
 export default function Page() {
   return (
     <>
-      <h1>vite is here</h1>
-      <a href={`/custom?page=${encodeURI(JSON.stringify(CUSTOM_HREF))}`}>
-        legacy page
-      </a>
-      <a href="/head-test">head test</a>
+      <h1>head testing</h1>
     </>
   );
 }

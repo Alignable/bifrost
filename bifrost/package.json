@@ -1,7 +1,7 @@
 {
   "name": "@alignable/bifrost",
   "repository": "https://github.com/Alignable/bifrost.git",
-  "version": "0.0.11",
+  "version": "0.0.12",
   "type": "module",
   "types": "./dist/index.d.ts",
   "exports": {
@@ -49,6 +49,10 @@
       "types": "./dist/proxy/pages/restorationVisit/route.d.ts",
       "default": "./dist/proxy/pages/restorationVisit/route.js"
     },
+    "./proxy/pages/restorationVisit/onRenderClient": {
+      "types": "./dist/proxy/pages/restorationVisit/onRenderClient.d.ts",
+      "default": "./dist/proxy/pages/restorationVisit/onRenderClient.js"
+    },
     ".": {
       "types": "./dist/index.d.ts",
       "default": "./dist/index.js"
@@ -66,23 +70,27 @@
   "scripts": {
     "dev": "vite",
     "release": "release-me patch",
-    "build": "rm -rf dist/ && yarn tsc"
+    "build": "rm -rf dist/ && yarn tsc",
+    "tsc": "tsc"
   },
   "files": [
     "dist/"
   ],
   "dependencies": {
     "cross-env": "^7.0.3",
+    "jsdom": "^22.1.0",
     "react": "^18.x.x",
     "react-dom": "^18.x.x",
+    "tough-cookie": "^4.1.2",
     "uuid": "^9.0.0",
-    "vite-plugin-ssr": "0.4.130"
+    "vite-plugin-ssr": "0.4.131-commit-35ca471f7"
   },
   "peerDependencies": {
     "react": "^18.x.x",
     "react-dom": "^18.x.x",
-    "vite-plugin-ssr": "0.4.130",
-    "typescript": ">=4.7"
+    "typescript": ">=4.7",
+    "jsdom": "^22.1.0",
+    "vite-plugin-ssr": "0.4.131-commit-35ca471f7"
   },
   "devDependencies": {
     "@types/node": "^18.11.9",

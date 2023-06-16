@@ -3,8 +3,8 @@ import React from "react";
 import { PageShell } from "../lib/PageShell.js";
 import { escapeInject, dangerouslySkipEscape } from "vite-plugin-ssr/server";
 import { PageContextNoProxyServer } from "../types/internal.js";
+import { documentPropsToReact } from "./utils/buildHead.js";
 import { getDocumentProps } from "./getDocumentProps.js";
-import { formatMetaObject } from "./utils/formatMetaObject.js";
 
 export default async function onRenderHtml(
   pageContext: PageContextNoProxyServer
@@ -25,27 +25,25 @@ export default async function onRenderHtml(
     </PageShell>
   );
 
-  const { googleAnalytics, osano } = pageContext.config.scripts;
-  const googleAnalyticsTag = dangerouslySkipEscape(googleAnalytics);
-  const osanoTag = dangerouslySkipEscape(osano);
-
-  // // See https://vite-plugin-ssr.com/head
-  const { title = "", description = "", viewport } = getDocumentProps(pageContext);
-  if (!title) {
-    console.warn(`No title set for ${pageContext.urlOriginal}!`);
-  }
-
-  const viewportTag = !viewport ? "" : escapeInject`<meta content="${formatMetaObject(viewport)}" name="viewport">`;
+  const headHtml = ReactDOMServer.renderToString(
+    documentPropsToReact(getDocumentProps(pageContext))
+  );
 
   const documentHtml = escapeInject`<!DOCTYPE html>
     <html lang="en">
       <head>
-      ${googleAnalyticsTag}
-      ${osanoTag}
-      <title>${title}</title>
-      <meta name="title" property="og:title" content="${title}"/>
-      <meta name="description" content="${description}"/>
-      ${viewportTag}
+      ${dangerouslySkipEscape(headHtml)}
+      ${dangerouslySkipEscape(
+        Object.values(pageContext.config.scripts || {}).join("")
+      )}
+      ${dangerouslySkipEscape(`<script>
+      window.Turbolinks = {controller:{restorationIdentifier: ''}};
+      addEventListener("DOMContentLoaded", () => {
+        const event = new Event("turbolinks:load", { bubbles: true, cancelable: true });
+        event.data = {url: window.location.href};
+        document.dispatchEvent(event);  
+      })
+      </script>`)}
       </head>
       <body>
         <div id="page-view">${dangerouslySkipEscape(pageHtml)}</div>

@@ -1,42 +1,31 @@
-import React from "react";
+import React, { PropsWithChildren } from "react";
 import { renderReact } from "../lib/renderReact.js";
 import { PageContextNoProxyClient } from "../types/internal.js";
 import { PageShell } from "../lib/PageShell.js";
-import { turbolinksClickListener } from "../lib/linkInterceptor.js";
+import { Turbolinks } from "../lib/turbolinks/index.js";
+import { documentPropsToReact } from "./utils/buildHead.js";
 import { getDocumentProps } from "./getDocumentProps.js";
-import { cacheProxiedBody } from "../lib/snapshots.js";
-import { navigateAnywhere } from "../lib/navigateAnywhere.js";
-import { setupTurbolinks } from "../lib/turbolinks.js";
-import { formatMetaObject } from "./utils/formatMetaObject.js";
+import { createRoot } from "react-dom/client";
 
-setupTurbolinks()
+Turbolinks.start();
+
+const PassThruLayout: React.ComponentType<PropsWithChildren> = ({
+  children,
+}) => <>{children}</>;
 
 export default async function onRenderClient(
   pageContext: PageContextNoProxyClient
 ) {
-  if (navigateAnywhere(pageContext.redirectTo)) return;
+  if (pageContext.redirectTo) {
+    Turbolinks.visit(pageContext.redirectTo);
+    return;
+  }
 
   const { Page, pageProps } = pageContext;
-  const { Layout, layoutProps } = pageContext.config;
+  const { Layout = PassThruLayout, layoutProps } = pageContext.config;
 
   if (!Page)
     throw new Error("Client-side render() hook expects Page to be exported");
-  if (!Layout)
-    throw new Error("Client-side render() hook expects Layout to be exported");
-
-  document.removeEventListener("click", turbolinksClickListener);
-  cacheProxiedBody();
-
-  const { title = "", description = "", viewport } = getDocumentProps(pageContext);
-  document.title = title;
-  document.head
-    .querySelector("meta[name='description']")
-    ?.setAttribute("content", description);
-  if (viewport) {
-    document.head
-      .querySelector("meta[name='viewport']")
-      ?.setAttribute("content", formatMetaObject(viewport));
-  }
 
   const page = (
     <PageShell pageContext={pageContext}>
@@ -45,6 +34,26 @@ export default async function onRenderClient(
       </Layout>
     </PageShell>
   );
+  if (pageContext.isHydration) {
+    // During hydration of initial ssr, body is in dom, not page props (to avoid double-send)
+    renderReact(page, pageContext.isHydration);
+  } else {
+    const head = document.createElement("head");
+    createRoot(head).render(
+      documentPropsToReact(getDocumentProps(pageContext))
+    );
+    pageContext.config.scripts?.forEach((s) => {
+      head.insertAdjacentHTML("beforeend", s);
+    });
 
-  renderReact(page, pageContext.isHydration);
+    requestAnimationFrame(() => {
+      Turbolinks._vpsOnRenderClient(head, false, () => {
+        // clear anything on body
+        document.body
+          .getAttributeNames()
+          .forEach((n) => document.body.removeAttribute(n));
+        renderReact(page, pageContext.isHydration);
+      });
+    });
+  }
 }

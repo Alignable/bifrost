@@ -15,15 +15,7 @@ bifrost is the framework for incremental migration from Rails/Turbolinks to Vite
 - All high-volume ajax calls move to separate domain to minimize vite proxy load (/biz/presences)
 - Proxy improvements:
   - x-xhr-redirect
-- Turbolinks.visit
 - Mobile App:
-  - Provide an interface to [WebView.js](https://github.com/turbolinks/turbolinks-ios/blob/master/Turbolinks/WebView.js) so ios can hook in
   - No idea about Android.
-- Move Rails => vite
-  - All on-load hooks: Amp tracking, ABTasty, Appcues, etc.
-  - Page load spinner
-  - Inbox
-  - All navbars
 - Authentication
-- proxy performance: jsdom likely can be replaced with something ~10x faster.
 

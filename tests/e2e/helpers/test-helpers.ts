@@ -83,7 +83,12 @@ export function onDocumentEvent(
     async ({ eventName, selectorsToGetTextContent }) =>
       new Promise((resolve) =>
         document.addEventListener(eventName, (ev) =>
-          resolve([ev, selectorsToGetTextContent.map((h) => document.querySelector(h)!.textContent)])
+          resolve([
+            ev,
+            selectorsToGetTextContent.map(
+              (h) => document.querySelector(h)?.textContent || ""
+            ),
+          ])
         )
       ),
     { eventName, selectorsToGetTextContent }
@@ -112,7 +117,12 @@ export async function validateDOMOnTurbolinks<T>(
       onDocumentEvent(page, eventName, selectors).then(
         ([event, textContents]) =>
           callbacks.forEach((cb, i) =>
-            cb(expect.soft(textContents[i], `${eventName} failed on ${selectors[i]}`))
+            cb(
+              expect.soft(
+                textContents[i],
+                `${eventName} failed on ${selectors[i]}`
+              )
+            )
           )
       )
     )

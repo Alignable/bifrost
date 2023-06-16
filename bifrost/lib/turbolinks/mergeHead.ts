@@ -1,20 +1,37 @@
-import { dispatchTurbolinks } from "./dispatchTurbolinks.js";
-import { activateNewBodyScriptElements, createScriptElement } from "./domUtils.js";
+import { createScriptElement } from "./util";
 
 interface ElementDetails {
   tracked: boolean;
 }
 const allHeadScriptsEverRun: { [outerHTML: string]: ElementDetails } = {};
 let firstLoad = true;
+let lastTrackedScriptSignature: string;
 
-// takes in innerHTML of head
-export function mergeHead(head: string) {
-  const parsed = document.createRange().createContextualFragment(head); // Create a 'tiny' document and parse the html string
-  const newHead = categorizeHead(parsed);
+export async function mergeHead(
+  head: HTMLHeadElement,
+  trackScripts: boolean,
+  reload: () => void
+) {
+  const newHead = categorizeHead(head);
   const oldHead = categorizeHead(document.head);
 
-  if (!trackedScriptsIdentical(oldHead.scripts, newHead.scripts)) {
-    window.location.reload();
+  if (
+    head
+      .querySelector('meta[name="turbolinks-visit-control"]')
+      ?.getAttribute("content") === "reload"
+  ) {
+    reload();
+  }
+  if (trackScripts) {
+    lastTrackedScriptSignature =
+      lastTrackedScriptSignature ||
+      trackedElementSignature([...oldHead.scripts, ...oldHead.stylesheets]);
+    if (
+      lastTrackedScriptSignature !==
+      trackedElementSignature([...newHead.scripts, ...newHead.stylesheets])
+    ) {
+      reload();
+    }
   }
 
   if (firstLoad) {
@@ -30,20 +47,17 @@ export function mergeHead(head: string) {
   copyNewHeadStylesheetElements(newHead.stylesheets, oldHead.stylesheets);
   removeCurrentHeadProvisionalElements(oldHead.provisional);
   copyNewHeadProvisionalElements(newHead.provisional);
-  copyNewHeadScriptElements(newHead.scripts);
+
+  return new Promise<void>((resolve) => {
+    copyNewHeadScriptElements(newHead.scripts, resolve);
+  });
 }
 
-function trackedScriptsIdentical(prev: Element[], next: Element[]) {
-  return (
-    prev
-      .filter(elementIsTracked)
-      .map((s) => s.outerHTML)
-      .join() ===
-    next
-      .filter(elementIsTracked)
-      .map((s) => s.outerHTML)
-      .join()
-  );
+function trackedElementSignature(scripts: Element[]) {
+  return scripts
+    .filter(elementIsTracked)
+    .map((s) => s.outerHTML)
+    .join();
 }
 
 function copyNewHeadStylesheetElements(next: Element[], prev: Element[]) {
@@ -55,19 +69,13 @@ function copyNewHeadStylesheetElements(next: Element[], prev: Element[]) {
   }
 }
 
-function copyNewHeadScriptElements(next: Element[]) {
+function copyNewHeadScriptElements(
+  next: Element[],
+  onScriptsLoaded: () => void
+) {
   let blockingLoaded: boolean[] = [];
   function dispatch() {
-    const scripts = document.body
-      .querySelector("#proxied-body")!
-      .querySelectorAll("script");
-
-    // TODO: maybe this goes in onTransitionEnd? Need to test.
-    activateNewBodyScriptElements(Array.from(scripts));
-    focusFirstAutofocusableElement();
-
-    dispatchTurbolinks("turbolinks:render", {});
-    dispatchTurbolinks("turbolinks:load", { url: window.location.href });
+    onScriptsLoaded();
   }
   for (const element of next as HTMLScriptElement[]) {
     const runBefore = element.outerHTML in allHeadScriptsEverRun;
@@ -90,8 +98,8 @@ function copyNewHeadScriptElements(next: Element[]) {
     }
   }
   if (blockingLoaded.length === 0) {
-    //TODO: raf waits for react to run... not 100% sure of the reliability
-    requestAnimationFrame(() => requestAnimationFrame(dispatch));
+    // raf waits for react to finish
+    requestAnimationFrame(dispatch);
   }
 }
 
@@ -104,13 +112,6 @@ function removeCurrentHeadProvisionalElements(prev: Element[]) {
 function copyNewHeadProvisionalElements(next: Element[]) {
   for (const element of next) {
     document.head.appendChild(element);
-  }
-}
-
-function focusFirstAutofocusableElement() {
-  const element = document.body.querySelector("[autofocus]");
-  if (element && "focus" in element && typeof element.focus === "function") {
-    element.focus();
   }
 }
 

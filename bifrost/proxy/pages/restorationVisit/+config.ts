@@ -3,6 +3,9 @@ import { ConfigNonHeaderFile } from "vite-plugin-ssr/types";
 export default {
   route: "import:@alignable/bifrost/proxy/pages/restorationVisit/route",
   Page: "import:@alignable/bifrost/proxy/pages/Page",
+  onRenderClient: "import:@alignable/bifrost/proxy/pages/restorationVisit/onRenderClient",
+  // See onBeforeRoute for how head and body are inserted from Turbolinks snapshot
+  passToClient: ["headEl", "bodyEl", "layout", "layoutProps"],
   meta: {
     onBeforeRender: {
       // We tell vite-plugin-ssr to load and execute onBeforeRender()
