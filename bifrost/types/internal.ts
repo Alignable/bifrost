@@ -97,6 +97,7 @@ interface PageContextNoProxyCommon<LayoutProps = Record<string, unknown>> {
   pageProps: PageProps;
   redirectTo?: string;
   documentProps?: DocumentProps;
+  layoutProps: LayoutProps;
   config: NoProxyConfig<LayoutProps>;
 }
 

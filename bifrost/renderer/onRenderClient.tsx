@@ -4,7 +4,7 @@ import { PageContextNoProxyClient } from "../types/internal.js";
 import { PageShell } from "../lib/PageShell.js";
 import { Turbolinks } from "../lib/turbolinks/index.js";
 import { documentPropsToReact } from "./utils/buildHead.js";
-import { getDocumentProps } from "./getDocumentProps.js";
+import { getPageContextOrConfig } from "./getConfigOrPageContext.js";
 import { createRoot } from "react-dom/client";
 
 Turbolinks.start();
@@ -22,7 +22,8 @@ export default async function onRenderClient(
   }
 
   const { Page, pageProps } = pageContext;
-  const { Layout = PassThruLayout, layoutProps } = pageContext.config;
+  const { Layout = PassThruLayout } = pageContext.config;
+  const layoutProps = getPageContextOrConfig(pageContext, "layoutProps") || {};
 
   if (!Page)
     throw new Error("Client-side render() hook expects Page to be exported");
@@ -40,7 +41,9 @@ export default async function onRenderClient(
   } else {
     const head = document.createElement("head");
     createRoot(head).render(
-      documentPropsToReact(getDocumentProps(pageContext))
+      documentPropsToReact(
+        getPageContextOrConfig(pageContext, "documentProps") || {}
+      )
     );
     pageContext.config.scripts?.forEach((s) => {
       head.insertAdjacentHTML("beforeend", s);

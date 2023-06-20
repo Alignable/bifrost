@@ -4,13 +4,14 @@ import { PageShell } from "../lib/PageShell.js";
 import { escapeInject, dangerouslySkipEscape } from "vite-plugin-ssr/server";
 import { PageContextNoProxyServer } from "../types/internal.js";
 import { documentPropsToReact } from "./utils/buildHead.js";
-import { getDocumentProps } from "./getDocumentProps.js";
+import { getPageContextOrConfig } from "./getConfigOrPageContext.js";
 
 export default async function onRenderHtml(
   pageContext: PageContextNoProxyServer
 ) {
   const { Page, pageProps } = pageContext;
-  const { Layout, layoutProps } = pageContext.config;
+  const { Layout } = pageContext.config;
+  const layoutProps = getPageContextOrConfig(pageContext, "layoutProps") || {};
 
   if (!Page)
     throw new Error("Server-side render() hook expects Page to be exported");
@@ -26,7 +27,9 @@ export default async function onRenderHtml(
   );
 
   const headHtml = ReactDOMServer.renderToString(
-    documentPropsToReact(getDocumentProps(pageContext))
+    documentPropsToReact(
+      getPageContextOrConfig(pageContext, "documentProps") || {}
+    )
   );
 
   const documentHtml = escapeInject`<!DOCTYPE html>
