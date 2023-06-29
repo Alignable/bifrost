@@ -1,5 +1,18 @@
-var proxy = require('redbird')({port: 5050});
+const proxy = require("redbird")({ port: 5050 });
 
-proxy.register("http://localhost:5050/vite-page", "http://localhost:5555/vite-page");
+const LEGACY_URL = "http://localhost:5557";
+const BIFROST_URL = "http://localhost:5555";
+const BIFROST_PATHS = [
+  "/bifrost-assets",
+  "/vite-page",
+  "/custom",
+  "/custom-incorrect",
+];
 
-proxy.register("http://localhost:5050/", "http://localhost:5557");
+proxy.addResolver((host, url, req) => {
+  const segment = "/" + new URL(url, BIFROST_URL).pathname.split("/")[1];
+  console.log(segment);
+  return BIFROST_PATHS.some((path) => segment === path)
+    ? BIFROST_URL
+    : LEGACY_URL;
+});

@@ -4,6 +4,7 @@ type LinkOptions = {
   turbolinks?: boolean;
 };
 export type PageDataOk = {
+  endpoint?: string;
   title: string;
   bodyAttrs?: string;
   layout?: string;
@@ -23,7 +24,10 @@ export function followRedirects(data: PageData): PageDataOk {
 }
 
 export function toPath(data: PageData) {
-  return "/custom?page=" + encodeURI(JSON.stringify(data));
+  return (
+    `/${"endpoint" in data ? data!.endpoint : "custom"}?page=` +
+    encodeURI(JSON.stringify(data))
+  );
 }
 export enum Turbolinks {
   click = "turbolinks:click",
@@ -67,7 +71,7 @@ export const turboAnnouncer = `<script>if (!window.turboDebug) {
     window.turboDebug = true;
   }</script>`;
 
-export function buildPage(data: PageData) {
+export function buildPage(data: PageData, fromProxy: boolean) {
   if ("redirectTo" in data) return;
   const {
     bodyAttrs = "",
@@ -82,11 +86,13 @@ export function buildPage(data: PageData) {
 <html>
   <head>
   <title>${title}</title>
+  ${fromProxy ? "" : turbo}
   ${turboAnnouncer}
   ${headScripts.map((h) => HEAD_SCRIPTS[h]).join("\n")}
   </head>
   <body ${bodyAttrs}>
   ${bodyScripts.map((h) => BODY_SCRIPTS[h]).join("\n")}
+  ${fromProxy ? "" : "<nav>legacy navbar</nav>"}
   ${content}
   <a href="/vite-page">vite page</a>
   ${links.map((l) => {

@@ -16,7 +16,7 @@ const root = `${__dirname}/..`;
 
 startServer();
 const UPSTREAM = new URL("http://localhost:5557"); //new URL("http://dev.alignable.com:3000");
-const HOST = new URL("http://localhost:5555");
+const HOST = new URL("http://localhost:5050");
 
 async function startServer() {
   const app = fastify();

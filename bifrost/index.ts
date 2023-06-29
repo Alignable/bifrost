@@ -8,6 +8,6 @@ export type {
 } from "./types/internal";
 export { usePageContext } from "./renderer/usePageContext.js";
 
-export type OnBeforeRender = (pageContext: PageContextBuiltIn) => {
+export type OnBeforeRender = (pageContext: PageContextBuiltIn) => Promise<{
   pageContext: Partial<PageContextProxy>;
-};
+}>;

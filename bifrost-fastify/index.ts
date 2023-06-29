@@ -66,7 +66,7 @@ export const viteProxyPlugin: FastifyPluginAsync<
   await fastify.register(accepts);
   await fastify.register(proxy, {
     upstream: upstream.href,
-    async preHandler(req, reply) {
+    async preHandler(req, reply, done) {
       if (req.method === "GET" && req.accepts().type(["html"]) === "html") {
         const pageContextInit = {
           urlOriginal: req.url,
@@ -78,8 +78,13 @@ export const viteProxyPlugin: FastifyPluginAsync<
         >(pageContextInit);
 
         const proxy = pageContext._pageId === proxyPageId;
+        const noRouteMatched =
+          pageContext._pageId === null && !pageContext.errorWhileRendering; // we hit no page, but NOT because of an error
+          console.log('noroutematch', noRouteMatched)
 
-        if (!proxy) {
+        if (noRouteMatched) {
+          return;
+        }else if(!proxy) {
           return replyWithPage(reply, pageContext);
         } else {
           // pageContext.json is added on client navigations to indicate we are returning just json for the client router
@@ -88,12 +93,14 @@ export const viteProxyPlugin: FastifyPluginAsync<
             isPageContext: req.raw.url!.includes("/index.pageContext.json"),
             originalUrl: req.raw.url,
           };
+          (req.raw as any)._proxy = true;
           req.raw.url = req.raw.url!.replace("/index.pageContext.json", "");
         }
       }
     },
     replyOptions: {
       rewriteRequestHeaders(request, headers) {
+        if(!(request as any)._proxy) return headers;
         // Delete cache headers
         delete headers["if-modified-since"];
         delete headers["if-none-match"];
