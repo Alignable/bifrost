@@ -3,6 +3,7 @@ import {
   followRedirects,
   PageData,
   PageDataOk,
+  toPath,
   Turbolinks,
 } from "../../fake-backend/page-builder";
 import {
@@ -11,10 +12,6 @@ import {
   sleep,
   storeConsoleLog,
 } from "./test-helpers";
-
-function customPageUrl(pageData: PageData) {
-  return `./custom?page=${JSON.stringify(pageData)}`;
-}
 
 export class CustomProxyPage {
   readonly page: Page;
@@ -32,7 +29,7 @@ export class CustomProxyPage {
 
   async goto() {
     this.consoleLog = storeConsoleLog(this.page);
-    await this.page.goto(customPageUrl(this.initialPageData), {
+    await this.page.goto(toPath(this.initialPageData), {
       waitUntil: "networkidle",
     });
     await sleep(1000)

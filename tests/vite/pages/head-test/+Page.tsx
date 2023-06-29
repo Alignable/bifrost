@@ -12,6 +12,7 @@ export default function Page() {
   return (
     <>
       <h1>head testing</h1>
+      <a href='/vite-page'>vite page</a>
     </>
   );
 }

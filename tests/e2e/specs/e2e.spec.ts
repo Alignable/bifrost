@@ -1,4 +1,4 @@
-import { test, expect, ElementHandle } from "@playwright/test";
+import { test, expect, ElementHandle, Page } from "@playwright/test";
 import {
   ensureAllNetworkSucceeds,
   expectNoMoreScripts,
@@ -9,7 +9,7 @@ import {
   sleep,
 } from "../helpers/test-helpers";
 import { CustomProxyPage } from "../helpers/custom-proxy-page";
-import { Turbolinks as T } from "../../fake-backend/page-builder";
+import { PageDataOk, Turbolinks as T } from "../../fake-backend/page-builder";
 
 test.describe("pages", () => {
   test.beforeEach(async ({ page }) => {
@@ -223,16 +223,14 @@ test.describe("turbolinks: events", () => {
     await expectNoMoreScripts(page);
   });
 
-  test("loading vite page does not fire events", async ({ page }) => {
+  test("loading vite page fires turbolinks:load", async ({ page }) => {
     const logs = storeConsoleLog(page);
     await page.goto("./vite-page");
 
-    expect(logs.filter((l) => l.startsWith("turbolinks:")).length).toBe(0);
+    expect(logs).toContain("turbolinks:load");
   });
 
-  test("navigating proxy => vite page fires all events", async ({
-    page,
-  }) => {
+  test("navigating proxy => vite page fires all events", async ({ page }) => {
     const customProxy = new CustomProxyPage(page, {
       title: "first page",
       content: "first page body content",
@@ -276,7 +274,6 @@ test.describe("turbolinks: events", () => {
     page,
   }) => {
     ensureAllNetworkSucceeds(page);
-    const logs = storeConsoleLog(page);
 
     await page.goto("./vite-page", {
       waitUntil: "networkidle",
@@ -301,6 +298,7 @@ test.describe("turbolinks: events", () => {
         [T.load, head2, body2],
       ]
     );
+    const logs = storeConsoleLog(page);
 
     await ensureNoBrowserNavigation(page, () =>
       page.getByText("legacy page").click()
@@ -687,5 +685,113 @@ test.describe("script loading order", () => {
       "body script: blocking",
       "body script: blocking",
     ]);
+  });
+});
+
+async function expectLegacyPage(page: Page) {
+  await expect(page.locator("nav")).toContainText("legacy navbar");
+}
+
+async function expectBifrostPage(page: Page) {
+  await expect(page.locator("nav")).not.toContainText("legacy navbar");
+}
+
+test.describe("with partial proxy", () => {
+  test("navgating from proxied page to unproxied page does full reload", async ({
+    page,
+  }) => {
+    ensureAllNetworkSucceeds(page);
+
+    const customProxy = new CustomProxyPage(page, {
+      title: "a",
+      links: [{ title: "b", endpoint: "custom-direct" }],
+    });
+    await customProxy.goto();
+    await expectBifrostPage(page);
+
+    await customProxy.clickLink("b", { browserReload: true });
+    await expectLegacyPage(page);
+  });
+});
+
+test.describe("with ALB", () => {
+  test("hitting backend directly returns legacy nav", async ({ page }) => {
+    ensureAllNetworkSucceeds(page);
+
+    const customDirect = new CustomProxyPage(page, {
+      title: "legacy",
+      endpoint: "custom-direct",
+    });
+    await customDirect.goto();
+    await expectLegacyPage(page);
+
+    const customProxy = new CustomProxyPage(page, {
+      title: "legacy",
+    });
+    await customProxy.goto();
+    await expectBifrostPage(page);
+  });
+
+  test.describe("misconfigured ALB", () => {
+    // test that we gracefully recover from routes pointing to wrong place. important during deploys
+
+    test.describe("pointing to Bifrost for route it can't handle", () => {
+      test("SSR proxies verbatim", async ({ page }) => {
+        ensureAllNetworkSucceeds(page);
+
+        const customProxy = new CustomProxyPage(page, {
+          title: "incorrect",
+          // see proxy/pages/+route.ts - we only want to proxy /custom, not /custom-incorrect
+          // yet, in alb, we configured custom-incorrect to go to bifrost
+          endpoint: "custom-incorrect",
+        });
+        await customProxy.goto();
+        await expectLegacyPage(page);
+      });
+
+      test("Navigating causes full reload", async ({ page }) => {
+        ensureAllNetworkSucceeds(page);
+
+        const customProxy = new CustomProxyPage(page, {
+          title: "a",
+          links: [{ title: "b", endpoint: "custom-incorrect" }],
+        });
+        await customProxy.goto();
+        await expectBifrostPage(page);
+
+        await customProxy.clickLink("b", { browserReload: true });
+        await expectLegacyPage(page);
+      });
+    });
+
+    test.describe("pointing to legacy backend for route Bifrost expects to handle", () => {
+      // SSR is obviously fine - backend will just do what it does
+
+      test("Navigating causes full reload", async ({ page }) => {
+        const customProxy = new CustomProxyPage(page, {
+          title: "a",
+          links: [{ title: "b", endpoint: "custom-bifrost" }],
+        });
+
+        await customProxy.goto();
+        await expectBifrostPage(page);
+
+        // expect a 404 from legacy backend on the index.pageContext.json request - that is inevitable
+        const on404 = new Promise((resolve) =>
+          page.on("response", (response) => {
+            console.log("response", response.request().url());
+            if (
+              response.request().url().includes("index.pageContext.json") &&
+              response.status() === 404
+            ) {
+              resolve(true);
+            }
+          })
+        );
+        await customProxy.clickLink("b", { browserReload: true });
+        expect(await on404).toBeTruthy();
+        await expectLegacyPage(page);
+      }); // or it could gracefully proxy without reload? but that would require onbeforerender to move to client?
+    });
   });
 });

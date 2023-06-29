@@ -3,7 +3,12 @@ import ssr from "vite-plugin-ssr/plugin";
 import { UserConfig } from "vite";
 
 const config: UserConfig = {
-  plugins: [react(), ssr()]
+  plugins: [
+    react(),
+    ssr({
+      baseAssets: "/bifrost-assets",
+    }),
+  ],
 };
 
 export default config;

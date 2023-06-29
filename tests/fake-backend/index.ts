@@ -11,8 +11,7 @@ function sleep(timeout: number) {
 }
 app.use(morgan("tiny"));
 
-app.get("/custom", async (req, res) => {
-  console.log(req.query.page);
+app.get(["/custom", "/custom-:id"], async (req, res) => {
   const data = JSON.parse(req.query.page as string) as PageData;
   if ("redirectTo" in data) {
     res.status(302);
@@ -28,9 +27,11 @@ app.get("/custom", async (req, res) => {
     res.send();
   } else {
     res.status(200);
-    res.setHeader("X-REACT-LAYOUT", data.layout ?? "main_nav");
-    res.setHeader("X-REACT-CURRENT-NAV", "home_page");
-    res.send(buildPage(data));
+    if (req.header("X-VITE-PROXY")) {
+      res.setHeader("X-REACT-LAYOUT", data.layout ?? "main_nav");
+      res.setHeader("X-REACT-CURRENT-NAV", "home_page");
+    }
+    res.send(buildPage(data, !!req.header("X-VITE-PROXY")));
   }
 });
 
