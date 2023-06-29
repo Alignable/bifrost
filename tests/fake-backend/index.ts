@@ -27,7 +27,6 @@ app.get(["/custom", "/custom-:id"], async (req, res) => {
     res.send();
   } else {
     res.status(200);
-    console.log(req.headers)
     if (req.header("X-VITE-PROXY")) {
       res.setHeader("X-REACT-LAYOUT", data.layout ?? "main_nav");
       res.setHeader("X-REACT-CURRENT-NAV", "home_page");

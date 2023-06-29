@@ -66,7 +66,7 @@ export const viteProxyPlugin: FastifyPluginAsync<
   await fastify.register(accepts);
   await fastify.register(proxy, {
     upstream: upstream.href,
-    async preHandler(req, reply, done) {
+    async preHandler(req, reply) {
       if (req.method === "GET" && req.accepts().type(["html"]) === "html") {
         const pageContextInit = {
           urlOriginal: req.url,
@@ -79,14 +79,17 @@ export const viteProxyPlugin: FastifyPluginAsync<
 
         const proxy = pageContext._pageId === proxyPageId;
         const noRouteMatched =
-          pageContext._pageId === null && !pageContext.errorWhileRendering; // we hit no page, but NOT because of an error
-          console.log('noroutematch', noRouteMatched)
+          (pageContext as any).is404 && !pageContext.errorWhileRendering; // we hit no page, but NOT because of an error
 
         if (noRouteMatched) {
+          req.log.info("bifrost: no route match, naked proxy to backend");
+          // Naked proxy
           return;
-        }else if(!proxy) {
+        } else if (!proxy) {
+          req.log.info(`bifrost: rendering page ${pageContext._pageId}`);
           return replyWithPage(reply, pageContext);
         } else {
+          req.log.info(`bifrost: proxy route matched, proxying to backend`);
           // pageContext.json is added on client navigations to indicate we are returning just json for the client router
           // we have to remove it before proxying though.
           (req as RequestExtendedWithProxy)._proxy = {
@@ -100,21 +103,24 @@ export const viteProxyPlugin: FastifyPluginAsync<
     },
     replyOptions: {
       rewriteRequestHeaders(request, headers) {
-        if(!(request as any)._proxy) return headers;
-        // Delete cache headers
-        delete headers["if-modified-since"];
-        delete headers["if-none-match"];
-        delete headers["if-unmodified-since"];
-        delete headers["if-none-match"];
-        delete headers["if-range"];
-
         const fwd = forwarded(request as IncomingMessage).reverse();
         // fwd.push(request.ip); TODO: not sure if this is needed
         headers["X-Forwarded-For"] = fwd.join(", ");
         headers["X-Forwarded-Host"] = host.host;
         headers["X-Forwarded-Protocol"] = host.protocol;
-        if (rewriteRequestHeaders) {
-          return rewriteRequestHeaders(request, headers);
+
+        if ((request as any)._proxy) {
+          // Proxying and wrapping
+
+          // Delete cache headers
+          delete headers["if-modified-since"];
+          delete headers["if-none-match"];
+          delete headers["if-unmodified-since"];
+          delete headers["if-none-match"];
+          delete headers["if-range"];
+          if (rewriteRequestHeaders) {
+            return rewriteRequestHeaders(request, headers);
+          }
         }
         return headers;
       },

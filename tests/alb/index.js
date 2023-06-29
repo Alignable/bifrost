@@ -11,7 +11,6 @@ const BIFROST_PATHS = [
 
 proxy.addResolver((host, url, req) => {
   const segment = "/" + new URL(url, BIFROST_URL).pathname.split("/")[1];
-  console.log(segment);
   return BIFROST_PATHS.some((path) => segment === path)
     ? BIFROST_URL
     : LEGACY_URL;
