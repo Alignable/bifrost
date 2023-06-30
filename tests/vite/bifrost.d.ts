@@ -1,6 +1,11 @@
 import "@alignable/bifrost";
 declare module "@alignable/bifrost" {
-  interface AppSpecificPageContextInit {
-    loggedIn: boolean;
+  namespace AugmentMe {
+    interface PageContextInit {
+      loggedIn: boolean;
+    }
+    interface LayoutProps {
+      currentNav: string;
+    }
   }
 }

@@ -7,7 +7,6 @@ import path from "path";
 import fs from "fs/promises";
 import { fileURLToPath } from "url";
 import { viteProxyPlugin } from "@alignable/bifrost-fastify";
-import { LayoutProps } from "../layouts/types";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -59,7 +58,7 @@ async function startServer() {
         layout: reply.getHeader("X-REACT-LAYOUT") as string,
         layoutProps: {
           currentNav: reply.getHeader("X-REACT-CURRENT-NAV") as string,
-        } satisfies LayoutProps,
+        },
       };
     },
   });

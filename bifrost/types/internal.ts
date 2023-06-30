@@ -9,7 +9,10 @@ import InternalProxyConfig from "../proxy/pages/+config.js";
 import InternalNoProxyConfig from "../renderer/+config.js";
 
 /// Use module augmentation to override this in your app
-export interface AppSpecificPageContextInit {}
+export namespace AugmentMe {
+  export interface PageContextInit {}
+  export interface LayoutProps {}
+}
 
 // Utility type to ensure exported type matches meta defined in library
 type ConfigConstructor<
@@ -25,24 +28,24 @@ type ConfigConstructor<
 //   bodyAttrs: Record<string, string>;
 // }
 
-export type Layout<LayoutProps> = React.ComponentType<
-  PropsWithChildren<LayoutProps>
+export type LayoutComponent = React.ComponentType<
+  PropsWithChildren<AugmentMe.LayoutProps>
 >;
-export type LayoutMap<LayoutProps> = Record<string, Layout<LayoutProps>>;
+export type LayoutMap = Record<string, LayoutComponent>;
 
-export type ProxyConfig<LayoutProps> = ConfigConstructor<
+export type ProxyConfig = ConfigConstructor<
   typeof InternalProxyConfig,
   {
-    layoutMap: LayoutMap<LayoutProps>;
+    layoutMap: LayoutMap;
   }
 >;
 
-type PageContextProxyCommon<LayoutProps = Record<string, unknown>> = {
-  /// Which layout to render
+type PageContextProxyCommon = {
+  /// Which LayoutComponent to render
   layout: string;
-  /// Props to pass down to layout component. Proxied server should send this
-  layoutProps: LayoutProps;
-  config: ProxyConfig<LayoutProps>;
+  /// Props to pass down to LayoutComponent component. Proxied server should send this
+  layoutProps: AugmentMe.LayoutProps;
+  config: ProxyConfig;
 };
 
 type PageContextProxyClientHydration = {
@@ -82,26 +85,25 @@ export interface DocumentProps {
   viewport?: { [key: string]: string };
 }
 
-export type NoProxyConfig<LayoutProps> = ConfigConstructor<
+export type NoProxyConfig = ConfigConstructor<
   typeof InternalNoProxyConfig,
   {
-    Layout: Layout<LayoutProps>;
-    layoutProps: LayoutProps;
+    Layout: LayoutComponent;
+    layoutProps: AugmentMe.LayoutProps;
     documentProps: DocumentProps;
     scripts: string[];
-    extraPassToClient: string[];
   }
 >;
 
 type PageProps = Record<string, unknown>;
 type Page = React.ComponentType<PageProps>;
 // Context for non-proxied pages
-type PageContextNoProxyCommon<LayoutProps = Record<string, unknown>> = {
+type PageContextNoProxyCommon = {
   pageProps: PageProps;
   redirectTo?: string;
   documentProps?: DocumentProps;
-  layoutProps: LayoutProps;
-  config: NoProxyConfig<LayoutProps>;
+  layoutProps: AugmentMe.LayoutProps;
+  config: NoProxyConfig;
 };
 
 export type PageContextNoProxyServer = PageContextBuiltIn<Page> &

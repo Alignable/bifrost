@@ -12,7 +12,7 @@ import {
   IncomingHttpHeaders as Http2IncomingHttpHeaders,
 } from "http2";
 import { renderPage } from "vite-plugin-ssr/server";
-import { AppSpecificPageContextInit } from "@alignable/bifrost";
+import { AugmentMe } from "@alignable/bifrost";
 
 type RequestExtendedWithProxy = FastifyRequest<
   RequestGenericInterface,
@@ -50,10 +50,10 @@ interface ViteProxyPluginOptions {
   host: URL;
   buildPageContextInit?: (
     req: FastifyRequest
-  ) => Promise<AppSpecificPageContextInit>;
+  ) => Promise<AugmentMe.PageContextInit>;
   getLayout: (reply: FastifyReply<RawServerBase>) => {
     layout: string;
-    layoutProps: any;
+    layoutProps: AugmentMe.LayoutProps;
   };
   /// Use to signal to legacy backend to return special results (eg. remove navbar etc)
   rewriteRequestHeaders?: (

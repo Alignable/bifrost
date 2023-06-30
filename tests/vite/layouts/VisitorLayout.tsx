@@ -1,5 +1,5 @@
+import { LayoutComponent } from "@alignable/bifrost";
 import React from "react";
-import { LayoutComponent } from "./types";
 
 export const VisitorLayout: LayoutComponent = (props) => (
   <div>
