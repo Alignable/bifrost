@@ -8,11 +8,14 @@ import {
 import InternalProxyConfig from "../proxy/pages/+config.js";
 import InternalNoProxyConfig from "../renderer/+config.js";
 
+/// Use module augmentation to override this in your app
+export interface AppSpecificPageContextInit {}
+
 // Utility type to ensure exported type matches meta defined in library
 type ConfigConstructor<
   LibConfig extends ConfigNonHeaderFile,
   T extends { [K in keyof LibConfig["meta"]]: any }
-> = Config & Partial<T>;
+> = Omit<Config, "extends"> & { extends?: ConfigNonHeaderFile } & Partial<T>;
 
 // =============== Types for proxy pages ================= //
 // ===============  Crossing the bridge  ================ //
@@ -86,20 +89,20 @@ export type NoProxyConfig<LayoutProps> = ConfigConstructor<
     layoutProps: LayoutProps;
     documentProps: DocumentProps;
     scripts: string[];
-    isLoggedIn: boolean;
+    extraPassToClient: string[];
   }
 >;
 
 type PageProps = Record<string, unknown>;
 type Page = React.ComponentType<PageProps>;
 // Context for non-proxied pages
-interface PageContextNoProxyCommon<LayoutProps = Record<string, unknown>> {
+type PageContextNoProxyCommon<LayoutProps = Record<string, unknown>> = {
   pageProps: PageProps;
   redirectTo?: string;
   documentProps?: DocumentProps;
   layoutProps: LayoutProps;
   config: NoProxyConfig<LayoutProps>;
-}
+};
 
 export type PageContextNoProxyServer = PageContextBuiltIn<Page> &
   PageContextNoProxyCommon;

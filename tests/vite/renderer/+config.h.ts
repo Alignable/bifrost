@@ -1,4 +1,6 @@
 import BifrostLibConfig from "@alignable/bifrost/renderer/+config";
+import { BifrostConfig } from "@alignable/bifrost";
+import { LayoutProps } from "../layouts/types";
 
 export default {
   extends: BifrostLibConfig,
@@ -20,4 +22,4 @@ export default {
   window.turboDebug = true;
 }</script>`,
   ],
-};
+} satisfies BifrostConfig<LayoutProps>;

@@ -46,8 +46,12 @@ async function startServer() {
   app.register(viteProxyPlugin, {
     upstream: UPSTREAM,
     host: HOST,
+    async buildPageContextInit(req) {
+      // hit auth server etc.
+      return { loggedIn: true };
+    },
     rewriteRequestHeaders(req, headers) {
-      headers['X-VITE-PROXY'] = "1"; // Signal to legacy backend we're coming from proxy
+      headers["X-VITE-PROXY"] = "1"; // Signal to legacy backend we're coming from proxy
       return headers;
     },
     getLayout(reply) {

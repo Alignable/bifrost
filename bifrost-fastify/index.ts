@@ -12,6 +12,7 @@ import {
   IncomingHttpHeaders as Http2IncomingHttpHeaders,
 } from "http2";
 import { renderPage } from "vite-plugin-ssr/server";
+import { AppSpecificPageContextInit } from "@alignable/bifrost";
 
 type RequestExtendedWithProxy = FastifyRequest<
   RequestGenericInterface,
@@ -47,6 +48,9 @@ const proxyPageId = "/proxy/pages";
 interface ViteProxyPluginOptions {
   upstream: URL;
   host: URL;
+  buildPageContextInit?: (
+    req: FastifyRequest
+  ) => Promise<AppSpecificPageContextInit>;
   getLayout: (reply: FastifyReply<RawServerBase>) => {
     layout: string;
     layoutProps: any;
@@ -62,7 +66,10 @@ interface ViteProxyPluginOptions {
  */
 export const viteProxyPlugin: FastifyPluginAsync<
   ViteProxyPluginOptions
-> = async (fastify, { upstream, host, rewriteRequestHeaders, getLayout }) => {
+> = async (
+  fastify,
+  { upstream, host, buildPageContextInit, rewriteRequestHeaders, getLayout }
+) => {
   await fastify.register(accepts);
   await fastify.register(proxy, {
     upstream: upstream.href,
@@ -70,6 +77,7 @@ export const viteProxyPlugin: FastifyPluginAsync<
       if (req.method === "GET" && req.accepts().type(["html"]) === "html") {
         const pageContextInit = {
           urlOriginal: req.url,
+          ...(buildPageContextInit ? await buildPageContextInit(req) : {}),
         };
 
         const pageContext = await renderPage<
