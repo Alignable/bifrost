@@ -30,16 +30,26 @@ function streamToString(stream: Writable): Promise<string> {
 
 async function replyWithPage(
   reply: FastifyReply<RawServerBase>,
-  pageContext: Awaited<ReturnType<typeof renderPage>>
+  pageContext: Awaited<
+    ReturnType<
+      typeof renderPage<
+        { redirectTo?: string; isClientSideNavigation?: boolean },
+        {}
+      >
+    >
+  >
 ): Promise<FastifyReply> {
   const { httpResponse } = pageContext;
+
+  if (pageContext.redirectTo && !pageContext.isClientSideNavigation) {
+    return reply.redirect(307, pageContext.redirectTo);
+  }
 
   if (!httpResponse) {
     return reply.code(404).type("text/html").send("Not Found");
   }
 
   const { body, statusCode, contentType } = httpResponse;
-
   return reply.status(statusCode).type(contentType).send(body);
 }
 

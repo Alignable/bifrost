@@ -9,7 +9,14 @@ import { getPageContextOrConfig } from "./getConfigOrPageContext.js";
 export default async function onRenderHtml(
   pageContext: PageContextNoProxyServer
 ) {
-  const { Page, pageProps } = pageContext;
+  const { Page, pageProps, redirectTo } = pageContext;
+  if (redirectTo) {
+    return {
+      pageContext: {
+        redirectTo,
+      },
+    };
+  }
   const { Layout } = pageContext.config;
   const layoutProps = getPageContextOrConfig(pageContext, "layoutProps") || {};
 
