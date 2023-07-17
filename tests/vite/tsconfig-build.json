@@ -1,0 +1,9 @@
+{
+  "compilerOptions": {
+    "noEmit": false,
+    "outDir": "dist",
+    "allowJs": true
+  },
+  "include": ["server", "vite.config.ts"],
+  "extends": ["./tsconfig.json"]
+}
