@@ -92,6 +92,7 @@ export type NoProxyConfig = ConfigConstructor<
     layoutProps: AugmentMe.LayoutProps;
     documentProps: DocumentProps;
     scripts: string[];
+    favicon: string;
   }
 >;
 

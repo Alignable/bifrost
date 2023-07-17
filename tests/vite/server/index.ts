@@ -25,10 +25,10 @@ async function startServer() {
 
   if (isProduction) {
     console.log("Running in production mode");
-    const distPath = path.join(root, "/dist/client/assets");
+    const distPath = path.join(root, "/vite/client/assets");
     app.register(fastifyStatic, {
       root: distPath,
-      prefix: "/assets/",
+      prefix: "/bifrost-assets/assets/",
     });
   } else {
     const vite = await import("vite");

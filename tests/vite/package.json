@@ -4,8 +4,10 @@
   "description": "",
   "scripts": {
     "dev": "nodemon server/index.ts",
-    "start": "ts-node server/index.ts",
-    "build": "vite build"
+    "start": "yarn node dist/server/index.js",
+    "build": "yarn build:server && yarn build:vite",
+    "build:vite": "vite build --outDir dist/vite",
+    "build:server": "yarn tsc -p tsconfig-build.json"
   },
   "type": "module",
   "author": "",
