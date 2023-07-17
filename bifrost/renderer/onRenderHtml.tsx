@@ -39,9 +39,15 @@ export default async function onRenderHtml(
     )
   );
 
+  const { favicon } = pageContext.config;
+  const faviconTag = !favicon
+    ? ""
+    : escapeInject`<link rel="icon" href="${favicon}" />`;
+
   const documentHtml = escapeInject`<!DOCTYPE html>
     <html lang="en">
       <head>
+      ${faviconTag}
       ${dangerouslySkipEscape(headHtml)}
       ${dangerouslySkipEscape(
         Object.values(pageContext.config.scripts || {}).join("")
