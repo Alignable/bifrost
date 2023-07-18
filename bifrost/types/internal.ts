@@ -7,6 +7,8 @@ import {
 } from "vite-plugin-ssr/types";
 import InternalProxyConfig from "../proxy/pages/+config.js";
 import InternalNoProxyConfig from "../renderer/+config.js";
+import { DocumentProps } from "./DocumentProps";
+export { DocumentProps } from "./DocumentProps";
 
 /// Use module augmentation to override this in your app
 export namespace AugmentMe {
@@ -76,14 +78,6 @@ export type PageContextProxyRestorationVisit =
 
 // =============== Types for new non-proxy pages ================= //
 // ===============   You've crossed the Bifrost!   ================ //
-
-export interface DocumentProps {
-  // props inspired by NextJS's metadata conventions
-  // https://nextjs.org/docs/app/api-reference/functions/generate-metadata#the-metadata-object
-  title?: string;
-  description?: string;
-  viewport?: { [key: string]: string };
-}
 
 export type NoProxyConfig = ConfigConstructor<
   typeof InternalNoProxyConfig,
