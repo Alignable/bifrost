@@ -5,6 +5,7 @@ export function documentPropsToReact({
   title = "",
   description = "",
   viewport = {},
+  metaTags = [],
 }: DocumentProps): React.ReactElement {
   return (
     <>
@@ -17,6 +18,9 @@ export function documentPropsToReact({
           .map((e) => e.join("="))
           .join(", ")}
       />
+      {metaTags.map(({ name, property, content }) => (
+        <meta name={name} property={property} content={content} />
+      ))}
     </>
   );
 }
