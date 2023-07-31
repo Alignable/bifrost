@@ -46,6 +46,7 @@ export const Turbolinks = {
   _vpsOnRenderClient(
     newHead: HTMLHeadElement,
     trackScripts: boolean,
+    executeBodyScripts: boolean,
     renderBody: () => void
   ) {
     if (controller.currentVisit) {
@@ -59,10 +60,12 @@ export const Turbolinks = {
         controller.viewWillRender();
         renderBody();
         await scriptsLoaded;
-
-        activateNewBodyScriptElements(
-          Array.from(document.body.querySelectorAll("script"))
-        );
+        
+        if (executeBodyScripts) {
+          activateNewBodyScriptElements(
+            Array.from(document.body.querySelectorAll("script"))
+          );
+        }
         focusFirstAutofocusableElement();
 
         controller.viewRendered();

@@ -54,7 +54,7 @@ export default async function onRenderClient(
     bodyEl = parsed.querySelector("body")!;
     const headEl = parsed.querySelector("head")!;
 
-    Turbolinks._vpsOnRenderClient(headEl, true, () => {
+    Turbolinks._vpsOnRenderClient(headEl, true, true, () => {
       // merge body attributes
       document.body
         .getAttributeNames()
