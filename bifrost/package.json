@@ -1,7 +1,7 @@
 {
   "name": "@alignable/bifrost",
   "repository": "https://github.com/Alignable/bifrost.git",
-  "version": "0.0.19",
+  "version": "0.0.20",
   "type": "module",
   "types": "./dist/index.d.ts",
   "exports": {
