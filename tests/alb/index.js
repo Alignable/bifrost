@@ -7,6 +7,7 @@ const BIFROST_PATHS = [
   "/vite-page",
   "/custom",
   "/custom-incorrect",
+  "/react-body-script-injection",
 ];
 
 proxy.addResolver((host, url, req) => {

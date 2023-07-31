@@ -50,7 +50,7 @@ export default async function onRenderClient(
     });
 
     requestAnimationFrame(() => {
-      Turbolinks._vpsOnRenderClient(head, false, () => {
+      Turbolinks._vpsOnRenderClient(head, false, false, () => {
         // clear anything on body
         document.body
           .getAttributeNames()

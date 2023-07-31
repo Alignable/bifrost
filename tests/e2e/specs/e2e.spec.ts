@@ -53,6 +53,22 @@ test.describe("pages", () => {
     );
     await expect(page.getByText("Vite is here")).toHaveCount(1);
   });
+
+  test("it handles react inserting body scripts", async ({ page }) => {
+    const logs = storeConsoleLog(page);
+    await page.goto("./react-body-script-injection");
+    
+    await expect.poll(() => logs).toContain("hello");
+
+    await page.getByText("legacy page").click();
+    logs.length = 0;
+
+    await page.getByText("React Body").click();
+    await expect.poll(() => logs).toContain("hello");
+
+    await page.getByText("legacy page").click();
+    await expect(page.getByText("React Body")).toHaveCount(1);
+  });
 });
 
 test("body attributes are copied over", async ({ page }) => {
