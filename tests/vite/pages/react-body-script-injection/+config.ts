@@ -5,6 +5,6 @@ export default {
   Layout: MainNavLayout,
   layoutProps: { currentNav: "tmp" },
   documentProps: {
-    title: "vite page",
+    title: "react body",
   },
 } satisfies BifrostConfig;

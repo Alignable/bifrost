@@ -26,6 +26,9 @@ export default function Page() {
       <a href={`/custom?page=${encodeURI(JSON.stringify(CUSTOM_HREF))}`}>
         legacy page
       </a>
+      <a href="/vite-page">
+        vite page
+      </a>
     </>
   );
 }

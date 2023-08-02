@@ -3,6 +3,7 @@ import { BifrostConfig } from "@alignable/bifrost";
 
 export default {
   extends: BifrostLibConfig,
+  favicon: "https://www.google.com/favicon.ico",
   scripts: [
     `<script>if (!window.turboDebug) {
   [
