@@ -143,6 +143,7 @@ function categorizeHead(head: ParentNode) {
   const stylesheets = [];
   const provisional = [];
   for (const element of head.children) {
+    // we want to keep the same favicon on page transitions
     if (elementIsFavicon(element)) {
       continue;
     }

@@ -74,7 +74,7 @@ test.describe("pages", () => {
 test("it keeps the favicon between pages", async ({ page }) => {
   await page.goto("./vite-page");
   await sleep(500);
-  await ensureNoBrowserNavigation(page, () => page.getByText("react body").click());
+  await ensureNoBrowserNavigation(page, () => page.getByText("head test").click());
   await sleep(500);
   await expect(page.locator("link[rel='icon']")).toHaveCount(1);
 });
