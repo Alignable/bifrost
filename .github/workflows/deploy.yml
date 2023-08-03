@@ -1,24 +1,24 @@
-name: Publish package to GitHub Packages
 on:
-  release:
-    types: [published]
+  push:
+    branches: dc/github-aciton-test
+
 jobs:
-  build:
+  publish:
     runs-on: ubuntu-latest
-    permissions:
-      contents: read
-      packages: write
     steps:
       - uses: actions/checkout@v3
-      - run: cd bifrost
-      # Setup .npmrc file to publish to GitHub Packages
       - uses: actions/setup-node@v3
         with:
-          node-version: '16.x'
-          registry-url: 'https://npm.pkg.github.com'
-          # Defaults to the user or organization that owns the workflow file
-          scope: '@alignable'
+          node-version: "18"
       - run: npm ci
-      - run: npm publish
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - run: npm run build
+      - uses: JS-DevTools/npm-publish@v2
+        with:
+          package: ./bifrost
+          dry-run: true
+          token: ${{ secrets.NPM_TOKEN }}
+      - uses: JS-DevTools/npm-publish@v2
+        with:
+          package: ./bifrost-fastify
+          dry-run: true
+          token: ${{ secrets.NPM_TOKEN }}
