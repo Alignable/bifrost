@@ -7,8 +7,6 @@ import {
 } from "vite-plugin-ssr/types";
 import InternalProxyConfig from "../proxy/pages/+config.js";
 import InternalNoProxyConfig from "../renderer/+config.js";
-import { DocumentProps } from "./DocumentProps";
-export { DocumentProps } from "./DocumentProps";
 
 /// Use module augmentation to override this in your app
 export namespace AugmentMe {
@@ -29,6 +27,17 @@ type ConfigConstructor<
 //   head: string;
 //   bodyAttrs: Record<string, string>;
 // }
+
+export interface DocumentProps {
+  // props inspired by NextJS's metadata conventions
+  // https://nextjs.org/docs/app/api-reference/functions/generate-metadata#the-metadata-object
+  title?: string;
+  description?: string;
+  viewport?: { [key: string]: string };
+  metaTags?: MetaTag[];
+}
+
+type MetaTag = { name?: string; property?: string; content: string };
 
 export type LayoutComponent = React.ComponentType<
   PropsWithChildren<AugmentMe.LayoutProps>

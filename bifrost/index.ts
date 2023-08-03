@@ -1,5 +1,5 @@
 import { PageContextBuiltIn } from "vite-plugin-ssr/types";
-import { AugmentMe, PageContextNoProxy } from "./types/internal";
+import { AugmentMe, PageContextNoProxy } from "./types/internal.js";
 
 export type {
   DocumentProps,
