@@ -1,6 +1,6 @@
 on:
   push:
-    branches: dc/github-aciton-test
+    branches: master
 
 jobs:
   publish:
@@ -16,10 +16,8 @@ jobs:
       - uses: JS-DevTools/npm-publish@v2
         with:
           package: ./bifrost
-          dry-run: true
           token: ${{ secrets.NPM_TOKEN }}
       - uses: JS-DevTools/npm-publish@v2
         with:
           package: ./bifrost-fastify
-          dry-run: true
           token: ${{ secrets.NPM_TOKEN }}
