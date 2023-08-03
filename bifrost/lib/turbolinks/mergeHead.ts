@@ -132,11 +132,22 @@ function elementIsStylesheet(element: Element) {
   );
 }
 
+function elementIsFavicon(element: Element) {
+  const tagName = element.tagName.toLowerCase();
+
+  return tagName == "link" && element.getAttribute("rel") == "icon";
+}
+
 function categorizeHead(head: ParentNode) {
   const scripts = [];
   const stylesheets = [];
   const provisional = [];
   for (const element of head.children) {
+    // we want to keep the same favicon on page transitions
+    if (elementIsFavicon(element)) {
+      continue;
+    }
+
     if (elementIsScript(element)) {
       scripts.push(element);
     } else if (elementIsStylesheet(element)) {
