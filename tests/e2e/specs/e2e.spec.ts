@@ -69,6 +69,13 @@ test.describe("pages", () => {
     await page.getByText("legacy page").click();
     await expect(page.getByText("React Body")).toHaveCount(1);
   });
+
+  test("it redirects trailing slashes with custom routes", async ({ page }) => {
+    await page.goto("./this-is-a-custom-route/");
+    
+    await expect(page).toHaveTitle("custom route");
+    await expect(page).toHaveURL("/this-is-a-custom-route")
+  });
 });
 
 test.describe("trailing slashes on custom routes", () => { 

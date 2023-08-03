@@ -102,6 +102,12 @@ export const viteProxyPlugin: FastifyPluginAsync<
           { _pageId: string },
           typeof pageContextInit
         >(pageContextInit);
+        
+        if (req.url.endsWith('/')) {
+          req.log.info("bifrost: redirecting trailing slash");
+          reply.redirect(301, req.url.slice(0, -1));
+          return;
+        }
 
         const proxy = pageContext._pageId === proxyPageId;
         const noRouteMatched =
