@@ -1,5 +1,5 @@
 import React from "react";
-import { DocumentProps } from "../../types/internal";
+import { DocumentProps } from "../../types/DocumentProps";
 
 export function documentPropsToReact({
   title = "",
