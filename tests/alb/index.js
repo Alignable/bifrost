@@ -9,6 +9,7 @@ const BIFROST_PATHS = [
   "/custom-incorrect",
   "/react-body-script-injection",
   "/head-test",
+  "/this-is-a-custom-route",
 ];
 
 proxy.addResolver((host, url, req) => {

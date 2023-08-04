@@ -71,6 +71,29 @@ test.describe("pages", () => {
   });
 });
 
+test.describe("trailing slashes on custom routes", () => { 
+  test("redirects to no slash", async ({ page }) => {
+    await page.goto("./this-is-a-custom-route/");
+
+    await expect(page).toHaveTitle("custom route");
+    await expect(page).toHaveURL("/this-is-a-custom-route")
+  });
+
+  test("redirects with query parameter", async ({ page }) => {
+    await page.goto("./this-is-a-custom-route/?abc=1");
+
+    await expect(page).toHaveTitle("custom route");
+    await expect(page).toHaveURL("/this-is-a-custom-route?abc=1")
+  });
+
+  test("redirects with hash", async ({ page }) => {
+    await page.goto("./this-is-a-custom-route/#abc");
+
+    await expect(page).toHaveTitle("custom route");
+    await expect(page).toHaveURL("/this-is-a-custom-route#abc")
+  });
+});
+
 test("it keeps the favicon between pages", async ({ page }) => {
   await page.goto("./vite-page");
   await sleep(500);
