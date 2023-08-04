@@ -186,7 +186,7 @@ test.describe("redirects", () => {
     expect(page.url()).toContain(`${baseURL}/custom`);
   });
 
-  test("sets cookivscode-file://vscode-app/private/var/folders/d0/91p61hw13m3_yw_xkmk81y3r0000gn/T/AppTranslocation/DAE110AD-D37C-4DB8-97EC-F2FBF0DEE34C/d/Visual%20Studio%20Code.app/Contents/Resources/app/out/vs/code/electron-sandbox/workbench/workbench.htmles along the way", async ({ page, context, baseURL }) => {
+  test("sets cookies along the way", async ({ page, context, baseURL }) => {
     const customProxy = new CustomProxyPage(page, {
       title: "first page",
       links: [
