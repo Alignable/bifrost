@@ -86,8 +86,9 @@ export const viteProxyPlugin: FastifyPluginAsync<
     async preHandler(req, reply) {
       if (req.method === "GET" && req.accepts().type(["html"]) === "html") {
         const trailingSlash = /\/(\?|#|$)/;
-
-        if (trailingSlash.test(req.url)) {
+        
+        // the home page always has a trailing slash
+        if (trailingSlash.test(req.url) && req.raw.url !== "/") {
           req.log.info("bifrost: redirecting trailing slash");
           reply.redirect(301, req.url.replace(trailingSlash, "\$1"));
           return;

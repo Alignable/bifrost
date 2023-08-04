@@ -72,6 +72,10 @@ test.describe("pages", () => {
 });
 
 test.describe("trailing slashes on custom routes", () => { 
+  test.beforeEach(async ({ page }) => {
+    ensureAllNetworkSucceeds(page);
+  });
+  
   test("redirects to no slash", async ({ page }) => {
     await page.goto("./this-is-a-custom-route/");
 
@@ -91,6 +95,13 @@ test.describe("trailing slashes on custom routes", () => {
 
     await expect(page).toHaveTitle("custom route");
     await expect(page).toHaveURL("/this-is-a-custom-route#abc")
+  });
+
+  test("does not redirect on home page", async ({ page }) => {
+    await page.goto("./");
+
+    await expect(page).toHaveTitle("home");
+    await expect(page).toHaveURL("/")
   });
 });
 
