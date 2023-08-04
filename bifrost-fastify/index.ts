@@ -85,9 +85,11 @@ export const viteProxyPlugin: FastifyPluginAsync<
     upstream: upstream.href,
     async preHandler(req, reply) {
       if (req.method === "GET" && req.accepts().type(["html"]) === "html") {
-        if (req.url.endsWith('/')) {
+        const trailingSlash = /\/(\?|#|$)/;
+
+        if (trailingSlash.test(req.url)) {
           req.log.info("bifrost: redirecting trailing slash");
-          reply.redirect(301, req.url.slice(0, -1));
+          reply.redirect(301, req.url.replace(trailingSlash, "\$1"));
           return;
         }
 
