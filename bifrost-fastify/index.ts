@@ -13,6 +13,19 @@ import {
 import { renderPage } from "vite-plugin-ssr/server";
 import { AugmentMe } from "@alignable/bifrost";
 
+type RenderedPageContext = Awaited<
+  ReturnType<
+    typeof renderPage<
+      {
+        redirectTo?: string;
+        isClientSideNavigation?: boolean;
+        _pageId?: string;
+      },
+      {}
+    >
+  >
+>;
+
 type RequestExtendedWithProxy = FastifyRequest<
   RequestGenericInterface,
   RawServerBase
@@ -27,39 +40,12 @@ function streamToString(stream: Writable): Promise<string> {
   });
 }
 
-async function replyWithPage(
-  reply: FastifyReply<RawServerBase>,
-  pageContext: Awaited<
-    ReturnType<
-      typeof renderPage<
-        { redirectTo?: string; isClientSideNavigation?: boolean },
-        { urlOriginal: string }
-      >
-    >
-  >
-): Promise<FastifyReply> {
-  const { httpResponse } = pageContext;
-
-  if (pageContext.redirectTo && !pageContext.isClientSideNavigation) {
-    return reply.redirect(307, pageContext.redirectTo);
-  }
-
-  if (!httpResponse) {
-    return reply.code(404).type("text/html").send("Not Found");
-  }
-
-  const { body, statusCode, headers } = httpResponse;
-  return reply
-    .status(statusCode)
-    .headers(Object.fromEntries(headers))
-    .send(body);
-}
-
 const proxyPageId = "/proxy/pages";
 
 interface ViteProxyPluginOptions {
   upstream: URL;
   host: URL;
+  onError?: (error: any, pageContext: RenderedPageContext) => void;
   buildPageContextInit?: (
     req: FastifyRequest
   ) => Promise<AugmentMe.PageContextInit>;
@@ -80,8 +66,43 @@ export const viteProxyPlugin: FastifyPluginAsync<
   ViteProxyPluginOptions
 > = async (
   fastify,
-  { upstream, host, buildPageContextInit, rewriteRequestHeaders, getLayout }
+  {
+    upstream,
+    host,
+    onError,
+    buildPageContextInit,
+    rewriteRequestHeaders,
+    getLayout,
+  }
 ) => {
+  async function replyWithPage(
+    reply: FastifyReply<RawServerBase>,
+    pageContext: RenderedPageContext
+  ): Promise<FastifyReply> {
+    const { httpResponse } = pageContext;
+
+    if (
+      onError &&
+      httpResponse?.statusCode === 500 &&
+      pageContext.errorWhileRendering
+    ) {
+      onError(pageContext.errorWhileRendering, pageContext);
+    }
+
+    if (pageContext.redirectTo && !pageContext.isClientSideNavigation) {
+      return reply.redirect(307, pageContext.redirectTo);
+    }
+
+    if (!httpResponse) {
+      return reply.code(404).type("text/html").send("Not Found");
+    }
+
+    const { body, statusCode, headers } = httpResponse;
+    return reply
+      .status(statusCode)
+      .headers(Object.fromEntries(headers))
+      .send(body);
+  }
   await fastify.register(accepts);
   await fastify.register(proxy, {
     upstream: upstream.href,
