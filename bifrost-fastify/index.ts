@@ -3,7 +3,6 @@ import { FastifyReply, RawServerBase, FastifyPluginAsync } from "fastify";
 import { FastifyRequest, RequestGenericInterface } from "fastify/types/request";
 import proxy from "@fastify/http-proxy";
 import accepts from "@fastify/accepts";
-import { type PageContextProxy } from "../bifrost/types/internal.js";
 import forwarded from "@fastify/forwarded";
 import { Writable } from "stream";
 import { IncomingHttpHeaders, IncomingMessage } from "http";
@@ -34,7 +33,7 @@ async function replyWithPage(
     ReturnType<
       typeof renderPage<
         { redirectTo?: string; isClientSideNavigation?: boolean },
-        {}
+        { urlOriginal: string }
       >
     >
   >
@@ -89,7 +88,7 @@ export const viteProxyPlugin: FastifyPluginAsync<
 
         if (trailingSlash.test(req.url)) {
           req.log.info("bifrost: redirecting trailing slash");
-          reply.redirect(301, req.url.replace(trailingSlash, "\$1"));
+          reply.redirect(301, req.url.replace(trailingSlash, "$1"));
           return;
         }
 
@@ -104,6 +103,7 @@ export const viteProxyPlugin: FastifyPluginAsync<
         >(pageContextInit);
 
         const proxy = pageContext._pageId === proxyPageId;
+        req.log.info("pageid" + pageContext._pageId);
         const noRouteMatched =
           (pageContext as any).is404 && !pageContext.errorWhileRendering; // we hit no page, but NOT because of an error
 
@@ -168,15 +168,13 @@ export const viteProxyPlugin: FastifyPluginAsync<
             }
             reply.header("location", url);
             if (isPageContext) {
-              reply
+              return reply
                 .status(200)
                 .type("application/json")
                 .send(
                   JSON.stringify({
-                    pageContext: {
-                      _pageId: proxyPageId,
-                      redirectTo: url,
-                    },
+                    _pageId: proxyPageId,
+                    redirectTo: url,
                   })
                 );
             } else {
@@ -190,20 +188,16 @@ export const viteProxyPlugin: FastifyPluginAsync<
           return reply.send(res);
         }
 
-        const proxy = await streamToString(res);
+        const html = await streamToString(res);
 
-        const pageContextInit: Partial<PageContextProxy> = {
+        const pageContextInit = {
           urlOriginal: req.url,
-          layout,
-          layoutProps,
+          fromProxy: {
+            layout,
+            layoutProps,
+            html,
+          },
         };
-        if (isPageContext) {
-          // proxySendClient is serialized and sent to client on subsequent navigation.
-          Object.assign(pageContextInit, { proxySendClient: proxy });
-        } else {
-          // proxy is ONLY included server-side to avoid doubling page size
-          Object.assign(pageContextInit, { proxy });
-        }
         const pageContext = await renderPage(pageContextInit);
         return replyWithPage(reply, pageContext);
       },

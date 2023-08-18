@@ -1,4 +1,4 @@
-import { type ConfigNonHeaderFile } from "vite-plugin-ssr/types";
+import { type Config } from "vite-plugin-ssr/types";
 
 const passToClient = [
   "layoutProps",
@@ -21,4 +21,4 @@ export default {
     scripts: { env: "server-and-client" },
     favicon: { env: "server-only" },
   },
-} satisfies ConfigNonHeaderFile;
+} satisfies Config;

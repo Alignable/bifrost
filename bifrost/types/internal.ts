@@ -1,7 +1,6 @@
 import { PropsWithChildren } from "react";
 import {
   Config,
-  ConfigNonHeaderFile,
   PageContextBuiltIn,
   PageContextBuiltInClientWithClientRouting as PageContextBuiltInClient,
 } from "vite-plugin-ssr/types";
@@ -16,9 +15,9 @@ export namespace AugmentMe {
 
 // Utility type to ensure exported type matches meta defined in library
 type ConfigConstructor<
-  LibConfig extends ConfigNonHeaderFile,
+  LibConfig extends Config,
   T extends { [K in keyof LibConfig["meta"]]: any }
-> = Omit<Config, "extends"> & { extends?: ConfigNonHeaderFile } & Partial<T>;
+> = Omit<Config, "extends"> & { extends?: Config } & Partial<T>;
 
 // =============== Types for proxy pages ================= //
 // ===============  Crossing the bridge  ================ //
@@ -70,6 +69,14 @@ type PageContextProxyClientNav = {
   /// same as proxy but is allowed to be sent to client.
   /// Should not exist on initial render since it'll double page size!!
   proxySendClient?: string;
+};
+type FromProxy = {
+  layout: string;
+  layoutProps: AugmentMe.LayoutProps;
+  html: string;
+};
+export type PageContextProxyInit = PageContextBuiltIn<Page> & {
+  fromProxy: FromProxy;
 };
 export type PageContextProxyServer = PageContextBuiltIn<Page> &
   PageContextProxyCommon & { proxy: string };
