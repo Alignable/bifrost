@@ -11,7 +11,7 @@ export type VisitOptions = { action: Action };
 
 export interface Snapshot {
   bodyEl: Element;
-  headEl: Element;
+  headEl: HTMLHeadElement;
   pageContext: any;
 }
 

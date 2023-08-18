@@ -48,8 +48,11 @@ async function replyWithPage(
     return reply.code(404).type("text/html").send("Not Found");
   }
 
-  const { body, statusCode, contentType } = httpResponse;
-  return reply.status(statusCode).type(contentType).send(body);
+  const { body, statusCode, headers } = httpResponse;
+  return reply
+    .status(statusCode)
+    .headers(Object.fromEntries(headers))
+    .send(body);
 }
 
 const proxyPageId = "/proxy/pages";
@@ -95,7 +98,6 @@ export const viteProxyPlugin: FastifyPluginAsync<
         >(pageContextInit);
 
         const proxy = pageContext._pageId === proxyPageId;
-        req.log.info("pageid" + pageContext._pageId);
         const noRouteMatched =
           (pageContext as any).is404 && !pageContext.errorWhileRendering; // we hit no page, but NOT because of an error
 
@@ -184,6 +186,9 @@ export const viteProxyPlugin: FastifyPluginAsync<
 
         const pageContextInit = {
           urlOriginal: req.url,
+          // Nest into fromProxy to avoid triggering pageContextInitHasClientData which forces restorationVisit to refetch pageContext
+          // Ideally we would just set restorationVisit onBeforeRender to no-op
+          // https://github.com/brillout/vite-plugin-ssr/discussions/1075#discussioncomment-6758711
           fromProxy: {
             layout,
             layoutProps,

@@ -13,7 +13,8 @@ export default async function onRenderClient(
     throw new Error("restoration visit should never happen on initial render");
   }
 
-  const { layoutProps, layout, bodyEl, headEl } = pageContext;
+  const { layoutProps, layout } = pageContext.snapshot.pageContext;
+  const { bodyEl, headEl } = pageContext.snapshot;
   const { layoutMap } = pageContext.config;
   if (!layoutMap) {
     throw new Error("layoutMap needs to be defined in config");

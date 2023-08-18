@@ -7,8 +7,7 @@ export default {
     "import:@alignable/bifrost/proxy/pages/restorationVisit/onBeforeRender",
   onRenderClient:
     "import:@alignable/bifrost/proxy/pages/restorationVisit/onRenderClient",
-  // See onBeforeRoute for how head and body are inserted from Turbolinks snapshot
-  passToClient: ["headEl", "bodyEl", "layout", "layoutProps", "redirectTo"],
+  passToClient: [],
   clientRouting: true,
   hydrationCanBeAborted: true,
   meta: {

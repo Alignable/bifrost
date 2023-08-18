@@ -18,9 +18,7 @@ export default function onBeforeRoute(_pageContext: any) {
     if (!!snapshot) {
       return {
         pageContext: {
-          ...snapshot.pageContext,
-          bodyEl: snapshot.bodyEl,
-          headEl: snapshot.headEl,
+          snapshot,
           _pageId: "/proxy/pages/restorationVisit",
         },
       };

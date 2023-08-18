@@ -6,6 +6,7 @@ import {
 } from "vite-plugin-ssr/types";
 import InternalProxyConfig from "../proxy/pages/+config.js";
 import InternalNoProxyConfig from "../renderer/+config.js";
+import { type Snapshot } from "../lib/turbolinks/controller.js";
 
 /// Use module augmentation to override this in your app
 export namespace AugmentMe {
@@ -88,8 +89,7 @@ export type PageContextProxy = PageContextProxyServer | PageContextProxyClient;
 
 export type PageContextProxyRestorationVisit =
   PageContextBuiltInClient<Page> & {
-    bodyEl: Element;
-    headEl: HTMLHeadElement;
+    snapshot: Snapshot;
   } & PageContextProxyCommon;
 
 // =============== Types for new non-proxy pages ================= //
