@@ -1,12 +1,12 @@
 import { PropsWithChildren } from "react";
 import {
   Config,
-  ConfigNonHeaderFile,
   PageContextBuiltIn,
   PageContextBuiltInClientWithClientRouting as PageContextBuiltInClient,
 } from "vite-plugin-ssr/types";
 import InternalProxyConfig from "../proxy/pages/+config.js";
 import InternalNoProxyConfig from "../renderer/+config.js";
+import { type Snapshot } from "../lib/turbolinks/controller.js";
 
 /// Use module augmentation to override this in your app
 export namespace AugmentMe {
@@ -16,9 +16,9 @@ export namespace AugmentMe {
 
 // Utility type to ensure exported type matches meta defined in library
 type ConfigConstructor<
-  LibConfig extends ConfigNonHeaderFile,
+  LibConfig extends Config,
   T extends { [K in keyof LibConfig["meta"]]: any }
-> = Omit<Config, "extends"> & { extends?: ConfigNonHeaderFile } & Partial<T>;
+> = Omit<Config, "extends"> & { extends?: Config } & Partial<T>;
 
 // =============== Types for proxy pages ================= //
 // ===============  Crossing the bridge  ================ //
@@ -71,6 +71,14 @@ type PageContextProxyClientNav = {
   /// Should not exist on initial render since it'll double page size!!
   proxySendClient?: string;
 };
+type FromProxy = {
+  layout: string;
+  layoutProps: AugmentMe.LayoutProps;
+  html: string;
+};
+export type PageContextProxyInit = PageContextBuiltIn<Page> & {
+  fromProxy: FromProxy;
+};
 export type PageContextProxyServer = PageContextBuiltIn<Page> &
   PageContextProxyCommon & { proxy: string };
 export type PageContextProxyClient = PageContextBuiltInClient<Page> &
@@ -81,8 +89,7 @@ export type PageContextProxy = PageContextProxyServer | PageContextProxyClient;
 
 export type PageContextProxyRestorationVisit =
   PageContextBuiltInClient<Page> & {
-    bodyEl: Element;
-    headEl: HTMLHeadElement;
+    snapshot: Snapshot;
   } & PageContextProxyCommon;
 
 // =============== Types for new non-proxy pages ================= //

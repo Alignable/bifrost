@@ -1,7 +1,7 @@
 {
   "name": "@alignable/bifrost",
   "repository": "https://github.com/Alignable/bifrost.git",
-  "version": "0.0.22",
+  "version": "0.0.23",
   "type": "module",
   "types": "./dist/index.d.ts",
   "exports": {
@@ -53,6 +53,10 @@
       "types": "./dist/proxy/pages/restorationVisit/onRenderClient.d.ts",
       "default": "./dist/proxy/pages/restorationVisit/onRenderClient.js"
     },
+    "./proxy/pages/restorationVisit/onBeforeRender": {
+      "types": "./dist/proxy/pages/restorationVisit/onBeforeRender.d.ts",
+      "default": "./dist/proxy/pages/restorationVisit/onBeforeRender.js"
+    },
     ".": {
       "types": "./dist/index.d.ts",
       "default": "./dist/index.js"
@@ -83,14 +87,14 @@
     "react-dom": "^18.x.x",
     "tough-cookie": "^4.1.2",
     "uuid": "^9.0.0",
-    "vite-plugin-ssr": "0.4.131-commit-35ca471f7"
+    "vite-plugin-ssr": "0.4.135"
   },
   "peerDependencies": {
     "jsdom": "^22.1.0",
     "react": "^18.x.x",
     "react-dom": "^18.x.x",
     "typescript": ">=4.7",
-    "vite-plugin-ssr": "0.4.131-commit-35ca471f7"
+    "vite-plugin-ssr": "0.4.135"
   },
   "devDependencies": {
     "@types/node": "^18.11.9",

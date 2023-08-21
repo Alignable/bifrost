@@ -3,7 +3,6 @@ import { FastifyReply, RawServerBase, FastifyPluginAsync } from "fastify";
 import { FastifyRequest, RequestGenericInterface } from "fastify/types/request";
 import proxy from "@fastify/http-proxy";
 import accepts from "@fastify/accepts";
-import { type PageContextProxy } from "../bifrost/types/internal.js";
 import forwarded from "@fastify/forwarded";
 import { Writable } from "stream";
 import { IncomingHttpHeaders, IncomingMessage } from "http";
@@ -34,7 +33,7 @@ async function replyWithPage(
     ReturnType<
       typeof renderPage<
         { redirectTo?: string; isClientSideNavigation?: boolean },
-        {}
+        { urlOriginal: string }
       >
     >
   >
@@ -49,8 +48,11 @@ async function replyWithPage(
     return reply.code(404).type("text/html").send("Not Found");
   }
 
-  const { body, statusCode, contentType } = httpResponse;
-  return reply.status(statusCode).type(contentType).send(body);
+  const { body, statusCode, headers } = httpResponse;
+  return reply
+    .status(statusCode)
+    .headers(Object.fromEntries(headers))
+    .send(body);
 }
 
 const proxyPageId = "/proxy/pages";
@@ -85,14 +87,6 @@ export const viteProxyPlugin: FastifyPluginAsync<
     upstream: upstream.href,
     async preHandler(req, reply) {
       if (req.method === "GET" && req.accepts().type(["html"]) === "html") {
-        const trailingSlash = /\/(\?|#|$)/;
-
-        if (trailingSlash.test(req.url)) {
-          req.log.info("bifrost: redirecting trailing slash");
-          reply.redirect(301, req.url.replace(trailingSlash, "\$1"));
-          return;
-        }
-
         const pageContextInit = {
           urlOriginal: req.url,
           ...(buildPageContextInit ? await buildPageContextInit(req) : {}),
@@ -168,15 +162,13 @@ export const viteProxyPlugin: FastifyPluginAsync<
             }
             reply.header("location", url);
             if (isPageContext) {
-              reply
+              return reply
                 .status(200)
                 .type("application/json")
                 .send(
                   JSON.stringify({
-                    pageContext: {
-                      _pageId: proxyPageId,
-                      redirectTo: url,
-                    },
+                    _pageId: proxyPageId,
+                    redirectTo: url,
                   })
                 );
             } else {
@@ -190,20 +182,19 @@ export const viteProxyPlugin: FastifyPluginAsync<
           return reply.send(res);
         }
 
-        const proxy = await streamToString(res);
+        const html = await streamToString(res);
 
-        const pageContextInit: Partial<PageContextProxy> = {
+        const pageContextInit = {
           urlOriginal: req.url,
-          layout,
-          layoutProps,
+          // Nest into fromProxy to avoid triggering pageContextInitHasClientData which forces restorationVisit to refetch pageContext
+          // Ideally we would just set restorationVisit onBeforeRender to no-op
+          // https://github.com/brillout/vite-plugin-ssr/discussions/1075#discussioncomment-6758711
+          fromProxy: {
+            layout,
+            layoutProps,
+            html,
+          },
         };
-        if (isPageContext) {
-          // proxySendClient is serialized and sent to client on subsequent navigation.
-          Object.assign(pageContextInit, { proxySendClient: proxy });
-        } else {
-          // proxy is ONLY included server-side to avoid doubling page size
-          Object.assign(pageContextInit, { proxy });
-        }
         const pageContext = await renderPage(pageContextInit);
         return replyWithPage(reply, pageContext);
       },
