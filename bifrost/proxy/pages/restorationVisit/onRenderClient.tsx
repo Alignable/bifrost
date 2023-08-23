@@ -1,10 +1,15 @@
 import React from "react";
-import { PageContextProxyRestorationVisit } from "../../../types/internal.js";
+import {
+  LayoutComponent,
+  PageContextProxyRestorationVisit,
+} from "../../../types/internal.js";
 import { PageShell } from "../../../lib/PageShell.js";
 import { renderReact } from "../../../lib/renderReact.js";
 import { Turbolinks } from "../../../lib/turbolinks/index.js";
 import { getElementAttributes } from "../../../lib/getElementAttributes.js";
 import { copyElementAttributes } from "../../../lib/turbolinks/util.js";
+
+const PassthruLayout: LayoutComponent = ({ children }) => <>{children}</>;
 
 export default async function onRenderClient(
   pageContext: PageContextProxyRestorationVisit
@@ -19,7 +24,7 @@ export default async function onRenderClient(
   if (!layoutMap) {
     throw new Error("layoutMap needs to be defined in config");
   }
-  const Layout = layoutMap[layout];
+  const Layout = layoutMap[layout] || PassthruLayout;
 
   function render(body: string) {
     renderReact(
@@ -44,11 +49,11 @@ export default async function onRenderClient(
     copyElementAttributes(document.body, bodyEl);
     // render body with react
     render(proxyBodyEl.innerHTML);
-  });
-  // cache page context will save it and return it to us during restoration visits
-  Turbolinks._vpsCachePageContext({
-    layoutProps,
-    layout,
-    bodyAttrs: getElementAttributes(bodyEl),
+    // cache page context will save it and return it to us during restoration visits
+    Turbolinks._vpsCachePageContext({
+      layoutProps,
+      layout,
+      bodyAttrs: getElementAttributes(bodyEl),
+    });
   });
 }

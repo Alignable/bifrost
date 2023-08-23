@@ -185,7 +185,7 @@ export const viteProxyPlugin: FastifyPluginAsync<
         }
 
         const { layout, layoutProps } = getLayout(reply);
-        if (!layout) {
+        if (!isPageContext && !layout) {
           return reply.send(res);
         }
 

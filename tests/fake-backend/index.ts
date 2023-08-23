@@ -28,10 +28,32 @@ app.get(["/custom", "/custom-:id"], async (req, res) => {
   } else {
     res.status(200);
     if (req.header("X-VITE-PROXY")) {
+      console.log("layout", data.layout);
       res.setHeader("X-REACT-LAYOUT", data.layout ?? "main_nav");
       res.setHeader("X-REACT-CURRENT-NAV", "home_page");
     }
     res.send(buildPage(data, !!req.header("X-VITE-PROXY")));
+  }
+});
+
+app.get("/json-route", async (req, res) => {
+  // Putting json before html is unusual, but can happen.
+  // This tests rewriting Accept to text/html on index.pageContext.json requests.
+  const format = req.accepts(["json", "html"]);
+  if (format === "html") {
+    if (req.header("X-VITE-PROXY")) {
+      res.setHeader("X-REACT-LAYOUT", "main_nav");
+      res.setHeader("X-REACT-CURRENT-NAV", "home_page");
+    }
+    res
+      .status(200)
+      .send(
+        "<html><head><title>json route</title></head><body>hi</body></html>"
+      );
+  } else if (format === "json") {
+    res.status(200).json({ data: true });
+  } else {
+    res.status(400);
   }
 });
 

@@ -1,7 +1,10 @@
 import { mergeHead } from "./mergeHead";
 import { Controller, VisitOptions } from "./controller";
 import { Locatable } from "./location";
-import { activateNewBodyScriptElements, focusFirstAutofocusableElement } from "./util";
+import {
+  activateNewBodyScriptElements,
+  focusFirstAutofocusableElement,
+} from "./util";
 
 const controller = new Controller();
 
@@ -34,7 +37,7 @@ export const Turbolinks = {
       controller.adapter = window.Turbolinks.controller.adapter;
     }
     // Tells vite-plugin-ssr not to do link interception
-    (window as any)._disableAutomaticLinkInterception = true
+    (window as any)._disableAutomaticLinkInterception = true;
     window.Turbolinks = Turbolinks;
     controller.start();
   },
@@ -60,7 +63,7 @@ export const Turbolinks = {
         controller.viewWillRender();
         renderBody();
         await scriptsLoaded;
-        
+
         if (executeBodyScripts) {
           activateNewBodyScriptElements(
             Array.from(document.body.querySelectorAll("script"))

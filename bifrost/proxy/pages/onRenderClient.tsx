@@ -3,12 +3,13 @@ import { renderReact } from "../../lib/renderReact.js";
 import { PageShell } from "../../lib/PageShell.js";
 import { PageContextProxyClient } from "../../types/internal.js";
 import { Turbolinks } from "../../lib/turbolinks/index.js";
-import {
-  copyElementAttributes,
-} from "../../lib/turbolinks/util.js";
+import { copyElementAttributes } from "../../lib/turbolinks/util.js";
 import { getElementAttributes } from "../../lib/getElementAttributes.js";
+import { LayoutComponent } from "../../types/internal.js";
 
 Turbolinks.start();
+
+const PassthruLayout: LayoutComponent = ({ children }) => <>{children}</>;
 
 export default async function onRenderClient(
   pageContext: PageContextProxyClient
@@ -23,7 +24,7 @@ export default async function onRenderClient(
   if (!layoutMap) {
     throw new Error("layoutMap needs to be defined in config");
   }
-  const Layout = layoutMap[layout];
+  const Layout = layoutMap[layout] || PassthruLayout;
 
   function render(body: string) {
     renderReact(
@@ -37,10 +38,20 @@ export default async function onRenderClient(
   }
   let bodyEl: Element;
 
+  function cachePageContext() {
+    // cache page context will save it and return it to us during restoration visits
+    Turbolinks._vpsCachePageContext({
+      layoutProps,
+      layout,
+      bodyAttrs: getElementAttributes(bodyEl),
+    });
+  }
+
   if (pageContext.isHydration) {
     // During hydration of initial ssr, body is in dom, not page props (to avoid double-send)
     bodyEl = document.getElementById("proxied-body")!;
     render(bodyEl.innerHTML);
+    cachePageContext();
   } else {
     const { proxySendClient: proxy } = pageContext;
 
@@ -62,13 +73,7 @@ export default async function onRenderClient(
       copyElementAttributes(document.body, bodyEl);
       // render body with react
       render(bodyEl.innerHTML);
+      cachePageContext();
     });
   }
-
-  // cache page context will save it and return it to us during restoration visits
-  Turbolinks._vpsCachePageContext({
-    layoutProps,
-    layout,
-    bodyAttrs: getElementAttributes(bodyEl),
-  });
 }
