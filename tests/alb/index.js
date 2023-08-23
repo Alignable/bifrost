@@ -10,6 +10,7 @@ const BIFROST_PATHS = [
   "/react-body-script-injection",
   "/head-test",
   "/this-is-a-custom-route",
+  "/broken-page",
 ];
 
 proxy.addResolver((host, url, req) => {

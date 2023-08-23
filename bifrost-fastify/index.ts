@@ -21,7 +21,7 @@ type RenderedPageContext = Awaited<
         isClientSideNavigation?: boolean;
         _pageId?: string;
       },
-      {}
+      { urlOriginal: string }
     >
   >
 >;
