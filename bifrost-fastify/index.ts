@@ -214,9 +214,6 @@ export const viteProxyPlugin: FastifyPluginAsync<
 
         const pageContextInit = {
           urlOriginal: req.url,
-          // Nest into fromProxy to avoid triggering pageContextInitHasClientData which forces restorationVisit to refetch pageContext
-          // Ideally we would just set restorationVisit onBeforeRender to no-op
-          // https://github.com/brillout/vite-plugin-ssr/discussions/1075#discussioncomment-6758711
           fromProxy: {
             layout,
             layoutProps,
