@@ -14,3 +14,4 @@ export default {
   clientRouting: true,
   hydrationCanBeAborted: true,
 } satisfies Nullable<Config>;
+// ^ temp workaround waiting on https://github.com/brillout/vite-plugin-ssr/commit/fefc63ead5959aec6e6344f53b049d9cafeb2139 to merge
