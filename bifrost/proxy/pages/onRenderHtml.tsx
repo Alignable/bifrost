@@ -12,6 +12,16 @@ export default async function onRenderHtml(
   if (pageContext.proxy) {
     const { proxy, layoutProps, layout } = pageContext;
 
+    const { layoutMap } = pageContext.config;
+    if (!layoutMap) {
+      throw new Error("layoutMap needs to be defined in config");
+    }
+    const Layout = layoutMap[layout];
+    if (!Layout) {
+      // passthru
+      return { documentHtml: proxy, pageContext: {} };
+    }
+
     const dom = new jsdom.JSDOM(proxy);
     const doc = dom.window.document;
     const bodyEl = doc.querySelector("body");
@@ -20,12 +30,6 @@ export default async function onRenderHtml(
       throw new Error("Proxy failed");
     }
 
-    const { layoutMap } = pageContext.config;
-    if (!layoutMap) {
-      throw new Error("layoutMap needs to be defined in config");
-    }
-    const Layout = layoutMap[layout];
-    if (!Layout) throw new Error(`${layout} layout not found`);
     const pageHtml = ReactDOMServer.renderToString(
       <PageShell pageContext={pageContext}>
         <Layout {...layoutProps}>

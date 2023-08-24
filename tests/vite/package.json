@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "description": "",
   "scripts": {
-    "dev": "nodemon server/index.ts",
+    "dev": "nodemon server/index.ts | npx pino-pretty",
     "start": "yarn node dist/server/index.js",
     "build": "yarn build:server && yarn build:vite",
     "build:vite": "vite build --outDir dist/vite",

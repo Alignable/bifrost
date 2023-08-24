@@ -133,12 +133,19 @@ export const viteProxyPlugin: FastifyPluginAsync<
           req.log.info(`bifrost: proxy route matched, proxying to backend`);
           // pageContext.json is added on client navigations to indicate we are returning just json for the client router
           // we have to remove it before proxying though.
+          const isPageContext = req.raw.url!.includes(
+            "/index.pageContext.json"
+          );
           (req as RequestExtendedWithProxy)._proxy = {
-            isPageContext: req.raw.url!.includes("/index.pageContext.json"),
+            isPageContext,
             originalUrl: req.raw.url,
           };
           (req.raw as any)._proxy = true;
-          req.raw.url = req.raw.url!.replace("/index.pageContext.json", "");
+          if (isPageContext) {
+            // page context expects json - we need html from legacy server
+            req.raw.headers["accept"] = "text/html";
+            req.raw.url = req.raw.url!.replace("/index.pageContext.json", "");
+          }
         }
       }
     },
@@ -199,7 +206,7 @@ export const viteProxyPlugin: FastifyPluginAsync<
         }
 
         const { layout, layoutProps } = getLayout(reply);
-        if (!layout) {
+        if (!isPageContext && !layout) {
           return reply.send(res);
         }
 

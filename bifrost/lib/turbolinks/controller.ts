@@ -30,9 +30,7 @@ export class Controller {
 
   start() {
     if (!this.started) {
-      // TODO: delete document.body in this file. We are doing this to pre-empt VPS interceptor.
-      // https://github.com/brillout/vite-plugin-ssr/issues/918 fixes this.
-      document.body.addEventListener("click", this.clickCaptured, true);
+      addEventListener("click", this.clickCaptured, true);
       this.location = Location.currentLocation;
       this.restorationIdentifier = uuid();
       this.lastRenderedLocation = this.location;
@@ -47,7 +45,7 @@ export class Controller {
 
   stop() {
     if (this.started) {
-      document.body.removeEventListener("click", this.clickCaptured, true);
+      removeEventListener("click", this.clickCaptured, true);
       this.started = false;
     }
   }
@@ -103,7 +101,7 @@ export class Controller {
 
   shouldCacheSnapshot() {
     return (
-      document.body.querySelector("#proxied-body") &&
+      document.querySelector("#proxied-body") &&
       document.head
         .querySelector("meta[name='turbolinks-no-cache']")
         ?.getAttribute("content") != "no-cache"
@@ -140,8 +138,8 @@ export class Controller {
   // Event handlers
 
   clickCaptured = () => {
-    document.body.removeEventListener("click", this.clickBubbled, false);
-    document.body.addEventListener("click", this.clickBubbled, false);
+    removeEventListener("click", this.clickBubbled, false);
+    addEventListener("click", this.clickBubbled, false);
   };
 
   clickBubbled = (event: MouseEvent) => {

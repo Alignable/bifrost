@@ -11,6 +11,7 @@ const BIFROST_PATHS = [
   "/head-test",
   "/this-is-a-custom-route",
   "/broken-page",
+  "/json-route",
 ];
 
 proxy.addResolver((host, url, req) => {

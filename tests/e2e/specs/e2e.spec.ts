@@ -43,6 +43,21 @@ test.describe("pages", () => {
     ).toHaveCount(1);
   });
 
+  test("it passthru proxies pages with unknown layouts", async ({ page }) => {
+    const customProxy = new CustomProxyPage(page, {
+      title: "visitor page",
+      layout: "jaiosdfjo",
+      content: "lorem ipsum",
+    });
+    await customProxy.goto();
+    await expect(page).toHaveTitle("visitor page");
+    await expect(page.getByText("lorem ipsum")).toHaveCount(1);
+    // layout is not inserted
+    await expect(
+      page.locator("nav", { hasText: "visitor layout" })
+    ).toHaveCount(0);
+  });
+
   test("it serves vite pages", async ({ page }) => {
     await page.goto("./vite-page");
 
@@ -57,7 +72,7 @@ test.describe("pages", () => {
   test("it handles react inserting body scripts", async ({ page }) => {
     const logs = storeConsoleLog(page);
     await page.goto("./react-body-script-injection");
-    
+
     await expect.poll(() => logs).toContain("hello");
 
     await page.getByText("legacy page").click();
@@ -71,33 +86,35 @@ test.describe("pages", () => {
   });
 });
 
-test.describe("trailing slashes on custom routes", () => { 
+test.describe("trailing slashes on custom routes", () => {
   test("redirects to no slash", async ({ page }) => {
     await page.goto("./this-is-a-custom-route/");
 
     await expect(page).toHaveTitle("custom route");
-    await expect(page).toHaveURL("/this-is-a-custom-route")
+    await expect(page).toHaveURL("/this-is-a-custom-route");
   });
 
   test("redirects with query parameter", async ({ page }) => {
     await page.goto("./this-is-a-custom-route/?abc=1");
 
     await expect(page).toHaveTitle("custom route");
-    await expect(page).toHaveURL("/this-is-a-custom-route?abc=1")
+    await expect(page).toHaveURL("/this-is-a-custom-route?abc=1");
   });
 
   test("redirects with hash", async ({ page }) => {
     await page.goto("./this-is-a-custom-route/#abc");
 
     await expect(page).toHaveTitle("custom route");
-    await expect(page).toHaveURL("/this-is-a-custom-route#abc")
+    await expect(page).toHaveURL("/this-is-a-custom-route#abc");
   });
 });
 
 test("it keeps the favicon between pages", async ({ page }) => {
   await page.goto("./vite-page");
   await sleep(500);
-  await ensureNoBrowserNavigation(page, () => page.getByText("head test").click());
+  await ensureNoBrowserNavigation(page, () =>
+    page.getByText("head test").click()
+  );
   await sleep(500);
   await expect(page.locator("link[rel='icon']")).toHaveCount(1);
 });
@@ -141,6 +158,54 @@ test("on SSR of proxied page, proxy content is only sent once", async ({
   await customProxy.goto();
   // bob ross ipsum only shows in html once.
   expect((await page.content()).split(content).length - 1).toEqual(1);
+});
+
+test.describe("client navigation", () => {
+  // ensures on proxied pageContext requests we rewrite Accept from json to html.
+  test("to proxied route that also serves json", async ({ page, baseURL }) => {
+    ensureAllNetworkSucceeds(page);
+
+    const customProxy = new CustomProxyPage(page, {
+      title: "a",
+      content: "<a href='/json-route'>json route</a>",
+    });
+    await customProxy.goto();
+    await page.getByText("json route").click();
+    await expect(page).toHaveTitle("json route");
+    await expect(page.locator("body")).toContainText("hi");
+  });
+
+  test("to proxied page with no layout", async ({ page, baseURL }) => {
+    ensureAllNetworkSucceeds(page);
+
+    const customProxy = new CustomProxyPage(page, {
+      title: "a",
+      links: [
+        {
+          layout: "",
+          title: "b",
+        },
+      ],
+    });
+    await customProxy.goto();
+    await customProxy.clickLink("b");
+  });
+
+  test("to proxied page with unknown layout", async ({ page, baseURL }) => {
+    ensureAllNetworkSucceeds(page);
+
+    const customProxy = new CustomProxyPage(page, {
+      title: "a",
+      links: [
+        {
+          layout: "jaisodf",
+          title: "b",
+        },
+      ],
+    });
+    await customProxy.goto();
+    await customProxy.clickLink("b");
+  });
 });
 
 test.describe("redirects", () => {
@@ -400,6 +465,23 @@ test.describe("back button restoration", () => {
     });
     await customProxy.goBack();
     await customProxy.goForward();
+  });
+
+  test("restores layout", async ({ page, context }) => {
+    const customProxy = new CustomProxyPage(page, {
+      title: "first page",
+      layout: "main_nav",
+      links: [{ title: "second page", layout: "visitor" }],
+    });
+    await customProxy.goto();
+    const nav = page.locator("nav");
+    await expect(nav).toContainText("Main Nav Layout");
+    await customProxy.clickLink("second page");
+    await expect(nav).toContainText("visitor layout");
+    await customProxy.goBack();
+    await expect(nav).toContainText("Main Nav Layout");
+    await customProxy.goForward();
+    await expect(nav).toContainText("visitor layout");
   });
 
   test("saves changes made to dom, including before:cache", async ({
