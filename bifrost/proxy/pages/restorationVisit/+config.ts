@@ -1,20 +1,17 @@
 import { Config } from "vite-plugin-ssr/types";
 
+type Nullable<T> = {
+  [P in keyof T]: T[P] | null;
+};
+
 export default {
   route: "import:@alignable/bifrost/proxy/pages/restorationVisit/route",
   Page: "import:@alignable/bifrost/proxy/pages/Page",
-  onBeforeRender:
-    "import:@alignable/bifrost/proxy/pages/restorationVisit/onBeforeRender",
+  onBeforeRender: null,
   onRenderClient:
     "import:@alignable/bifrost/proxy/pages/restorationVisit/onRenderClient",
   passToClient: [],
   clientRouting: true,
   hydrationCanBeAborted: true,
-  meta: {
-    onBeforeRender: {
-      // We tell vite-plugin-ssr to load and execute onBeforeRender() on the client-side.
-      // Moving onBeforeRender to client tells VPS it does not need to make network request on navigation
-      env: "client-only",
-    },
-  },
-} satisfies Config;
+} satisfies Nullable<Config>;
+// ^ temp workaround waiting on https://github.com/brillout/vite-plugin-ssr/commit/fefc63ead5959aec6e6344f53b049d9cafeb2139 to merge
