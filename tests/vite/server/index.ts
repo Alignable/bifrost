@@ -49,6 +49,11 @@ async function startServer() {
       // hit auth server etc.
       return { loggedIn: true };
     },
+    onError(e, pageContext) {
+      if (pageContext.httpResponse) {
+        pageContext.httpResponse.headers.push(["X-TEST-ONERROR", "true"]);
+      }
+    },
     rewriteRequestHeaders(req, headers) {
       headers["X-VITE-PROXY"] = "1"; // Signal to legacy backend we're coming from proxy
       return headers;
