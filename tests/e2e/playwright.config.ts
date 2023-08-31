@@ -35,7 +35,7 @@ export default defineConfig({
     /* Maximum time each action such as `click()` can take. Defaults to 0 (no limit). */
     actionTimeout: 1000,
     /* Base URL to use in actions like `await page.goto('/')`. */
-    baseURL: 'http://localhost:5050',
+    baseURL: "http://localhost:5050",
 
     /* Collect trace when retrying the failed test. See https://playwright.dev/docs/trace-viewer */
     trace: "on-first-retry",
@@ -85,19 +85,19 @@ export default defineConfig({
   /* Run your local dev server before starting the tests */
   webServer: [
     {
-      command: "cd ../vite && PORT=5555 yarn start",
+      command: "cd ../vite && PORT=5555 yarn dev",
       reuseExistingServer: true,
       port: 5555,
     },
     {
       command: "cd ../fake-backend && PORT=5557 yarn start",
       reuseExistingServer: true,
-      port: 5557
+      port: 5557,
     },
     {
       command: "cd ../alb && yarn start",
       reuseExistingServer: true,
-      port: 5050
+      port: 5050,
     },
   ],
 });
