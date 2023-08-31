@@ -20,7 +20,7 @@
   "peerDependencies": {
     "@alignable/bifrost": "0.0.24",
     "fastify": "^4.9.2",
-    "vite-plugin-ssr": "0.4.137"
+    "vite-plugin-ssr": "0.4.138"
   },
   "devDependencies": {
     "@types/connect": "^3.4.35",
