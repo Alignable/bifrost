@@ -10,7 +10,7 @@ export type {
   AugmentMe,
   PageContext,
 } from "./types/internal";
-export { usePageContext } from "./renderer/usePageContext.js";
+export { usePageContext, PageContextProvider } from "./renderer/usePageContext.js";
 
 type OptionalPromise<T> = Promise<T> | T;
 export type OnBeforeRender = (
