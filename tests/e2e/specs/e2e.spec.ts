@@ -84,6 +84,24 @@ test.describe("pages", () => {
     await page.getByText("legacy page").click();
     await expect(page.getByText("React Body")).toHaveCount(1);
   });
+
+  test("it loads the head", async ({ page }) => {
+    await page.goto("./head-test");
+
+    await expect(page).toHaveTitle("head test");
+    await expect(page.locator('meta[name="description"]')).toHaveAttribute(
+      "content",
+      "a cool description"
+    );
+    await expect(page.locator('link[rel="canonical"]')).toHaveAttribute(
+      "href",
+      "https://nextjs.org"
+    );
+    await expect(page.locator('meta[name="theme-color"]')).toHaveAttribute(
+      "content",
+      "black"
+    );
+  });
 });
 
 test.describe("trailing slashes on custom routes", () => {
