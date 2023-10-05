@@ -7,7 +7,8 @@ export default {
   documentProps: {
     title: "head test",
     description: "a cool description",
-    metaTags: [{name: "theme-color", content: "black"}]
+    alternates: { canonical: "https://nextjs.org" },
+    metaTags: [{ name: "theme-color", content: "black" }],
   },
   scripts: [`<script>console.log("script inserted by config")</script>`],
 } satisfies BifrostConfig;

@@ -33,11 +33,14 @@ export interface DocumentProps {
   // https://nextjs.org/docs/app/api-reference/functions/generate-metadata#the-metadata-object
   title?: string;
   description?: string;
+  alternates?: Alternates;
   viewport?: { [key: string]: string };
   metaTags?: MetaTag[];
 }
 
 type MetaTag = { name?: string; property?: string; content: string };
+
+type Alternates = { canonical?: string };
 
 export type LayoutComponent = React.ComponentType<
   PropsWithChildren<AugmentMe.LayoutProps>

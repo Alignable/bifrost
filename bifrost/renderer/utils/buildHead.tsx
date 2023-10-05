@@ -6,6 +6,7 @@ export function documentPropsToReact({
   description = "",
   viewport = {},
   metaTags = [],
+  alternates = {},
 }: DocumentProps): React.ReactElement {
   return (
     <>
@@ -21,6 +22,7 @@ export function documentPropsToReact({
       {metaTags.map(({ name, property, content }) => (
         <meta name={name} property={property} content={content} />
       ))}
+      { alternates.canonical && <link rel="canonical" href={alternates.canonical} /> }
     </>
   );
 }
