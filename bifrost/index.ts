@@ -1,4 +1,4 @@
-import { PageContextBuiltIn } from "vite-plugin-ssr/types";
+import { PageContextBuiltIn } from "vike/types";
 import { AugmentMe, PageContextNoProxy } from "./types/internal.js";
 
 export type {
@@ -10,7 +10,10 @@ export type {
   AugmentMe,
   PageContext,
 } from "./types/internal";
-export { usePageContext, PageContextProvider } from "./renderer/usePageContext.js";
+export {
+  usePageContext,
+  PageContextProvider,
+} from "./renderer/usePageContext.js";
 
 type OptionalPromise<T> = Promise<T> | T;
 export type OnBeforeRender = (

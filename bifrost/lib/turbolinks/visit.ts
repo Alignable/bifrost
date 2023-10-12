@@ -1,4 +1,4 @@
-import { navigate } from "vite-plugin-ssr/client/router";
+import { navigate } from "vike/client/router";
 import { Adapter } from "./adapter";
 import { Controller } from "./controller.js";
 import { Location } from "./location";

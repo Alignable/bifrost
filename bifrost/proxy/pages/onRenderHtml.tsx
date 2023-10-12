@@ -1,6 +1,6 @@
 import React from "react";
 import ReactDOMServer from "react-dom/server";
-import { dangerouslySkipEscape, escapeInject } from "vite-plugin-ssr/server";
+import { dangerouslySkipEscape, escapeInject } from "vike/server";
 import { PageContextProxyServer } from "../../types/internal.js";
 import { PageShell } from "../../lib/PageShell.js";
 import jsdom from "jsdom";

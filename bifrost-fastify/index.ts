@@ -1,4 +1,4 @@
-// Note that this file isn't processed by Vite, see https://github.com/brillout/vite-plugin-ssr/issues/562
+// Note that this file isn't processed by Vite, see https://github.com/brillout/vike/issues/562
 import { FastifyReply, RawServerBase, FastifyPluginAsync } from "fastify";
 import { FastifyRequest, RequestGenericInterface } from "fastify/types/request";
 import proxy from "@fastify/http-proxy";
@@ -10,7 +10,7 @@ import {
   Http2ServerRequest,
   IncomingHttpHeaders as Http2IncomingHttpHeaders,
 } from "http2";
-import { renderPage } from "vite-plugin-ssr/server";
+import { renderPage } from "vike/server";
 import { AugmentMe } from "@alignable/bifrost";
 
 type RenderedPageContext = Awaited<
@@ -60,7 +60,7 @@ interface ViteProxyPluginOptions {
   ) => Http2IncomingHttpHeaders | IncomingHttpHeaders;
 }
 /**
- * Fastify plugin that wraps @fasitfy/http-proxy to proxy Rails/Turbolinks server into a Vite-Plugin-SSR site.
+ * Fastify plugin that wraps @fasitfy/http-proxy to proxy Rails/Turbolinks server into a vike site.
  */
 export const viteProxyPlugin: FastifyPluginAsync<
   ViteProxyPluginOptions
@@ -113,10 +113,12 @@ export const viteProxyPlugin: FastifyPluginAsync<
           ...(buildPageContextInit ? await buildPageContextInit(req) : {}),
         };
 
+        const start = performance.now();
         const pageContext = await renderPage<
           { _pageId: string },
           typeof pageContextInit
         >(pageContextInit);
+        // console.log("renderPage", performance.now() - start);
 
         const proxy = pageContext._pageId === proxyPageId;
         const noRouteMatched =

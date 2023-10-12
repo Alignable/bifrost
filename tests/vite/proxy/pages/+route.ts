@@ -1,4 +1,4 @@
-import { PageContextBuiltIn } from "vite-plugin-ssr/types";
+import { PageContextBuiltIn } from "vike/types";
 
 const paths = ["/custom", "/custom-bifrost", "/json-route"];
 

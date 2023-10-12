@@ -1,7 +1,7 @@
 import ReactDOMServer from "react-dom/server";
 import React from "react";
 import { PageShell } from "../lib/PageShell.js";
-import { escapeInject, dangerouslySkipEscape } from "vite-plugin-ssr/server";
+import { escapeInject, dangerouslySkipEscape } from "vike/server";
 import { PageContextNoProxyServer } from "../types/internal.js";
 import { documentPropsToReact } from "./utils/buildHead.js";
 import { getPageContextOrConfig } from "./getConfigOrPageContext.js";
@@ -69,7 +69,7 @@ export default async function onRenderHtml(
   return {
     documentHtml,
     pageContext: {
-      // We can add some `pageContext` here, which is useful if we want to do page redirection https://vite-plugin-ssr.com/page-redirection
+      // We can add some `pageContext` here, which is useful if we want to do page redirection https://vike.com/page-redirection
     },
   };
 }
