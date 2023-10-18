@@ -113,12 +113,10 @@ export const viteProxyPlugin: FastifyPluginAsync<
           ...(buildPageContextInit ? await buildPageContextInit(req) : {}),
         };
 
-        const start = performance.now();
         const pageContext = await renderPage<
           { _pageId: string },
           typeof pageContextInit
         >(pageContextInit);
-        // console.log("renderPage", performance.now() - start);
 
         const proxy = pageContext._pageId === proxyPageId;
         const noRouteMatched =
