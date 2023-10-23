@@ -26,10 +26,21 @@ type RenderedPageContext = Awaited<
   >
 >;
 
-type RequestExtendedWithProxy = FastifyRequest<
+declare module "fastify" {
+  interface FastifyRequest {
+    bifrostPageId?: string;
+  }
+}
+
+type RawRequestExtendedWithProxy = FastifyRequest<
   RequestGenericInterface,
   RawServerBase
-> & { _proxy?: { isPageContext: boolean; originalUrl?: string } };
+>["raw"] & {
+  _bfproxy?: {
+    isPageContext: boolean;
+    originalUrl?: string;
+  };
+};
 
 function streamToString(stream: Writable): Promise<string> {
   const chunks: Buffer[] = [];
@@ -104,8 +115,10 @@ export const viteProxyPlugin: FastifyPluginAsync<
       .send(body);
   }
   await fastify.register(accepts);
+  fastify.decorateRequest("bifrostPageId", null);
   await fastify.register(proxy, {
     upstream: upstream.href,
+    websocket: true,
     async preHandler(req, reply) {
       if (req.method === "GET" && req.accepts().type(["html"]) === "html") {
         const pageContextInit = {
@@ -118,32 +131,31 @@ export const viteProxyPlugin: FastifyPluginAsync<
           typeof pageContextInit
         >(pageContextInit);
 
+        req.bifrostPageId = pageContext._pageId;
+
         const proxy = pageContext._pageId === proxyPageId;
         const noRouteMatched =
           (pageContext as any).is404 && !pageContext.errorWhileRendering; // we hit no page, but NOT because of an error
 
         if (noRouteMatched) {
-          req.log.info("bifrost: no route match, naked proxy to backend");
-          // Naked proxy
+          req.log.info("bifrost: no route match, passthru proxy to backend");
+          // passthru proxy
           return;
         } else if (!proxy) {
           req.log.info(`bifrost: rendering page ${pageContext._pageId}`);
           return replyWithPage(reply, pageContext);
         } else {
           req.log.info(`bifrost: proxy route matched, proxying to backend`);
-          // pageContext.json is added on client navigations to indicate we are returning just json for the client router
-          // we have to remove it before proxying though.
-          const isPageContext = req.raw.url!.includes(
-            "/index.pageContext.json"
-          );
-          (req as RequestExtendedWithProxy)._proxy = {
+          const isPageContext = !!pageContext.isClientSideNavigation;
+          (req.raw as RawRequestExtendedWithProxy)._bfproxy = {
             isPageContext,
             originalUrl: req.raw.url,
           };
-          (req.raw as any)._proxy = true;
           if (isPageContext) {
             // page context expects json - we need html from legacy server
             req.raw.headers["accept"] = "text/html";
+            // pageContext.json is added on client navigations to indicate we are returning just json for the client router
+            // we have to remove it before proxying though.
             req.raw.url = req.raw.url!.replace("/index.pageContext.json", "");
           }
         }
@@ -157,7 +169,7 @@ export const viteProxyPlugin: FastifyPluginAsync<
         headers["X-Forwarded-Host"] = host.host;
         headers["X-Forwarded-Protocol"] = host.protocol;
 
-        if ((request as any)._proxy) {
+        if ((request as RawRequestExtendedWithProxy)._bfproxy) {
           // Proxying and wrapping
 
           // Delete cache headers
@@ -174,7 +186,7 @@ export const viteProxyPlugin: FastifyPluginAsync<
       },
       async onResponse(req, reply: FastifyReply<RawServerBase>, res) {
         const { isPageContext = false, originalUrl = undefined } =
-          (req as RequestExtendedWithProxy)._proxy || {};
+          (req.raw as RawRequestExtendedWithProxy)._bfproxy || {};
         if (isPageContext && originalUrl) {
           // restore url rewrite
           req.raw.url = originalUrl;
