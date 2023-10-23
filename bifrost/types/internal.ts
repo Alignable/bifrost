@@ -3,7 +3,7 @@ import {
   Config,
   PageContextBuiltIn,
   PageContextBuiltInClientWithClientRouting as PageContextBuiltInClient,
-} from "vite-plugin-ssr/types";
+} from "vike/types";
 import InternalProxyConfig from "../proxy/pages/+config.js";
 import InternalNoProxyConfig from "../renderer/+config.js";
 import { type Snapshot } from "../lib/turbolinks/controller.js";

@@ -1,4 +1,4 @@
-// Note that this file isn't processed by Vite, see https://github.com/brillout/vite-plugin-ssr/issues/562
+// Note that this file isn't processed by Vite, see https://github.com/brillout/vike/issues/562
 import compress from "@fastify/compress";
 import middie from "@fastify/middie";
 import fastifyStatic from "@fastify/static";
@@ -18,7 +18,7 @@ const UPSTREAM = new URL("http://localhost:5557"); //new URL("http://dev.alignab
 const HOST = new URL("http://localhost:5050");
 
 async function startServer() {
-  const app = fastify({ logger: { level: "info" } });
+  const app = fastify({ logger: { level: process.env.LOG_LEVEL || "info" } });
 
   await app.register(middie);
   await app.register(compress);

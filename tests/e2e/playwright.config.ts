@@ -85,17 +85,17 @@ export default defineConfig({
   /* Run your local dev server before starting the tests */
   webServer: [
     {
-      command: "cd ../vite && PORT=5555 yarn dev",
+      command: "cd ../vite && PORT=5555 npm run dev",
       reuseExistingServer: true,
       port: 5555,
     },
     {
-      command: "cd ../fake-backend && PORT=5557 yarn start",
+      command: "cd ../fake-backend && PORT=5557 npm run start",
       reuseExistingServer: true,
       port: 5557,
     },
     {
-      command: "cd ../alb && yarn start",
+      command: "cd ../alb && npm run start",
       reuseExistingServer: true,
       port: 5050,
     },

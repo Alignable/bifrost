@@ -1,4 +1,4 @@
-import type { PageContextBuiltIn } from "vite-plugin-ssr/types";
+import type { PageContextBuiltIn } from "vike/types";
 
 const ROUTES = ["/this-is-a-custom-route"];
 export default function route(pageContext: PageContextBuiltIn) {

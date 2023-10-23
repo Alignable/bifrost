@@ -9,7 +9,7 @@ function sleep(timeout: number) {
     setTimeout(resolve, timeout);
   });
 }
-app.use(morgan("tiny"));
+// app.use(morgan("tiny"));
 
 app.get(["/custom", "/custom-:id"], async (req, res) => {
   const data = JSON.parse(req.query.page as string) as PageData;
@@ -28,7 +28,6 @@ app.get(["/custom", "/custom-:id"], async (req, res) => {
   } else {
     res.status(200);
     if (req.header("X-VITE-PROXY")) {
-      console.log("layout", data.layout);
       res.setHeader("X-REACT-LAYOUT", data.layout ?? "main_nav");
       res.setHeader("X-REACT-CURRENT-NAV", "home_page");
     }

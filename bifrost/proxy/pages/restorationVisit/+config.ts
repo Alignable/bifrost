@@ -1,4 +1,4 @@
-import { Config } from "vite-plugin-ssr/types";
+import { Config } from "vike/types";
 
 export default {
   route: "import:@alignable/bifrost/proxy/pages/restorationVisit/route",
