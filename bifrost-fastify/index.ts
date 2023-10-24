@@ -131,7 +131,10 @@ export const viteProxyPlugin: FastifyPluginAsync<
           typeof pageContextInit
         >(pageContextInit);
 
-        req.bifrostPageId = pageContext._pageId;
+        const originalPageId =
+          (pageContext as any)?._routeMatches?.[0]?.pageId ||
+          pageContext._pageId;
+        req.bifrostPageId = originalPageId;
 
         const proxy = pageContext._pageId === proxyPageId;
         const noRouteMatched =
