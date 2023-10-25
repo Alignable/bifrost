@@ -1,8 +1,8 @@
 import { PropsWithChildren } from "react";
 import {
   Config,
-  PageContextBuiltIn,
   PageContextBuiltInClientWithClientRouting as PageContextBuiltInClient,
+  PageContextBuiltInServer,
 } from "vike/types";
 import InternalProxyConfig from "../proxy/pages/+config.js";
 import InternalNoProxyConfig from "../renderer/+config.js";
@@ -42,6 +42,8 @@ type MetaTag = { name?: string; property?: string; content: string };
 
 type Alternates = { canonical?: string };
 
+export type OnClientInit = () => Promise<void>;
+
 export type LayoutComponent = React.ComponentType<
   PropsWithChildren<AugmentMe.LayoutProps>
 >;
@@ -51,6 +53,7 @@ export type ProxyConfig = ConfigConstructor<
   typeof InternalProxyConfig,
   {
     layoutMap: LayoutMap;
+    onClientInit: OnClientInit;
   }
 >;
 
@@ -79,10 +82,10 @@ type FromProxy = {
   layoutProps: AugmentMe.LayoutProps;
   html: string;
 };
-export type PageContextProxyInit = PageContextBuiltIn<Page> & {
+export type PageContextProxyInit = PageContextBuiltInServer<Page> & {
   fromProxy: FromProxy;
 };
-export type PageContextProxyServer = PageContextBuiltIn<Page> &
+export type PageContextProxyServer = PageContextBuiltInServer<Page> &
   PageContextProxyCommon & { proxy: string };
 export type PageContextProxyClient = PageContextBuiltInClient<Page> &
   PageContextProxyCommon &
@@ -106,6 +109,7 @@ export type NoProxyConfig = ConfigConstructor<
     documentProps: DocumentProps;
     scripts: string[];
     favicon: string;
+    onClientInit: OnClientInit;
   }
 >;
 
@@ -120,7 +124,7 @@ type PageContextNoProxyCommon = {
   config: NoProxyConfig;
 };
 
-export type PageContextNoProxyServer = PageContextBuiltIn<Page> &
+export type PageContextNoProxyServer = PageContextBuiltInServer<Page> &
   PageContextNoProxyCommon;
 export type PageContextNoProxyClient = PageContextBuiltInClient<Page> &
   PageContextNoProxyCommon;

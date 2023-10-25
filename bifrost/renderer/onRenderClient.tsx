@@ -6,6 +6,7 @@ import { Turbolinks } from "../lib/turbolinks/index.js";
 import { documentPropsToReact } from "./utils/buildHead.js";
 import { getPageContextOrConfig } from "./getConfigOrPageContext.js";
 import { createRoot } from "react-dom/client";
+import { runClientInit } from "../lib/runClientInit.js";
 
 Turbolinks.start();
 
@@ -37,6 +38,7 @@ export default async function onRenderClient(
   );
   if (pageContext.isHydration) {
     // During hydration of initial ssr, body is in dom, not page props (to avoid double-send)
+    await runClientInit(pageContext.configEntries);
     renderReact(page, pageContext.isHydration);
   } else {
     const head = document.createElement("head");

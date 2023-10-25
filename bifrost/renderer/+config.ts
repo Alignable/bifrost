@@ -20,5 +20,6 @@ export default {
     documentProps: { env: "server-and-client" },
     scripts: { env: "server-and-client" },
     favicon: { env: "server-only" },
+    onClientInit: { env: "client-only" },
   },
 } satisfies Config;

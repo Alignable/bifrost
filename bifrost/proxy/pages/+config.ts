@@ -11,5 +11,6 @@ export default {
   hydrationCanBeAborted: true,
   meta: {
     layoutMap: { env: "server-and-client" },
+    onClientInit: { env: "client-only" },
   },
 } satisfies Config;

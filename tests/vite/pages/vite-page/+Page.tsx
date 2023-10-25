@@ -19,9 +19,3 @@ export default function Page() {
     </>
   );
 }
-
-// export const documentProps = {
-//   // This title and description will override the defaults
-//   title: "vite page",
-//   description: "wowowow",
-// };

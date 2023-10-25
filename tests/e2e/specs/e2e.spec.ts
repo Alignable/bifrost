@@ -102,6 +102,32 @@ test.describe("pages", () => {
       "black"
     );
   });
+
+  test("proxy page runs onClientInit once", async ({ page }) => {
+    const logs = storeConsoleLog(page);
+    const customProxy = new CustomProxyPage(page, {
+      title: "visitor page",
+      layout: "visitor",
+      content: "lorem ipsum",
+      links: [{ title: "second page", content: "second page body content" }],
+    });
+    await customProxy.goto();
+    expect(logs).toContain("onClientInit");
+    logs.length = 0;
+    await customProxy.clickLink("second page");
+    expect(logs).not.toContain("onClientInit in proxyPage");
+  });
+
+  test("vite page runs onClientInit once", async ({ page }) => {
+    const logs = storeConsoleLog(page);
+    await page.goto("./vite-page", {
+      waitUntil: "networkidle",
+    });
+    expect(logs).toContain("onClientInit");
+    logs.length = 0;
+    await page.getByText("head test").click();
+    expect(logs).not.toContain("onClientInit in proxyPage");
+  });
 });
 
 test.describe("trailing slashes on custom routes", () => {

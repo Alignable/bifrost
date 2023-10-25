@@ -6,6 +6,7 @@ import { Turbolinks } from "../../lib/turbolinks/index.js";
 import { copyElementAttributes } from "../../lib/turbolinks/util.js";
 import { getElementAttributes } from "../../lib/getElementAttributes.js";
 import { LayoutComponent } from "../../types/internal.js";
+import { runClientInit } from "../../lib/runClientInit.js";
 
 Turbolinks.start();
 
@@ -49,6 +50,7 @@ export default async function onRenderClient(
 
   if (pageContext.isHydration) {
     // During hydration of initial ssr, body is in dom, not page props (to avoid double-send)
+    await runClientInit(pageContext.configEntries);
     bodyEl = document.getElementById("proxied-body")!;
     render(bodyEl.innerHTML);
     cachePageContext();
