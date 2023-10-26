@@ -9,7 +9,7 @@ import {
   sleep,
 } from "../helpers/test-helpers";
 import { CustomProxyPage } from "../helpers/custom-proxy-page";
-import { PageDataOk, Turbolinks as T } from "../../fake-backend/page-builder";
+import { Turbolinks as T } from "../../fake-backend/page-builder";
 
 test.describe("pages", () => {
   test.beforeEach(async ({ page }) => {

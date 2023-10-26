@@ -1,4 +1,4 @@
-import { PageContextBuiltIn } from "vike/types";
+import { PageContextBuiltInServer } from "vike/types";
 import { AugmentMe, PageContextNoProxy } from "./types/internal.js";
 
 export type {
@@ -17,7 +17,7 @@ export {
 
 type OptionalPromise<T> = Promise<T> | T;
 export type OnBeforeRender = (
-  pageContext: PageContextBuiltIn & AugmentMe.PageContextInit
+  pageContext: PageContextBuiltInServer & AugmentMe.PageContextInit
 ) => OptionalPromise<{
   pageContext: Partial<PageContextNoProxy>;
 }>;

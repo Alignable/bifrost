@@ -42,6 +42,13 @@ async function startServer() {
     await app.use(viteServer.middlewares);
   }
 
+  app.addHook("onSend", async (req, reply) => {
+    if (req.bifrostPageId) {
+      // set header for testing
+      reply.header("X-TEST-PAGEID", req.bifrostPageId);
+    }
+  });
+
   app.register(viteProxyPlugin, {
     upstream: UPSTREAM,
     host: HOST,
