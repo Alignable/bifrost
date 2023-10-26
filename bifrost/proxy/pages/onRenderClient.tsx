@@ -20,7 +20,6 @@ export default async function onRenderClient(
     return;
   }
   const { layoutProps, layout } = pageContext;
-  console.log(pageContext);
 
   const { layoutMap } = pageContext.config;
   if (!layoutMap) {
