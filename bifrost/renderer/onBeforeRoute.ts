@@ -1,28 +1,39 @@
+import type { OnBeforeRouteSync } from "vike/types";
 // do NOT import turbolinks in this file. It is used on server side.
 
-export default function onBeforeRoute(_pageContext: any) {
-  if (typeof window === "undefined") return undefined;
-  const Turbolinks = window.Turbolinks;
+const onBeforeRoute: OnBeforeRouteSync = (
+  pageContext
+): ReturnType<OnBeforeRouteSync> => {
+  if (typeof window !== "undefined") {
+    const Turbolinks = window.Turbolinks;
 
-  const currentVisit = Turbolinks.controller.currentVisit;
-  if (!currentVisit || currentVisit.state === "completed") {
-    // old/nonexistent currentVisit means VPS is doing history navigation. Ideally we might turn off VPS' onpopstate listener.
-    const snapshot = Turbolinks.controller.getCachedSnapshotForLocation(
-      window.location.href
-    );
-    Turbolinks.controller.historyPoppedToLocationWithRestorationIdentifier(
-      window.location.href,
-      ""
-    );
+    const currentVisit = Turbolinks.controller.currentVisit;
+    if (!currentVisit || currentVisit.state === "completed") {
+      // old/nonexistent currentVisit means VPS is doing history navigation. Ideally we might turn off VPS' onpopstate listener.
+      const snapshot = Turbolinks.controller.getCachedSnapshotForLocation(
+        window.location.href
+      );
+      Turbolinks.controller.historyPoppedToLocationWithRestorationIdentifier(
+        window.location.href,
+        ""
+      );
 
-    if (!!snapshot) {
-      return {
-        pageContext: {
-          snapshot,
-          _pageId: "/proxy/pages/restorationVisit",
-        },
-      };
+      if (!!snapshot) {
+        return {
+          pageContext: {
+            snapshot,
+            isBackwardNavigation: true,
+            _pageId: "/proxy/pages/restorationVisit",
+          },
+        };
+      } else {
+        return {
+          pageContext: { isBackwardNavigation: true },
+        };
+      }
     }
   }
-  return undefined;
-}
+  return { pageContext: {} };
+};
+
+export default onBeforeRoute;

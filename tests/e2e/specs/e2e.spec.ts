@@ -7,6 +7,7 @@ import {
   validateDOMOnTurbolinks,
   StringMatcher,
   sleep,
+  ensureBrowserNavigation,
 } from "../helpers/test-helpers";
 import { CustomProxyPage } from "../helpers/custom-proxy-page";
 import { Turbolinks as T } from "../../fake-backend/page-builder";
@@ -866,7 +867,7 @@ async function expectLegacyPage(page: Page) {
 }
 
 async function expectBifrostPage(page: Page) {
-  await expect(page.locator("nav")).not.toContainText("legacy navbar");
+  await expect(page.locator("nav")).toContainText("Main Nav");
 }
 
 test.describe("with partial proxy", () => {
@@ -905,8 +906,9 @@ test.describe("with ALB", () => {
     await expectBifrostPage(page);
   });
 
-  test.describe("misconfigured ALB", () => {
+  test.describe("misconfigured ALB (passthru proxy)", () => {
     // test that we gracefully recover from routes pointing to wrong place. important during deploys
+    // ALB routes "/custom-incorrect" to bifrost but bifrost cannot handle it
 
     test.describe("pointing to Bifrost for route it can't handle", () => {
       test("SSR proxies verbatim", async ({ page }) => {
@@ -934,6 +936,31 @@ test.describe("with ALB", () => {
 
         await customProxy.clickLink("b", { browserReload: true });
         await expectLegacyPage(page);
+      });
+
+      test("back button from vite page to passthru page causes full reload", async ({
+        page,
+      }) => {
+        ensureAllNetworkSucceeds(page);
+
+        const customProxy = new CustomProxyPage(page, {
+          title: "a",
+          endpoint: "custom-incorrect",
+          links: [{ title: "b" }],
+        });
+        await customProxy.goto();
+        await expectLegacyPage(page);
+
+        await customProxy.clickLink("b");
+        await expectBifrostPage(page);
+
+        // going back to passthru page does full reload because passthru page has to be loaded through server
+        await ensureBrowserNavigation(page, async () => {
+          await customProxy.goBack();
+          await page.waitForLoadState("networkidle");
+          await expect(page).toHaveTitle("a");
+          await expectLegacyPage(page);
+        });
       });
     });
 
