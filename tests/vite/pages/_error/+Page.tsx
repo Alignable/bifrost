@@ -3,6 +3,7 @@ import React from "react";
 export default Page;
 
 function Page({ is404, errorInfo }: { is404: boolean; errorInfo?: string }) {
+  console.log("page error");
   if (is404) {
     return (
       <>

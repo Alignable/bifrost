@@ -6,6 +6,7 @@ const passToClient = [
   "redirectTo",
   "documentProps",
   "scripts",
+  "is404",
 ];
 export default {
   passToClient,
