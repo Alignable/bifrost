@@ -1,5 +1,30 @@
-import { PageContextBuiltInServer } from "vike/types";
-import { AugmentMe, PageContextNoProxy } from "./types/internal.js";
+export type {
+  Config,
+  Meta,
+  GuardAsync,
+  GuardSync,
+  OnBeforePrerenderStartAsync,
+  OnBeforePrerenderStartSync,
+  OnBeforeRenderAsync,
+  OnBeforeRenderSync,
+  OnBeforeRouteAsync,
+  OnBeforeRouteSync,
+  OnHydrationEndAsync,
+  OnHydrationEndSync,
+  OnPageTransitionEndAsync,
+  OnPageTransitionEndSync,
+  OnPageTransitionStartAsync,
+  OnPageTransitionStartSync,
+  OnPrerenderStartAsync,
+  OnPrerenderStartSync,
+  OnRenderClientAsync,
+  OnRenderClientSync,
+  OnRenderHtmlAsync,
+  OnRenderHtmlSync,
+  RouteAsync,
+  RouteSync,
+} from "vike/types";
+import { ApplicationFacingPageContext, AugmentMe } from "./types/internal.js";
 
 export type {
   DocumentProps,
@@ -15,9 +40,10 @@ export {
   PageContextProvider,
 } from "./renderer/usePageContext.js";
 
-type OptionalPromise<T> = Promise<T> | T;
-export type OnBeforeRender = (
-  pageContext: PageContextBuiltInServer & AugmentMe.PageContextInit
-) => OptionalPromise<{
-  pageContext: Partial<PageContextNoProxy>;
-}>;
+declare global {
+  namespace Vike {
+    interface PageContext
+      extends ApplicationFacingPageContext,
+        AugmentMe.PageContextInit {}
+  }
+}

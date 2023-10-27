@@ -113,16 +113,18 @@ export type NoProxyConfig = ConfigConstructor<
   }
 >;
 
-type PageProps = Record<string, unknown>;
+export type PageProps = Record<string, unknown>;
 type Page = React.ComponentType<PageProps>;
-// Context for non-proxied pages
-type PageContextNoProxyCommon = {
+export interface ApplicationFacingPageContext {
   pageProps: PageProps;
-  redirectTo?: string;
   documentProps?: DocumentProps;
   layoutProps: AugmentMe.LayoutProps;
+}
+// Context for non-proxied pages
+interface PageContextNoProxyCommon extends ApplicationFacingPageContext {
+  redirectTo?: string;
   config: NoProxyConfig;
-};
+}
 
 export type PageContextNoProxyServer = PageContextBuiltInServer<Page> &
   PageContextNoProxyCommon;

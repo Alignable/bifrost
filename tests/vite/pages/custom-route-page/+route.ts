@@ -1,6 +1,6 @@
-import type { PageContextBuiltIn } from "vike/types";
+import { RouteSync } from "@alignable/bifrost";
 
 const ROUTES = ["/this-is-a-custom-route"];
-export default function route(pageContext: PageContextBuiltIn) {
+export const route: RouteSync = (pageContext) => {
   return ROUTES.includes(pageContext.urlPathname);
-}
+};

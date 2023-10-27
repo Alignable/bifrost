@@ -1,9 +1,6 @@
-import type { OnBeforeRouteSync } from "vike/types";
 // do NOT import turbolinks in this file. It is used on server side.
 
-const onBeforeRoute: OnBeforeRouteSync = (
-  pageContext
-): ReturnType<OnBeforeRouteSync> => {
+const onBeforeRoute = () => {
   if (typeof window !== "undefined") {
     const Turbolinks = window.Turbolinks;
 

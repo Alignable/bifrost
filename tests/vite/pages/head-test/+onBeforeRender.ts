@@ -1,6 +1,6 @@
-import { OnBeforeRender } from "@alignable/bifrost";
+import { OnBeforeRenderSync } from "@alignable/bifrost";
 
-const onBeforeRender: OnBeforeRender = (pageContext) => {
+const onBeforeRender: OnBeforeRenderSync = (pageContext) => {
   return {
     pageContext: { layoutProps: { currentNav: "INSERTED BY ONBEFORERENDER" } },
   };
