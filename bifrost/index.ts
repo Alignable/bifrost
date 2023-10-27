@@ -24,6 +24,7 @@ export type {
   RouteAsync,
   RouteSync,
 } from "vike/types";
+import { navigate as vikeNavigate } from "vike/client/router";
 import { ApplicationFacingPageContext, AugmentMe } from "./types/internal.js";
 
 export type {
@@ -39,6 +40,12 @@ export {
   usePageContext,
   PageContextProvider,
 } from "./renderer/usePageContext.js";
+
+export const navigate: typeof vikeNavigate = async (url, opts) => {
+  window.Turbolinks.visit(url, {
+    action: opts?.overwriteLastHistoryEntry ? "replace" : "advance",
+  });
+};
 
 declare global {
   namespace Vike {

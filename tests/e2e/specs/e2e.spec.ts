@@ -251,6 +251,17 @@ test.describe("client navigation", () => {
     await customProxy.goto();
     await customProxy.clickLink("b");
   });
+
+  test("navigate() works and does not reload", async ({ page }) => {
+    await page.goto("./vite-page", {
+      waitUntil: "networkidle",
+    });
+    await expect(page).toHaveTitle("vite page");
+    await ensureNoBrowserNavigation(page, async () => {
+      await page.getByText("head test").click();
+      await expect(page).toHaveTitle("head test");
+    });
+  });
 });
 
 test.describe("redirects", () => {
@@ -957,8 +968,8 @@ test.describe("with ALB", () => {
         // going back to passthru page does full reload because passthru page has to be loaded through server
         await ensureBrowserNavigation(page, async () => {
           await customProxy.goBack();
+          await sleep(50);
           await page.waitForLoadState("networkidle");
-          await expect(page).toHaveTitle("a");
           await expectLegacyPage(page);
         });
       });

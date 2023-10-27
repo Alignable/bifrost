@@ -1,3 +1,4 @@
+import { navigate } from "@alignable/bifrost";
 import React from "react";
 
 const CUSTOM_HREF = {
@@ -16,6 +17,7 @@ export default function Page() {
       </a>
       <a href="/react-body-script-injection">react body</a>
       <a href="/head-test">head test</a>
+      <div onClick={() => navigate("/head-test")}>programmatic navigate</div>
     </>
   );
 }
