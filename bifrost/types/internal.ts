@@ -119,10 +119,10 @@ export interface ApplicationFacingPageContext {
   pageProps: PageProps;
   documentProps?: DocumentProps;
   layoutProps: AugmentMe.LayoutProps;
+  redirectTo?: string;
 }
 // Context for non-proxied pages
 interface PageContextNoProxyCommon extends ApplicationFacingPageContext {
-  redirectTo?: string;
   config: NoProxyConfig;
 }
 
