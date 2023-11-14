@@ -20,7 +20,7 @@
   "peerDependencies": {
     "@alignable/bifrost": "0.0.32",
     "fastify": "^4.9.2",
-    "vike": "0.4.144-commit-6aef8a6"
+    "vike": "0.4.145"
   },
   "devDependencies": {
     "@types/connect": "^3.4.35",
