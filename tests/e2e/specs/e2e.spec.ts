@@ -1,4 +1,4 @@
-import { test, expect, ElementHandle, Page } from "@playwright/test";
+import { test, expect, Page } from "@playwright/test";
 import {
   ensureAllNetworkSucceeds,
   expectNoMoreScripts,

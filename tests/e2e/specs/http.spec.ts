@@ -30,7 +30,7 @@ test.describe("requests", () => {
     });
 
     test("returns wrapped proxy route when hit", async ({ request }) => {
-      const req = await request.get("./custom");
+      const req = await request.get("./json-route");
       expect(req.headers()["x-test-pageid"]).toBe("/proxy/pages");
     });
 

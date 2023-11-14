@@ -131,8 +131,9 @@ export const viteProxyPlugin: FastifyPluginAsync<
           typeof pageContextInit
         >(pageContextInit);
 
+        // should stop relying on unstable _debugRouteMatches after this issue is closed: https://github.com/vikejs/vike/issues/1112
         const originalPageId =
-          (pageContext as any)?._routeMatches?.[0]?.pageId ||
+          (pageContext as any)?._debugRouteMatches?.[0]?.pageId ||
           pageContext._pageId;
         req.bifrostPageId = originalPageId;
 
