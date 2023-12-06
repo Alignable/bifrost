@@ -51,7 +51,8 @@ function streamToString(stream: Writable): Promise<string> {
   });
 }
 
-const proxyPageId = "/proxy/pages";
+const wrappedProxyPageId = "/proxy/pages/wrapped";
+const passthruProxyPageId = "/proxy/pages/passthru";
 
 interface ViteProxyPluginOptions {
   upstream: URL;
@@ -137,18 +138,17 @@ export const viteProxyPlugin: FastifyPluginAsync<
           pageContext._pageId;
         req.bifrostPageId = originalPageId;
 
-        const proxy = pageContext._pageId === proxyPageId;
-        const noRouteMatched =
-          (pageContext as any).is404 && !pageContext.errorWhileRendering; // we hit no page, but NOT because of an error
+        const proxy = pageContext._pageId === wrappedProxyPageId;
+        const passthruProxy = pageContext._pageId === passthruProxyPageId;
 
-        if (noRouteMatched) {
-          req.log.info("bifrost: no route match, passthru proxy to backend");
+        if (passthruProxy) {
+          req.log.info(`bifrost: passthru proxy to backend`);
           // passthru proxy
           return;
         } else if (!proxy) {
           req.log.info(`bifrost: rendering page ${pageContext._pageId}`);
           return replyWithPage(reply, pageContext);
-        } else {
+        } else if (proxy) {
           req.log.info(`bifrost: proxy route matched, proxying to backend`);
           const isPageContext = !!pageContext.isClientSideNavigation;
           (req.raw as RawRequestExtendedWithProxy)._bfproxy = {
@@ -171,7 +171,7 @@ export const viteProxyPlugin: FastifyPluginAsync<
         // fwd.push(request.ip); TODO: not sure if this is needed
         headers["X-Forwarded-For"] = fwd.join(", ");
         headers["X-Forwarded-Host"] = host.host;
-        headers["X-Forwarded-Protocol"] = host.protocol;
+        headers["X-Forwarded-Proto"] = host.protocol;
 
         if ((request as RawRequestExtendedWithProxy)._bfproxy) {
           // Proxying and wrapping
@@ -200,9 +200,10 @@ export const viteProxyPlugin: FastifyPluginAsync<
           const location = reply.getHeader("location") as string;
           if (location) {
             const url = new URL(location);
-            if (url.host === upstream.host) {
+            if (url.host === upstream.host || url.host === host.host) {
               // rewrite redirect on upstream's host to the proxy host
               url.host = host.host;
+              url.protocol = host.protocol;
             }
             reply.header("location", url);
             if (isPageContext) {
@@ -211,7 +212,7 @@ export const viteProxyPlugin: FastifyPluginAsync<
                 .type("application/json")
                 .send(
                   JSON.stringify({
-                    _pageId: proxyPageId,
+                    _pageId: wrappedProxyPageId,
                     redirectTo: url,
                   })
                 );

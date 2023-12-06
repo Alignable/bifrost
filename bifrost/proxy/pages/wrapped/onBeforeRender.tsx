@@ -1,4 +1,4 @@
-import { PageContextProxyInit } from "../../types/internal";
+import { PageContextProxyInit } from "../../../types/internal";
 
 export default async function onBeforeRender(
   pageContext: PageContextProxyInit

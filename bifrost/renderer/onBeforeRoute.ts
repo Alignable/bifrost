@@ -20,7 +20,7 @@ const onBeforeRoute = () => {
           pageContext: {
             snapshot,
             // isBackwardNavigation: true,
-            _pageId: "/proxy/pages/restorationVisit",
+            _pageId: "/proxy/pages/wrapped/restorationVisit",
           },
         };
       } else {

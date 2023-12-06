@@ -1,12 +1,12 @@
 import React from "react";
-import { renderReact } from "../../lib/renderReact.js";
-import { PageShell } from "../../lib/PageShell.js";
-import { PageContextProxyClient } from "../../types/internal.js";
-import { Turbolinks } from "../../lib/turbolinks/index.js";
-import { copyElementAttributes } from "../../lib/turbolinks/util.js";
-import { getElementAttributes } from "../../lib/getElementAttributes.js";
-import { LayoutComponent } from "../../types/internal.js";
-import { runClientInit } from "../../lib/runClientInit.js";
+import { renderReact } from "../../../lib/renderReact.js";
+import { PageShell } from "../../../lib/PageShell.js";
+import { PageContextProxyClient } from "../../../types/internal.js";
+import { Turbolinks } from "../../../lib/turbolinks/index.js";
+import { copyElementAttributes } from "../../../lib/turbolinks/util.js";
+import { getElementAttributes } from "../../../lib/getElementAttributes.js";
+import { LayoutComponent } from "../../../types/internal.js";
+import { runClientInit } from "../../../lib/runClientInit.js";
 
 Turbolinks.start();
 

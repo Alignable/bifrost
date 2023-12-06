@@ -4,7 +4,7 @@ import {
   PageContextBuiltInClientWithClientRouting as PageContextBuiltInClient,
   PageContextBuiltInServer,
 } from "vike/types";
-import InternalProxyConfig from "../proxy/pages/+config.js";
+import InternalProxyConfig from "../proxy/pages/wrapped/+config.js";
 import InternalNoProxyConfig from "../renderer/+config.js";
 import { type Snapshot } from "../lib/turbolinks/controller.js";
 

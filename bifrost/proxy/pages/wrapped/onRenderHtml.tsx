@@ -1,10 +1,10 @@
 import React from "react";
 import ReactDOMServer from "react-dom/server";
 import { dangerouslySkipEscape, escapeInject } from "vike/server";
-import { PageContextProxyServer } from "../../types/internal.js";
-import { PageShell } from "../../lib/PageShell.js";
+import { PageContextProxyServer } from "../../../types/internal.js";
+import { PageShell } from "../../../lib/PageShell.js";
 import jsdom from "jsdom";
-import { getElementAttributes } from "../../lib/getElementAttributes.js";
+import { getElementAttributes } from "../../../lib/getElementAttributes.js";
 
 export default async function onRenderHtml(
   pageContext: PageContextProxyServer
