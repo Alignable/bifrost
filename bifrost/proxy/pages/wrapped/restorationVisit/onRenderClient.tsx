@@ -2,12 +2,12 @@ import React from "react";
 import {
   LayoutComponent,
   PageContextProxyRestorationVisit,
-} from "../../../types/internal.js";
-import { PageShell } from "../../../lib/PageShell.js";
-import { renderReact } from "../../../lib/renderReact.js";
-import { Turbolinks } from "../../../lib/turbolinks/index.js";
-import { getElementAttributes } from "../../../lib/getElementAttributes.js";
-import { copyElementAttributes } from "../../../lib/turbolinks/util.js";
+} from "../../../../types/internal.js";
+import { PageShell } from "../../../../lib/PageShell.js";
+import { renderReact } from "../../../../lib/renderReact.js";
+import { Turbolinks } from "../../../../lib/turbolinks/index.js";
+import { getElementAttributes } from "../../../../lib/getElementAttributes.js";
+import { copyElementAttributes } from "../../../../lib/turbolinks/util.js";
 
 const PassthruLayout: LayoutComponent = ({ children }) => <>{children}</>;
 

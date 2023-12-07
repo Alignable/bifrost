@@ -927,7 +927,7 @@ test.describe("with ALB", () => {
 
         const customProxy = new CustomProxyPage(page, {
           title: "incorrect",
-          // see proxy/pages/+route.ts - we only want to proxy /custom, not /custom-incorrect
+          // see proxy/pages/wrapped/+route.ts - we only want to proxy /custom, not /custom-incorrect
           // yet, in alb, we configured custom-incorrect to go to bifrost
           endpoint: "custom-incorrect",
         });
