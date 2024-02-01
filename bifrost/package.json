@@ -95,14 +95,14 @@
     "react-dom": "^18.x.x",
     "tough-cookie": "^4.1.2",
     "uuid": "^9.0.0",
-    "vike": "0.4.146"
+    "vike": "0.4.160"
   },
   "peerDependencies": {
     "jsdom": "^22.1.0",
     "react": "^18.x.x",
     "react-dom": "^18.x.x",
     "typescript": ">=4.7",
-    "vike": "0.4.146"
+    "vike": "0.4.160"
   },
   "devDependencies": {
     "@types/jsdom": "^21.1.2",
