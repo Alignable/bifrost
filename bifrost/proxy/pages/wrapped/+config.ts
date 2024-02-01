@@ -12,7 +12,7 @@ export default {
   clientRouting: true,
   hydrationCanBeAborted: true,
   meta: {
-    layoutMap: { env: "server-and-client" },
-    onClientInit: { env: "client-only" },
+    layoutMap: { env: { server: true, client: true } },
+    onClientInit: { env: { client: true } },
   },
 } satisfies Config;
