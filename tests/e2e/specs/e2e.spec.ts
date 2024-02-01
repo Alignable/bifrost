@@ -1006,3 +1006,32 @@ test.describe("with ALB", () => {
     });
   });
 });
+
+test.describe("useNavigation", () => {
+  test("renders navigation state", async ({ page }) => {
+    await page.goto("./navigation-test", {
+      waitUntil: "networkidle",
+    });
+    await expect(page.locator("#nav-state")).toContainText("idle");
+    page.getByText("slow page").click();
+    await expect(page.locator("#nav-state")).toContainText("loading");
+  });
+
+  test("navigate() resolves after page load", async ({ page }) => {
+    await page.goto("./navigation-test", {
+      waitUntil: "networkidle",
+    });
+
+    await page.getByText("navigate()").click();
+    expect(await page.title()).not.toEqual("slow page");
+
+    // wait for navigate() promise resolve
+    await new Promise(function (resolve) {
+      page.on(
+        "console",
+        (msg) => msg.text() == "navigation promise resolved" && resolve(msg)
+      );
+    });
+    expect(await page.title()).toEqual("slow page");
+  });
+});

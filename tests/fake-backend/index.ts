@@ -12,7 +12,13 @@ function sleep(timeout: number) {
 // app.use(morgan("tiny"));
 
 app.get(["/custom", "/custom-:id"], async (req, res) => {
-  const data = JSON.parse(req.query.page as string) as PageData;
+  let data: PageData;
+  try {
+    data = JSON.parse(req.query.page as string) as PageData;
+  } catch (e) {
+    console.error("Issue parsing JSON on page query: ", req.query.page);
+    return res.status(500).send();
+  }
   if ("redirectTo" in data) {
     res.status(302);
     res.setHeader(
