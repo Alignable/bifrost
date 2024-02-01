@@ -25,7 +25,10 @@ export type {
   RouteSync,
 } from "vike/types";
 import { navigate as vikeNavigate } from "vike/client/router";
-import { ApplicationFacingPageContext, AugmentMe } from "./types/internal.js";
+import type {
+  ApplicationFacingPageContext,
+  AugmentMe,
+} from "./types/internal.js";
 
 export type {
   DocumentProps,
@@ -46,6 +49,11 @@ export const navigate: typeof vikeNavigate = async (url, opts) => {
   window.Turbolinks.visit(url, {
     action: opts?.overwriteLastHistoryEntry ? "replace" : "advance",
   });
+  if (window.Turbolinks.controller.currentVisit?.state === "started") {
+    return new Promise((resolve) => {
+      window.document.addEventListener("turbolinks:load", (ev) => resolve());
+    });
+  }
 };
 
 declare global {
