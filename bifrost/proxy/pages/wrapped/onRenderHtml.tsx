@@ -1,5 +1,5 @@
 import React from "react";
-import ReactDOMServer from "react-dom/server";
+import { renderToStream } from "react-streaming/server";
 import { dangerouslySkipEscape, escapeInject } from "vike/server";
 import { PageContextProxyServer } from "../../../types/internal.js";
 import { PageShell } from "../../../lib/PageShell.js";
@@ -30,7 +30,7 @@ export default async function onRenderHtml(
       throw new Error("Proxy failed");
     }
 
-    const pageHtml = ReactDOMServer.renderToString(
+    const pageHtml = await renderToStream(
       <PageShell pageContext={pageContext}>
         <Layout {...layoutProps}>
           <div
@@ -65,7 +65,7 @@ export default async function onRenderHtml(
             .map(([name, value]) => `${name}="${value}"`)
             .join(" ")
         )}>
-          <div id="page-view">${dangerouslySkipEscape(pageHtml)}</div>
+          <div id="page-view">${pageHtml.readable || "Failed to render"}</div>
         </body>
     </html>`;
 

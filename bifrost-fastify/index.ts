@@ -109,11 +109,11 @@ export const viteProxyPlugin: FastifyPluginAsync<
       return reply.code(404).type("text/html").send("Not Found");
     }
 
-    const { body, statusCode, headers } = httpResponse;
+    const { statusCode, headers } = httpResponse;
     return reply
       .status(statusCode)
       .headers(Object.fromEntries(headers))
-      .send(body);
+      .send(await (httpResponse as any).getReadableNodeStream());
   }
   await fastify.register(accepts);
   fastify.decorateRequest("bifrostPageId", null);
