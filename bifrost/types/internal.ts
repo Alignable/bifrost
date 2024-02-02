@@ -1,9 +1,5 @@
 import { PropsWithChildren } from "react";
-import {
-  Config,
-  PageContextBuiltInClientWithClientRouting as PageContextBuiltInClient,
-  PageContextBuiltInServer,
-} from "vike/types";
+import { Config, PageContextClient, PageContextServer } from "vike/types";
 import InternalProxyConfig from "../proxy/pages/wrapped/+config.js";
 import InternalNoProxyConfig from "../renderer/+config.js";
 import { type Snapshot } from "../lib/turbolinks/controller.js";
@@ -82,21 +78,20 @@ type FromProxy = {
   layoutProps: AugmentMe.LayoutProps;
   html: string;
 };
-export type PageContextProxyInit = PageContextBuiltInServer<Page> & {
+export type PageContextProxyInit = PageContextServer<Page> & {
   fromProxy: FromProxy;
 };
-export type PageContextProxyServer = PageContextBuiltInServer<Page> &
+export type PageContextProxyServer = PageContextServer &
   PageContextProxyCommon & { proxy: string };
-export type PageContextProxyClient = PageContextBuiltInClient<Page> &
+export type PageContextProxyClient = PageContextClient &
   PageContextProxyCommon &
   (PageContextProxyClientHydration | PageContextProxyClientNav);
 
 export type PageContextProxy = PageContextProxyServer | PageContextProxyClient;
 
-export type PageContextProxyRestorationVisit =
-  PageContextBuiltInClient<Page> & {
-    snapshot: Snapshot;
-  } & PageContextProxyCommon;
+export type PageContextProxyRestorationVisit = PageContextClient & {
+  snapshot: Snapshot;
+} & PageContextProxyCommon;
 
 // =============== Types for new non-proxy pages ================= //
 // ===============   You've crossed the Bifrost!   ================ //
@@ -126,9 +121,9 @@ interface PageContextNoProxyCommon extends ApplicationFacingPageContext {
   config: NoProxyConfig;
 }
 
-export type PageContextNoProxyServer = PageContextBuiltInServer<Page> &
+export type PageContextNoProxyServer = PageContextServer<Page> &
   PageContextNoProxyCommon;
-export type PageContextNoProxyClient = PageContextBuiltInClient<Page> &
+export type PageContextNoProxyClient = PageContextClient<Page> &
   PageContextNoProxyCommon;
 
 export type PageContextNoProxy =
@@ -139,3 +134,11 @@ export type PageContext =
   | PageContextNoProxy
   | PageContextProxy
   | PageContextProxyRestorationVisit;
+
+declare global {
+  namespace Vike {
+    interface PageContext {
+      Page?: React.ComponentType;
+    }
+  }
+}

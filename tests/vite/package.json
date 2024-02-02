@@ -19,7 +19,7 @@
     "@fastify/middie": "^8.1.0",
     "@fastify/static": "^6.10.1",
     "uuid": "^9.0.0",
-    "vike": "0.4.146",
+    "vike": "0.4.160-commit-937d8d5",
     "vite": "^4.3.2"
   },
   "devDependencies": {

@@ -16,11 +16,11 @@ export default {
   clientRouting: true,
   hydrationCanBeAborted: true,
   meta: {
-    Layout: { env: "server-and-client" },
-    layoutProps: { env: "server-and-client" },
-    documentProps: { env: "server-and-client" },
-    scripts: { env: "server-and-client" },
-    favicon: { env: "server-only" },
-    onClientInit: { env: "client-only" },
+    Layout: { env: { server: true, client: true } },
+    layoutProps: { env: { server: true, client: true } },
+    documentProps: { env: { server: true, client: true } },
+    scripts: { env: { server: true, client: true } },
+    favicon: { env: { server: true } },
+    onClientInit: { env: { client: true } },
   },
 } satisfies Config;
