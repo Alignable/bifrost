@@ -1,7 +1,8 @@
-import ReactDOMServer from "react-dom/server";
+import { renderToString } from "react-dom/server";
 import React from "react";
+import { renderToStream } from "react-streaming/server";
 import { PageShell } from "../lib/PageShell.js";
-import { escapeInject, dangerouslySkipEscape } from "vike/server";
+import { escapeInject, dangerouslySkipEscape, stampPipe } from "vike/server";
 import { PageContextNoProxyServer } from "../types/internal.js";
 import { documentPropsToReact } from "./utils/buildHead.js";
 import { getPageContextOrConfig } from "./getConfigOrPageContext.js";
@@ -25,7 +26,7 @@ export default async function onRenderHtml(
   if (!Layout)
     throw new Error("Server-side render() hook expects Layout to be exported");
 
-  const pageHtml = ReactDOMServer.renderToString(
+  const pageHtml = await renderToStream(
     <PageShell pageContext={pageContext}>
       <Layout {...layoutProps}>
         <Page {...pageProps} />
@@ -33,7 +34,7 @@ export default async function onRenderHtml(
     </PageShell>
   );
 
-  const headHtml = ReactDOMServer.renderToString(
+  const headHtml = renderToString(
     documentPropsToReact(
       getPageContextOrConfig(pageContext, "documentProps") || {}
     )
@@ -62,7 +63,7 @@ export default async function onRenderHtml(
       </script>`)}
       </head>
       <body>
-        <div id="page-view">${dangerouslySkipEscape(pageHtml)}</div>
+        <div id="page-view">${pageHtml.readable || "Failed to render"}</div>
       </body>
     </html>`;
 
