@@ -25,6 +25,7 @@ export type {
   RouteSync,
 } from "vike/types";
 import { navigate as vikeNavigate } from "vike/client/router";
+export { prefetch } from "vike/client/router";
 import type {
   ApplicationFacingPageContext,
   AugmentMe,
