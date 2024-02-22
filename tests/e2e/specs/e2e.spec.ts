@@ -973,6 +973,36 @@ test.describe("with ALB", () => {
           await expectLegacyPage(page);
         });
       });
+
+      test("back button from passthru page to vite page causes full reload", async ({
+        page,
+      }) => {
+        ensureAllNetworkSucceeds(page);
+
+        const customProxy = new CustomProxyPage(page, {
+          title: "a",
+          links: [
+            {
+              title: "b",
+              endpoint: "custom-incorrect",
+            },
+          ],
+        });
+        await customProxy.goto();
+        await expectBifrostPage(page);
+
+        // Navigate to passthru page, reload
+        await customProxy.clickLink("b", { browserReload: true });
+        await expectLegacyPage(page);
+
+        // going back to vite page does full reload because passthru page has to be loaded through server
+        await ensureBrowserNavigation(page, async () => {
+          await customProxy.goBack();
+          await sleep(50);
+          await page.waitForLoadState("networkidle");
+          await expectBifrostPage(page);
+        });
+      });
     });
 
     test.describe("pointing to legacy backend for route Bifrost expects to handle", () => {

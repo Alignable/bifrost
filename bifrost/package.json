@@ -61,10 +61,6 @@
       "types": "./dist/proxy/pages/passthru/onRenderHtml.d.ts",
       "default": "./dist/proxy/pages/passthru/onRenderHtml.js"
     },
-    "./proxy/pages/passthru/onRenderClient": {
-      "types": "./dist/proxy/pages/passthru/onRenderClient.d.ts",
-      "default": "./dist/proxy/pages/passthru/onRenderClient.js"
-    },
     ".": {
       "types": "./dist/index.d.ts",
       "default": "./dist/index.js"
