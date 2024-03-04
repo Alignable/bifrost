@@ -39,6 +39,8 @@ export default async function onRenderHtml(
     )
   );
 
+  const bodyAttrs = getPageContextOrConfig(pageContext, "bodyAttrs") || [];
+
   const { favicon } = pageContext.config;
   const faviconTag = !favicon
     ? ""
@@ -61,7 +63,9 @@ export default async function onRenderHtml(
       })
       </script>`)}
       </head>
-      <body>
+      <body ${dangerouslySkipEscape(
+        bodyAttrs.map(({ name, value }) => `${name}="${value}"`).join(" ")
+      )}>
         <div id="page-view">${dangerouslySkipEscape(pageHtml)}</div>
       </body>
     </html>`;
