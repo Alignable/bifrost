@@ -190,29 +190,6 @@ test("body attributes are copied over", async ({ page }) => {
 });
 
 test("uses config body attributes", async ({ page }) => {
-  // const customProxy = new CustomProxyPage(page, {
-  //   title: "page",
-  //   bodyAttrs: `id="mainstuff" class="cool-div" data-thing="true"`,
-  //   links: [
-  //     {
-  //       title: "next",
-  //       bodyAttrs: `id="other" data-other="false"`,
-  //     },
-  //   ],
-  // });
-  // await customProxy.goto();
-  // const body = page.locator("body").last();
-  // expect(await body.getAttribute("id")).toEqual("mainstuff");
-  // expect(await body.getAttribute("class")).toEqual("cool-div");
-  // expect(await body.getAttribute("data-thing")).toEqual("true");
-
-  // // modifies attr correctly on client nav too.
-  // await customProxy.clickLink("next");
-  // expect(await body.getAttribute("id")).toEqual("other");
-  // expect(await body.getAttribute("class")).toBeNull();
-  // expect(await body.getAttribute("data-thing")).toBeNull();
-  // expect(await body.getAttribute("data-other")).toEqual("false");
-
   await page.goto("./vite-page");
   const body = page.locator("body").last();
   expect(await body.getAttribute("id")).toEqual("test-id");
