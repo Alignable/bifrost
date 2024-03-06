@@ -194,6 +194,11 @@ test("uses config body attributes", async ({ page }) => {
   const body = page.locator("body").last();
   expect(await body.getAttribute("id")).toEqual("test-id");
   expect(await body.getAttribute("class")).toEqual("test-classname");
+
+  await page.goto("./body-test");
+  const body2 = page.locator("body").last();
+  expect(await body2.getAttribute("id")).toEqual("body-test-id");
+  expect(await body2.getAttribute("class")).toEqual("body-test-classname");
 });
 
 // If passToClient is misconfigured we will end up sending proxy content in HTML and the JSON hydration blob, doubling page size.
