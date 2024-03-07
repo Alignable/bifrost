@@ -5,10 +5,10 @@ export default {
   Layout: MainNavLayout,
   layoutProps: { currentNav: "tmp" },
   documentProps: {
-    title: "vite page",
+    title: "body test page",
   },
   bodyAttrs: [
-    { name: "id", value: "test-id" },
-    { name: "class", value: "test-classname" },
+    { name: "id", value: "body-test-id" },
+    { name: "class", value: "body-test-classname" },
   ],
 } satisfies BifrostConfig;

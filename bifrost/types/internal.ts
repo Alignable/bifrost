@@ -34,6 +34,8 @@ export interface DocumentProps {
   metaTags?: MetaTag[];
 }
 
+type BodyAttrs = { name: string; value: string }[];
+
 type MetaTag = { name?: string; property?: string; content: string };
 
 type Alternates = { canonical?: string };
@@ -101,6 +103,7 @@ export type NoProxyConfig = ConfigConstructor<
   {
     Layout: LayoutComponent;
     layoutProps: AugmentMe.LayoutProps;
+    bodyAttrs: BodyAttrs;
     documentProps: DocumentProps;
     scripts: string[];
     favicon: string;
@@ -112,6 +115,7 @@ export type PageProps = Record<string, unknown>;
 type Page = React.ComponentType<PageProps>;
 export interface ApplicationFacingPageContext {
   pageProps: PageProps;
+  bodyAttrs?: BodyAttrs;
   documentProps?: DocumentProps;
   layoutProps: AugmentMe.LayoutProps;
   redirectTo?: string;

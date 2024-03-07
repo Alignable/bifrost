@@ -32,6 +32,7 @@ export default async function onRenderClient(
   const { Page, pageProps } = pageContext;
   const { Layout = PassThruLayout } = pageContext.config;
   const layoutProps = getPageContextOrConfig(pageContext, "layoutProps") || {};
+  const bodyAttrs = getPageContextOrConfig(pageContext, "bodyAttrs") || [];
 
   if (!Page)
     throw new Error("Client-side render() hook expects Page to be exported");
@@ -64,6 +65,10 @@ export default async function onRenderClient(
         document.body
           .getAttributeNames()
           .forEach((n) => document.body.removeAttribute(n));
+        // add set bodyAttrs
+        bodyAttrs.forEach(({ name, value }) =>
+          document.body.setAttribute(name, value)
+        );
         renderReact(page, pageContext.isHydration);
       });
     });
