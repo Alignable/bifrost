@@ -15,9 +15,7 @@ export default function Page() {
       <a href={`/custom?page=${encodeURI(JSON.stringify(CUSTOM_HREF))}`}>
         legacy page
       </a>
-      <a href="/react-body-script-injection">react body</a>
-      <a href="/head-test">head test</a>
-      <div onClick={() => navigate("/head-test")}>programmatic navigate</div>
+      <a href="/vite-page">Vite Page Link</a>
     </>
   );
 }

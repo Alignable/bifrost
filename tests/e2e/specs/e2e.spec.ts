@@ -190,15 +190,16 @@ test("body attributes are copied over", async ({ page }) => {
 });
 
 test("uses config body attributes", async ({ page }) => {
-  await page.goto("./vite-page");
-  const body = page.locator("body").last();
-  expect(await body.getAttribute("id")).toEqual("test-id");
-  expect(await body.getAttribute("class")).toEqual("test-classname");
-
   await page.goto("./body-test");
+  const body = page.locator("body").last();
+  expect(await body.getAttribute("id")).toEqual("body-test-id");
+  expect(await body.getAttribute("class")).toEqual("body-test-classname");
+
+  await page.getByText("Vite Page Link").click();
   const body2 = page.locator("body").last();
-  expect(await body2.getAttribute("id")).toEqual("body-test-id");
-  expect(await body2.getAttribute("class")).toEqual("body-test-classname");
+  await expect(page).toHaveTitle("vite page");
+  expect(await body2.getAttribute("id")).toEqual("test-id");
+  expect(await body2.getAttribute("class")).toEqual("test-classname");
 });
 
 // If passToClient is misconfigured we will end up sending proxy content in HTML and the JSON hydration blob, doubling page size.
