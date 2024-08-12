@@ -121,7 +121,10 @@ export const viteProxyPlugin: FastifyPluginAsync<
     upstream: upstream.href,
     websocket: true,
     async preHandler(req, reply) {
-      if (req.method === "GET" && req.accepts().type(["html"]) === "html") {
+      if (
+        (req.method === "GET" || req.method === "HEAD") &&
+        req.accepts().type(["html"]) === "html"
+      ) {
         const pageContextInit = {
           urlOriginal: req.url,
           ...(buildPageContextInit ? await buildPageContextInit(req) : {}),
