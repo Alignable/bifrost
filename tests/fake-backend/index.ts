@@ -4,6 +4,11 @@ import { PageData, buildPage, toPath } from "./page-builder";
 const app = express();
 const port = 5557;
 
+app.use(function (req, res, next) {
+  res.setHeader("x-test-fake-backend", "1");
+  next();
+});
+
 function sleep(timeout: number) {
   return new Promise(function (resolve) {
     setTimeout(resolve, timeout);

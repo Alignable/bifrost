@@ -9,6 +9,27 @@ test.describe("requests", () => {
     );
   });
 
+  test.describe("HEAD request", () => {
+    test("returns headers for vite page", async ({ request }) => {
+      const req = await request.head("./vite-page");
+      expect(req.headers()).toMatchObject({
+        "x-test-pageid": "/pages/vite-page",
+      });
+      expect(req.headers()).not.toMatchObject({
+        "x-test-fake-backend": "1",
+      });
+    });
+
+    test("returns headers for proxied page", async ({ request }) => {
+      const req = await request.head("./custom-incorrect");
+      expect(req.headers()).toMatchObject({
+        "x-test-pageid": "/proxy/pages/passthru",
+        // hits old backend
+        "x-test-fake-backend": "1",
+      });
+    });
+  });
+
   test.describe("onError", () => {
     test("returns header that we set in onError", async ({ request }) => {
       const req = await request.get("./broken-page");
