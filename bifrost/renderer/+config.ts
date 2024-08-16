@@ -21,7 +21,7 @@ export default {
     layoutProps: { env: { server: true, client: true } },
     documentProps: { env: { server: true, client: true } },
     bodyAttrs: { env: { server: true, client: true } },
-    scripts: { env: { server: true, client: true } },
+    scripts: { env: { server: true, client: true }, cumulative: true },
     favicon: { env: { server: true } },
     onClientInit: { env: { client: true } },
   },
