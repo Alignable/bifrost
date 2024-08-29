@@ -6,6 +6,7 @@ import { Action, isAction } from "./types";
 import { closest, defer, dispatch, uuid } from "./util";
 import { Visit } from "./visit";
 import { setNavigation } from "../../renderer/useNavigation";
+import { PageContextProxyClientHydration } from "../../types/internal";
 
 export type TimingData = {};
 export type VisitOptions = { action: Action };
@@ -13,7 +14,7 @@ export type VisitOptions = { action: Action };
 export interface Snapshot {
   bodyEl: Element;
   headEl: HTMLHeadElement;
-  pageContext: any;
+  pageContext: PageContextProxyClientHydration;
 }
 
 export class Controller {

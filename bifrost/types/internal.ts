@@ -1,8 +1,8 @@
 import { PropsWithChildren } from "react";
 import { Config, PageContextClient, PageContextServer } from "vike/types";
-import InternalProxyConfig from "../proxy/pages/wrapped/+config.js";
-import InternalNoProxyConfig from "../renderer/+config.js";
 import { type Snapshot } from "../lib/turbolinks/controller.js";
+import { bifrostConfig } from "../renderer/configs/bifrost.js";
+import { wrappedConfig } from "../renderer/configs/wrapped.js";
 
 /// Use module augmentation to override this in your app
 export namespace AugmentMe {
@@ -47,59 +47,68 @@ export type LayoutComponent = React.ComponentType<
 >;
 export type LayoutMap = Record<string, LayoutComponent>;
 
+export type GetLayout = (
+  headers: Record<string, number | string | string[] | undefined>
+) => {
+  layout: string;
+  layoutProps: AugmentMe.LayoutProps;
+};
+
+type ProxyMode = "wrapped" | "passthru" | false;
+
 export type ProxyConfig = ConfigConstructor<
-  typeof InternalProxyConfig,
+  typeof wrappedConfig,
   {
     layoutMap: LayoutMap;
+    getLayout: GetLayout;
     onClientInit: OnClientInit;
+    proxyMode: ProxyMode;
   }
 >;
 
 type PageContextProxyCommon = {
+  config: ProxyConfig;
+};
+
+type PageContextProxyPassedToClient = {
   /// Which LayoutComponent to render
   layout: string;
   /// Props to pass down to LayoutComponent component. Proxied server should send this
   layoutProps: AugmentMe.LayoutProps;
-  config: ProxyConfig;
-};
-
-type PageContextProxyClientHydration = {
-  isHydration: true;
   redirectTo?: string;
 };
 
-type PageContextProxyClientNav = {
-  isHydration: false;
-  redirectTo?: string;
-  /// same as proxy but is allowed to be sent to client.
-  /// Should not exist on initial render since it'll double page size!!
-  proxySendClient?: string;
-};
-type FromProxy = {
-  layout: string;
-  layoutProps: AugmentMe.LayoutProps;
-  html: string;
-};
-export type PageContextProxyInit = PageContextServer<Page> & {
-  fromProxy: FromProxy;
-};
 export type PageContextProxyServer = PageContextServer &
-  PageContextProxyCommon & { proxy: string };
-export type PageContextProxyClient = PageContextClient &
   PageContextProxyCommon &
-  (PageContextProxyClientHydration | PageContextProxyClientNav);
+  PageContextProxyPassedToClient & {
+    wrappedServerOnly?: {
+      // Up to onRenderHtml to move layout/layoutProps out so they can be passedToClient
+      layout: string;
+      layoutProps: AugmentMe.LayoutProps;
+      html: string;
+    };
+  };
+export type PageContextProxyClientHydration = PageContextClient &
+  PageContextProxyCommon &
+  PageContextProxyPassedToClient & { isHydration: true };
+export type PageContextProxyClientNavigation = PageContextClient &
+  PageContextProxyCommon & { isHydration: false };
+export type PageContextProxyClientRestorationVisit = PageContextClient &
+  PageContextProxyCommon & {
+    snapshot: Snapshot;
+  };
+export type PageContextProxyClient =
+  | PageContextProxyClientHydration
+  | PageContextProxyClientNavigation
+  | PageContextProxyClientRestorationVisit;
 
-export type PageContextProxy = PageContextProxyServer | PageContextProxyClient;
-
-export type PageContextProxyRestorationVisit = PageContextClient & {
-  snapshot: Snapshot;
-} & PageContextProxyCommon;
+type PageContextProxy = PageContextProxyClient | PageContextProxyServer;
 
 // =============== Types for new non-proxy pages ================= //
 // ===============   You've crossed the Bifrost!   ================ //
 
 export type NoProxyConfig = ConfigConstructor<
-  typeof InternalNoProxyConfig,
+  typeof bifrostConfig,
   {
     Layout: LayoutComponent;
     layoutProps: AugmentMe.LayoutProps;
@@ -108,6 +117,7 @@ export type NoProxyConfig = ConfigConstructor<
     scripts: string[];
     favicon: string;
     onClientInit: OnClientInit;
+    proxyMode: false;
   }
 >;
 
@@ -125,24 +135,24 @@ interface PageContextNoProxyCommon extends ApplicationFacingPageContext {
   config: NoProxyConfig;
 }
 
-export type PageContextNoProxyServer = PageContextServer<Page> &
+export type PageContextNoProxyServer = PageContextServer &
   PageContextNoProxyCommon;
-export type PageContextNoProxyClient = PageContextClient<Page> &
+export type PageContextNoProxyClient = PageContextClient &
   PageContextNoProxyCommon;
 
 export type PageContextNoProxy =
   | PageContextNoProxyServer
   | PageContextNoProxyClient;
 
-export type PageContext =
-  | PageContextNoProxy
-  | PageContextProxy
-  | PageContextProxyRestorationVisit;
+export type PageContext = PageContextNoProxy | PageContextProxy;
 
 declare global {
   namespace Vike {
     interface PageContext {
       Page?: React.ComponentType;
+    }
+    interface Config {
+      proxyMode?: ProxyMode;
     }
   }
 }

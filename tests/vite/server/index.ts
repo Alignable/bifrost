@@ -65,11 +65,12 @@ async function startServer() {
       headers["X-VITE-PROXY"] = "1"; // Signal to legacy backend we're coming from proxy
       return headers;
     },
-    getLayout(reply) {
+    getLayout(headers) {
+      console.log("fastify getlayout", headers);
       return {
-        layout: reply.getHeader("X-REACT-LAYOUT") as string,
+        layout: headers["x-react-layout"] as string,
         layoutProps: {
-          currentNav: reply.getHeader("X-REACT-CURRENT-NAV") as string,
+          currentNav: headers["x-react-current-nav"] as string,
         },
       };
     },

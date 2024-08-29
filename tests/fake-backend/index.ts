@@ -3,6 +3,7 @@ import morgan from "morgan";
 import { PageData, buildPage, toPath } from "./page-builder";
 const app = express();
 const port = 5557;
+const publicUrl = "http://localhost:5050";
 
 app.use(function (req, res, next) {
   res.setHeader("x-test-fake-backend", "1");
@@ -26,10 +27,7 @@ app.get(["/custom", "/custom-:id"], async (req, res) => {
   }
   if ("redirectTo" in data) {
     res.status(302);
-    res.setHeader(
-      "location",
-      `http://localhost:${port}${toPath(data.redirectTo)}`
-    );
+    res.setHeader("location", `${publicUrl}${toPath(data.redirectTo)}`);
     if (data.cookies) {
       for (const [key, val] of Object.entries(data.cookies)) {
         res.setHeader("set-cookie", key + "=" + val);
@@ -38,7 +36,9 @@ app.get(["/custom", "/custom-:id"], async (req, res) => {
     res.send();
   } else {
     res.status(200);
+    console.log(req.headers);
     if (req.header("X-VITE-PROXY")) {
+      console.log(data.layout);
       res.setHeader("X-REACT-LAYOUT", data.layout ?? "main_nav");
       res.setHeader("X-REACT-CURRENT-NAV", "home_page");
     }

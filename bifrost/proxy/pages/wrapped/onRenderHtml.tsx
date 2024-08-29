@@ -9,8 +9,8 @@ import { getElementAttributes } from "../../../lib/getElementAttributes.js";
 export default async function onRenderHtml(
   pageContext: PageContextProxyServer
 ) {
-  if (pageContext.proxy) {
-    const { proxy, layoutProps, layout } = pageContext;
+  if (pageContext.wrappedServerOnly) {
+    const { html, layoutProps, layout } = pageContext.wrappedServerOnly;
 
     const { layoutMap } = pageContext.config;
     if (!layoutMap) {
@@ -19,10 +19,10 @@ export default async function onRenderHtml(
     const Layout = layoutMap[layout];
     if (!Layout) {
       // passthru
-      return { documentHtml: proxy, pageContext: {} };
+      return { documentHtml: html, pageContext: {} };
     }
 
-    const dom = new jsdom.JSDOM(proxy);
+    const dom = new jsdom.JSDOM(html);
     const doc = dom.window.document;
     const bodyEl = doc.querySelector("body");
     const head = doc.querySelector("head");
@@ -71,7 +71,7 @@ export default async function onRenderHtml(
 
     return {
       documentHtml,
-      pageContext: {},
+      pageContext: { layout, layoutProps },
     };
   } else {
     // do nothing: Just exists to signal fastify server that no routes matched and we should proxy

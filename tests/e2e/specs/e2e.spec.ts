@@ -1021,7 +1021,7 @@ test.describe("with ALB", () => {
     test.describe("pointing to legacy backend for route Bifrost expects to handle", () => {
       // SSR is obviously fine - backend will just do what it does
 
-      test("Navigating causes full reload", async ({ page }) => {
+      test("client side proxy works", async ({ page }) => {
         const customProxy = new CustomProxyPage(page, {
           title: "a",
           links: [{ title: "b", endpoint: "custom-bifrost" }],
@@ -1030,22 +1030,9 @@ test.describe("with ALB", () => {
         await customProxy.goto();
         await expectBifrostPage(page);
 
-        // expect a 404 from legacy backend on the index.pageContext.json request - that is inevitable
-        const on404 = new Promise((resolve) =>
-          page.on("response", (response) => {
-            console.log("response", response.request().url());
-            if (
-              response.request().url().includes("index.pageContext.json") &&
-              response.status() === 404
-            ) {
-              resolve(true);
-            }
-          })
-        );
-        await customProxy.clickLink("b", { browserReload: true });
-        expect(await on404).toBeTruthy();
-        await expectLegacyPage(page);
-      }); // or it could gracefully proxy without reload? but that would require onbeforerender to move to client?
+        await customProxy.clickLink("b", { browserReload: false });
+        await expectBifrostPage(page);
+      });
     });
   });
 });

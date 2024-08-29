@@ -2,13 +2,29 @@ import ReactDOMServer from "react-dom/server";
 import React from "react";
 import { PageShell } from "../lib/PageShell.js";
 import { escapeInject, dangerouslySkipEscape } from "vike/server";
-import { PageContextNoProxyServer } from "../types/internal.js";
+import {
+  PageContextNoProxyServer,
+  PageContextProxyServer,
+} from "../types/internal.js";
 import { documentPropsToReact } from "./utils/buildHead.js";
 import { getPageContextOrConfig } from "./getConfigOrPageContext.js";
+import wrappedOnRenderHtml from "../proxy/pages/wrapped/onRenderHtml.js";
 
 export default async function onRenderHtml(
-  pageContext: PageContextNoProxyServer
+  pageContext: PageContextNoProxyServer | PageContextProxyServer
 ) {
+  if (pageContext.config.proxyMode === "wrapped") {
+    return await wrappedOnRenderHtml(pageContext as PageContextProxyServer);
+  } else if (pageContext.config.proxyMode === "passthru") {
+    return {
+      pageContext: {},
+    };
+  } else if (pageContext.config.proxyMode === false) {
+    return await noProxyOnRenderHtml(pageContext as PageContextNoProxyServer);
+  }
+}
+
+async function noProxyOnRenderHtml(pageContext: PageContextNoProxyServer) {
   const { Page, pageProps, redirectTo } = pageContext;
   if (redirectTo) {
     return {

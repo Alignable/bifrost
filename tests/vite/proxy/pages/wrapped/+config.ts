@@ -1,6 +1,5 @@
-import { BifrostProxyConfig } from "@alignable/bifrost/index";
-import ProxyConfig from "@alignable/bifrost/proxy/pages/wrapped/+config";
+import { BifrostProxyConfig } from "@alignable/bifrost";
 
 export default {
-  extends: ProxyConfig,
+  proxyMode: "wrapped",
 } satisfies BifrostProxyConfig;

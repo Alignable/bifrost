@@ -39,6 +39,7 @@ export type {
   LayoutComponent,
   AugmentMe,
   PageContext,
+  GetLayout,
 } from "./types/internal";
 export {
   usePageContext,
