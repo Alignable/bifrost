@@ -19,8 +19,7 @@ export default {
   meta: {
     ...bifrostConfig.meta,
     ...wrappedConfig.meta,
-    // TODO: Could replace with built-in +client.js but not sure about TypeScript/bundling support
-    onClientInit: { env: { client: true } },
+    onClientInit: { env: { client: true }, global: true },
 
     proxyMode: {
       env: { server: true, client: true, config: true },

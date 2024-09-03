@@ -1,5 +1,11 @@
 import { PropsWithChildren } from "react";
-import { Config, PageContextClient, PageContextServer } from "vike/types";
+import {
+  Config,
+  OnBeforeRenderAsync,
+  OnBeforeRenderSync,
+  PageContextClient,
+  PageContextServer,
+} from "vike/types";
 import { type Snapshot } from "../lib/turbolinks/controller.js";
 import { bifrostConfig } from "../renderer/configs/bifrost.js";
 import { wrappedConfig } from "../renderer/configs/wrapped.js";
@@ -61,8 +67,8 @@ export type ProxyConfig = ConfigConstructor<
   {
     layoutMap: LayoutMap;
     getLayout: GetLayout;
-    onClientInit: OnClientInit;
     proxyMode: ProxyMode;
+    onClientInit: OnClientInit;
   }
 >;
 

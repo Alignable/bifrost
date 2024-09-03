@@ -25,18 +25,6 @@
       "types": "./dist/renderer/onBeforeRoute.d.ts",
       "default": "./dist/renderer/onBeforeRoute.js"
     },
-    "./proxy/pages/Page": {
-      "types": "./dist/proxy/pages/Page.d.ts",
-      "default": "./dist/proxy/pages/Page.js"
-    },
-    "./proxy/pages/wrapped/onRenderHtml": {
-      "types": "./dist/proxy/pages/wrapped/onRenderHtml.d.ts",
-      "default": "./dist/proxy/pages/wrapped/onRenderHtml.js"
-    },
-    "./proxy/pages/passthru/onRenderHtml": {
-      "types": "./dist/proxy/pages/passthru/onRenderHtml.d.ts",
-      "default": "./dist/proxy/pages/passthru/onRenderHtml.js"
-    },
     ".": {
       "types": "./dist/index.d.ts",
       "default": "./dist/index.js"
