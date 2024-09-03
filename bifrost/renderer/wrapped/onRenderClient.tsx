@@ -54,17 +54,13 @@ async function onRenderClientHydration(
   });
 }
 
-async function requestBackend(url: string) {
-  return await fetch(url, {
-    headers: { "X-VITE-PROXY": "1", accept: "text/html" },
-  });
-}
-
 async function onRenderClientNavigation(
   pageContext: PageContextProxyClientNavigation
 ) {
-  //TODO: need to share getLayout and requestBackend with fastify...
-  const resp = await requestBackend(pageContext.urlOriginal);
+  const resp = await fetch(pageContext.urlOriginal, {
+    headers: { ...pageContext.config.proxyHeaders, accept: "text/html" },
+  });
+
   if (resp.redirected) {
     Turbolinks.visit(resp.url);
     return;

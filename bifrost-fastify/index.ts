@@ -5,13 +5,9 @@ import proxy from "@fastify/http-proxy";
 import accepts from "@fastify/accepts";
 import forwarded from "@fastify/forwarded";
 import { Writable } from "stream";
-import { IncomingHttpHeaders, IncomingMessage } from "http";
-import {
-  Http2ServerRequest,
-  IncomingHttpHeaders as Http2IncomingHttpHeaders,
-} from "http2";
+import { IncomingMessage } from "http";
 import { renderPage } from "vike/server";
-import { AugmentMe, GetLayout } from "@alignable/bifrost";
+import { AugmentMe, GetLayout, PageContext } from "@alignable/bifrost";
 
 type RenderedPageContext = Awaited<
   ReturnType<
@@ -29,6 +25,7 @@ type RenderedPageContext = Awaited<
 declare module "fastify" {
   interface FastifyRequest {
     bifrostPageId?: string;
+    getLayout: GetLayout;
   }
 }
 
@@ -55,29 +52,13 @@ interface ViteProxyPluginOptions {
   buildPageContextInit?: (
     req: FastifyRequest
   ) => Promise<AugmentMe.PageContextInit>;
-  getLayout: GetLayout;
-  /// Use to signal to legacy backend to return special results (eg. remove navbar etc)
-  rewriteRequestHeaders?: (
-    req: Http2ServerRequest | IncomingMessage,
-    headers: Http2IncomingHttpHeaders | IncomingHttpHeaders
-  ) => Http2IncomingHttpHeaders | IncomingHttpHeaders;
 }
 /**
  * Fastify plugin that wraps @fasitfy/http-proxy to proxy Rails/Turbolinks server into a vike site.
  */
 export const viteProxyPlugin: FastifyPluginAsync<
   ViteProxyPluginOptions
-> = async (
-  fastify,
-  {
-    upstream,
-    host,
-    onError,
-    buildPageContextInit,
-    getLayout,
-    rewriteRequestHeaders,
-  }
-) => {
+> = async (fastify, { upstream, host, onError, buildPageContextInit }) => {
   async function replyWithPage(
     reply: FastifyReply<RawServerBase>,
     pageContext: RenderedPageContext
@@ -108,6 +89,7 @@ export const viteProxyPlugin: FastifyPluginAsync<
   }
   await fastify.register(accepts);
   fastify.decorateRequest("bifrostPageId", null);
+  fastify.decorateRequest("getLayout", null);
   await fastify.register(proxy, {
     upstream: upstream.href,
     websocket: true,
@@ -122,7 +104,7 @@ export const viteProxyPlugin: FastifyPluginAsync<
         };
 
         const pageContext = await renderPage<
-          { _pageId: string },
+          { _pageId: string } & PageContext,
           typeof pageContextInit
         >(pageContextInit);
 
@@ -141,7 +123,6 @@ export const viteProxyPlugin: FastifyPluginAsync<
           }
           case "wrapped": {
             req.log.info(`bifrost: proxy route matched, proxying to backend`);
-            (req.raw as RawRequestExtendedWithProxy)._bfproxy = true;
             if (!!pageContext.isClientSideNavigation) {
               // This should never happen because wrapped proxy routes have no onBeforeRender. onRenderClient should make a request to the legacy backend.
               req.log.error(
@@ -151,6 +132,20 @@ export const viteProxyPlugin: FastifyPluginAsync<
                 req.url.replace("/index.pageContext.json", "")
               );
             }
+            if (!pageContext.config?.getLayout) {
+              req.log.error(
+                "Config missing getLayout on wrapped route! Falling back to passthru proxy"
+              );
+              return;
+            }
+
+            (req.raw as RawRequestExtendedWithProxy)._bfproxy = true;
+            for (const [key, val] of Object.entries(
+              pageContext.config?.proxyHeaders || {}
+            )) {
+              req.headers[key] = val;
+            }
+            req.getLayout = pageContext.config.getLayout;
             return;
           }
           default:
@@ -176,9 +171,6 @@ export const viteProxyPlugin: FastifyPluginAsync<
           delete headers["if-unmodified-since"];
           delete headers["if-none-match"];
           delete headers["if-range"];
-          if (rewriteRequestHeaders) {
-            return rewriteRequestHeaders(request, headers);
-          }
         }
         return headers;
       },
@@ -197,8 +189,8 @@ export const viteProxyPlugin: FastifyPluginAsync<
           }
         }
 
-        const { layout, layoutProps } = getLayout(reply.getHeaders());
-        if (!layout) {
+        const layoutInfo = req.getLayout?.(reply.getHeaders());
+        if (!layoutInfo?.layout) {
           return reply.send(res);
         }
 
@@ -209,8 +201,8 @@ export const viteProxyPlugin: FastifyPluginAsync<
           // Critical that we don't set any passToClient values in pageContextInit
           // If we do, Vike re-requests pageContext on client navigation. This breaks wrapped proxy.
           wrappedServerOnly: {
-            layout,
-            layoutProps,
+            layout: layoutInfo.layout,
+            layoutProps: layoutInfo.layoutProps,
             html,
           },
         };

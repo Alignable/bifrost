@@ -23,7 +23,6 @@ export default {
 
     proxyMode: {
       env: { server: true, client: true, config: true },
-      // TODO: effect should lint config values, check that NoProxy meta is only used where allowed.
       effect({ configDefinedAt, configValue }) {
         switch (configValue) {
           case false:

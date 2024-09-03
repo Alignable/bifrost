@@ -61,19 +61,6 @@ async function startServer() {
         pageContext.httpResponse.headers.push(["X-TEST-ONERROR", "true"]);
       }
     },
-    rewriteRequestHeaders(req, headers) {
-      headers["X-VITE-PROXY"] = "1"; // Signal to legacy backend we're coming from proxy
-      return headers;
-    },
-    getLayout(headers) {
-      console.log("fastify getlayout", headers);
-      return {
-        layout: headers["x-react-layout"] as string,
-        layoutProps: {
-          currentNav: headers["x-react-current-nav"] as string,
-        },
-      };
-    },
   });
 
   const port: number = process.env.PORT ? +process.env.PORT : 5555;

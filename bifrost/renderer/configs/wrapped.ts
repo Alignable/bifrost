@@ -5,5 +5,6 @@ export const wrappedConfig = {
   meta: {
     layoutMap: { env: { server: true, client: true } },
     getLayout: { env: { server: true, client: true } },
+    proxyHeaders: { env: { server: true, client: true } },
   },
 } satisfies Config;

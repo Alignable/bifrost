@@ -67,6 +67,8 @@ export type ProxyConfig = ConfigConstructor<
   {
     layoutMap: LayoutMap;
     getLayout: GetLayout;
+    /// Add headers to requests to proxy server to signal any conditional rendering. eg. don't render layout
+    proxyHeaders: Record<string, string>;
     proxyMode: ProxyMode;
     onClientInit: OnClientInit;
   }
@@ -158,7 +160,7 @@ declare global {
       Page?: React.ComponentType;
     }
     interface Config {
-      proxyMode?: ProxyMode;
+      // proxyMode?: ProxyMode;
     }
   }
 }
