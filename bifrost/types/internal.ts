@@ -1,11 +1,5 @@
 import { PropsWithChildren } from "react";
-import {
-  Config,
-  OnBeforeRenderAsync,
-  OnBeforeRenderSync,
-  PageContextClient,
-  PageContextServer,
-} from "vike/types";
+import { Config, PageContextClient, PageContextServer } from "vike/types";
 import { type Snapshot } from "../lib/turbolinks/controller.js";
 import { bifrostConfig } from "../renderer/configs/bifrost.js";
 import { wrappedConfig } from "../renderer/configs/wrapped.js";
@@ -115,6 +109,11 @@ type PageContextProxy = PageContextProxyClient | PageContextProxyServer;
 // =============== Types for new non-proxy pages ================= //
 // ===============   You've crossed the Bifrost!   ================ //
 
+export type Script =
+  | string
+  | ((pageContext: AugmentMe.PageContextInit) => string);
+export type Scripts = Script[];
+
 export type NoProxyConfig = ConfigConstructor<
   typeof bifrostConfig,
   {
@@ -122,12 +121,19 @@ export type NoProxyConfig = ConfigConstructor<
     layoutProps: AugmentMe.LayoutProps;
     bodyAttrs: BodyAttrs;
     documentProps: DocumentProps;
-    scripts: string[];
+    scripts: Script[];
     favicon: string;
     onClientInit: OnClientInit;
     proxyMode: false;
   }
 >;
+
+type NoProxyCumulativeConfigs = "scripts";
+type NoProxyConfigResolved = {
+  [K in keyof NoProxyConfig]: K extends NoProxyCumulativeConfigs
+    ? NonNullable<NoProxyConfig[K]>[] | undefined
+    : NoProxyConfig[K];
+};
 
 export type PageProps = Record<string, unknown>;
 type Page = React.ComponentType<PageProps>;
@@ -140,7 +146,7 @@ export interface ApplicationFacingPageContext {
 }
 // Context for non-proxied pages
 interface PageContextNoProxyCommon extends ApplicationFacingPageContext {
-  config: NoProxyConfig;
+  config: NoProxyConfigResolved;
 }
 
 export type PageContextNoProxyServer = PageContextServer &

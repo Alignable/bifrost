@@ -9,10 +9,6 @@
       "types": "./dist/renderer/+config.d.ts",
       "default": "./dist/renderer/+config.js"
     },
-    "./renderer/dummyPage": {
-      "types": "./dist/renderer/dummyPage.d.ts",
-      "default": "./dist/renderer/dummyPage.js"
-    },
     "./renderer/onRenderClient": {
       "types": "./dist/renderer/onRenderClient.d.ts",
       "default": "./dist/renderer/onRenderClient.js"

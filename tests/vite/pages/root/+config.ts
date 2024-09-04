@@ -5,9 +5,7 @@ export default {
   Layout: MainNavLayout,
   layoutProps: { currentNav: "tmp" },
   documentProps: {
-    title: "head test",
-    description: "a cool description",
-    alternates: { canonical: "https://nextjs.org" },
-    metaTags: [{ name: "theme-color", content: "black" }],
+    title: "root page",
   },
+  route: "/",
 } satisfies BifrostConfig;

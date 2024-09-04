@@ -40,6 +40,7 @@ export type {
   AugmentMe,
   PageContext,
   GetLayout,
+  Scripts,
 } from "./types/internal";
 export {
   usePageContext,

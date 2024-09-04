@@ -5,6 +5,7 @@ import { PageShell } from "../../lib/PageShell";
 import { PageContextNoProxyServer } from "../../types/internal";
 import { documentPropsToReact } from "../utils/buildHead";
 import { getPageContextOrConfig } from "../utils/getConfigOrPageContext";
+import { resolveScripts } from "../utils/resolveScripts";
 
 export async function bifrostOnRenderHtml(
   pageContext: PageContextNoProxyServer
@@ -52,7 +53,7 @@ export async function bifrostOnRenderHtml(
       ${faviconTag}
       ${dangerouslySkipEscape(headHtml)}
       ${dangerouslySkipEscape(
-        Object.values(pageContext.config.scripts || {}).join("")
+        resolveScripts(pageContext.config.scripts, pageContext).join("")
       )}
       ${dangerouslySkipEscape(`<script>
       window.Turbolinks = {controller:{restorationIdentifier: ''}};

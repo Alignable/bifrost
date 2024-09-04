@@ -70,6 +70,20 @@ test.describe("pages", () => {
     await expect(page.getByText("Vite is here")).toHaveCount(1);
   });
 
+  test("it serves nested vite pages", async ({ page }) => {
+    await page.goto("./vite-page/nested");
+
+    await expect(page).toHaveTitle("nested vite page");
+    await expect(page.getByText("Vite is here")).toHaveCount(1);
+  });
+
+  test("it serves vite pages on root path", async ({ page }) => {
+    await page.goto("./");
+
+    await expect(page).toHaveTitle("root page");
+    await expect(page.getByText("Vite is here")).toHaveCount(1);
+  });
+
   test("it handles react inserting body scripts", async ({ page }) => {
     const logs = storeConsoleLog(page);
     await page.goto("./react-body-script-injection");
@@ -200,6 +214,28 @@ test("uses config body attributes", async ({ page }) => {
   await expect(page).toHaveTitle("vite page");
   expect(await body2.getAttribute("id")).toEqual("test-id");
   expect(await body2.getAttribute("class")).toEqual("test-classname");
+});
+
+test.describe("script configs", () => {
+  test("renders cumulative scripts", async ({ page }) => {
+    const logs = storeConsoleLog(page);
+    await page.goto("./vite-page/nested");
+
+    // inserted by vite-page's config
+    expect(logs).toContain("hello from vite-page");
+    // inserted by nested's config
+    expect(logs).toContain("hello from vite-page/nested");
+  });
+
+  test("uses page context conditionally", async ({ page }) => {
+    let logs = storeConsoleLog(page);
+    await page.goto("./head-test?loggedIn=1");
+    expect(logs).toContain("logged in");
+
+    logs = storeConsoleLog(page);
+    await page.goto("./head-test");
+    expect(logs).not.toContain("logged in");
+  });
 });
 
 // If passToClient is misconfigured we will end up sending proxy content in HTML and the JSON hydration blob, doubling page size.

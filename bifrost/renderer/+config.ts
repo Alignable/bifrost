@@ -7,7 +7,7 @@ export default {
   require: {
     vike: ">=0.4.193",
   },
-  Page: "import:@alignable/bifrost/renderer/dummyPage:default",
+  clientHooks: true,
 
   onBeforeRoute: "import:@alignable/bifrost/renderer/onBeforeRoute:default",
   onRenderClient: "import:@alignable/bifrost/renderer/onRenderClient:default",

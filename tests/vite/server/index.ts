@@ -54,7 +54,7 @@ async function startServer() {
     host: HOST,
     async buildPageContextInit(req) {
       // hit auth server etc.
-      return { loggedIn: true };
+      return { loggedIn: !!(req.query as any).loggedIn };
     },
     onError(e, pageContext) {
       if (pageContext.httpResponse) {
