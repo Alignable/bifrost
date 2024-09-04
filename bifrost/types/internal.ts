@@ -109,10 +109,12 @@ type PageContextProxy = PageContextProxyClient | PageContextProxyServer;
 // =============== Types for new non-proxy pages ================= //
 // ===============   You've crossed the Bifrost!   ================ //
 
-export type Script =
-  | string
-  | ((pageContext: AugmentMe.PageContextInit) => string);
-export type Scripts = Script[];
+export type Scripts = string[];
+
+/// DynamicScripts can be toggled based on pageContextInit, allowing for conditional inclusion eg. based on user login status.
+/// HOWEVER: They are only included on initial load, NOT subsequent navigation. Thus they are a global config.
+type DynamicScript = (pageContext: AugmentMe.PageContextInit) => string;
+export type DynamicScripts = DynamicScript[];
 
 export type NoProxyConfig = ConfigConstructor<
   typeof bifrostConfig,
@@ -121,7 +123,8 @@ export type NoProxyConfig = ConfigConstructor<
     layoutProps: AugmentMe.LayoutProps;
     bodyAttrs: BodyAttrs;
     documentProps: DocumentProps;
-    scripts: Script[];
+    scripts: Scripts;
+    dynamicScripts: DynamicScripts;
     favicon: string;
     onClientInit: OnClientInit;
     proxyMode: false;

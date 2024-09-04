@@ -1,6 +1,6 @@
 import React from "react";
 import ReactDOMServer from "react-dom/server";
-import { escapeInject, dangerouslySkipEscape } from "vike";
+import { escapeInject, dangerouslySkipEscape } from "vike/server";
 import { PageShell } from "../../lib/PageShell";
 import { PageContextNoProxyServer } from "../../types/internal";
 import { documentPropsToReact } from "../utils/buildHead";
@@ -53,7 +53,12 @@ export async function bifrostOnRenderHtml(
       ${faviconTag}
       ${dangerouslySkipEscape(headHtml)}
       ${dangerouslySkipEscape(
-        resolveScripts(pageContext.config.scripts, pageContext).join("")
+        (pageContext.config.scripts || []).flatMap((s) => s).join("")
+      )}
+      ${dangerouslySkipEscape(
+        (pageContext.config.dynamicScripts || [])
+          .map((s) => s(pageContext))
+          .join("")
       )}
       ${dangerouslySkipEscape(`<script>
       window.Turbolinks = {controller:{restorationIdentifier: ''}};

@@ -45,8 +45,10 @@ export async function bifrostOnRenderClient(
         getPageContextOrConfig(pageContext, "documentProps") || {}
       )
     );
-    resolveScripts(pageContext.config.scripts, pageContext).forEach((s) => {
-      head.insertAdjacentHTML("beforeend", s);
+    (pageContext.config.scripts || []).forEach((sarr) => {
+      sarr.forEach((s) => {
+        head.insertAdjacentHTML("beforeend", s);
+      });
     });
 
     requestAnimationFrame(() => {

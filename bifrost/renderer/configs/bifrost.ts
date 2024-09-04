@@ -20,6 +20,7 @@ export const bifrostConfig = {
       env: { server: true, client: true },
       cumulative: true,
     },
+    dynamicScripts: { env: { server: true, client: false }, global: true },
     favicon: { env: { server: true } },
   },
 } satisfies Config;

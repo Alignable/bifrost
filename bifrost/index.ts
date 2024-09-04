@@ -41,6 +41,7 @@ export type {
   PageContext,
   GetLayout,
   Scripts,
+  DynamicScripts,
 } from "./types/internal";
 export {
   usePageContext,
