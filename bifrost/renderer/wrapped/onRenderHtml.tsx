@@ -43,13 +43,12 @@ export async function wrappedOnRenderHtml(pageContext: PageContextProxyServer) {
     <!DOCTYPE html>
     <html>
         <head>
-          ${dangerouslySkipEscape(head.innerHTML)}
           ${
             // We need to fire turbolinks:load exactly on DCL, so it must be a blocking head script to catch DCL event.
             // Vite loads scripts with type="module" so the rest of our code will show up too late.
             // TODO: figure out how to bundle this better. at least read from a .js file
             dangerouslySkipEscape(`<script>
-          window.Turbolinks = {controller:{restorationIdentifier: ''}};
+          window.Turbolinks = {controller:{restorationIdentifier: ''},supported:true};
           addEventListener("DOMContentLoaded", () => {
             const event = new Event("turbolinks:load", { bubbles: true, cancelable: true });
             event.data = {url: window.location.href};
@@ -57,6 +56,7 @@ export async function wrappedOnRenderHtml(pageContext: PageContextProxyServer) {
           })
           </script>`)
           }
+          ${dangerouslySkipEscape(head.innerHTML)}
         </head>
         <body ${dangerouslySkipEscape(
           Object.entries(getElementAttributes(bodyEl))
