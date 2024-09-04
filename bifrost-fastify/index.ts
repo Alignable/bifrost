@@ -139,12 +139,18 @@ export const viteProxyPlugin: FastifyPluginAsync<
               return;
             }
 
-            (req.raw as RawRequestExtendedWithProxy)._bfproxy = true;
+            let proxyHeadersAlreadySet = true;
             for (const [key, val] of Object.entries(
               pageContext.config?.proxyHeaders || {}
             )) {
-              req.headers[key] = val;
+              proxyHeadersAlreadySet &&= req.headers[key.toLowerCase()] == val;
+              req.headers[key.toLowerCase()] = val;
             }
+            // If proxy headers set, this is a client navigation meant to go direct to legacy backend.
+            // Use passthru proxy in this case. In prod, it'd be better to use ALB to flip target
+            if (proxyHeadersAlreadySet) return;
+
+            (req.raw as RawRequestExtendedWithProxy)._bfproxy = true;
             req.getLayout = pageContext.config.getLayout;
             return;
           }
