@@ -21,7 +21,7 @@ export default defineConfig({
     timeout: 5000,
   },
   /* Run tests in files in parallel */
-  fullyParallel: false,
+  fullyParallel: true,
   /* Fail the build on CI if you accidentally left test.only in the source code. */
   forbidOnly: !!process.env.CI,
   /* Retry on CI only */
@@ -85,7 +85,7 @@ export default defineConfig({
   /* Run your local dev server before starting the tests */
   webServer: [
     {
-      command: "cd ../vite && PORT=5555 npm run dev",
+      command: "cd ../vite && npm run build && PORT=5555 npm run start",
       reuseExistingServer: true,
       port: 5555,
     },

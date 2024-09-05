@@ -11,6 +11,8 @@ import {
   ensureNoBrowserNavigation,
   sleep,
   storeConsoleLog,
+  waitForConsoleLog,
+  waitForTurbolinksInit,
 } from "./test-helpers";
 
 export class CustomProxyPage {
@@ -27,12 +29,18 @@ export class CustomProxyPage {
     this.consoleLog = [];
   }
 
-  async goto() {
+  async goto({
+    waitFor = "turbolinks",
+  }: { waitFor?: "turbolinks" | number } = {}) {
     this.consoleLog = storeConsoleLog(this.page);
     await this.page.goto(toPath(this.initialPageData), {
       waitUntil: "networkidle",
     });
-    await sleep(1000)
+    if (waitFor === "turbolinks") {
+      await waitForTurbolinksInit(this.page);
+    } else {
+      await sleep(waitFor);
+    }
     this.pageData = followRedirects(this.initialPageData);
     await expect(this.page).toHaveTitle(this.pageData.title);
   }
@@ -67,14 +75,28 @@ export class CustomProxyPage {
     );
   }
 
-  async clickLink(title: string, { browserReload = false } = {}) {
+  async clickLink(
+    title: string,
+    {
+      browserReload = false,
+      waitFor = "turbolinks",
+    }: { browserReload?: boolean; waitFor?: "turbolinks" | number } = {}
+  ) {
     this.consoleLog = storeConsoleLog(this.page);
 
     await (browserReload ? ensureBrowserNavigation : ensureNoBrowserNavigation)(
       this.page,
       async () => {
         await this.page.getByRole("link").filter({ hasText: title }).click();
-        await sleep(500); // TODO: wait on something smarter.
+
+        if (waitFor == "turbolinks") {
+          await waitForConsoleLog(
+            this.page,
+            (msg) => msg.text() === "turbolinks:load"
+          );
+        } else {
+          await sleep(waitFor); // TODO: wait on something smarter.
+        }
 
         if (title === "vite page") {
           this.pageData = undefined;

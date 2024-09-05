@@ -8,6 +8,7 @@ import {
   StringMatcher,
   sleep,
   ensureBrowserNavigation,
+  waitForTurbolinksInit,
 } from "../helpers/test-helpers";
 import { CustomProxyPage } from "../helpers/custom-proxy-page";
 import { Turbolinks as T } from "../../fake-backend/page-builder";
@@ -22,7 +23,7 @@ test.describe("pages", () => {
       layout: "",
       content: "lorem ipsum",
     });
-    await customProxy.goto();
+    await customProxy.goto({ waitFor: 0 });
 
     await expect(page).toHaveTitle("page");
     // only content on page is the lorem ipsum - nothing added by layout
@@ -50,7 +51,7 @@ test.describe("pages", () => {
       layout: "jaiosdfjo",
       content: "lorem ipsum",
     });
-    await customProxy.goto();
+    await customProxy.goto({ waitFor: 0 });
     await expect(page).toHaveTitle("visitor page");
     await expect(page.getByText("lorem ipsum")).toHaveCount(1);
     // layout is not inserted
@@ -205,6 +206,7 @@ test("body attributes are copied over", async ({ page }) => {
 
 test("uses config body attributes", async ({ page }) => {
   await page.goto("./body-test");
+  await waitForTurbolinksInit(page);
   const body = page.locator("body").last();
   expect(await body.getAttribute("id")).toEqual("body-test-id");
   expect(await body.getAttribute("class")).toEqual("body-test-classname");
@@ -423,7 +425,7 @@ test.describe("turbolinks: events", () => {
       ],
     });
     await customProxy.goto();
-    await customProxy.clickLink("second page");
+    await customProxy.clickLink("second page", { waitFor: 500 });
     expect(customProxy.scriptAndTurbolinksLog).toEqual([
       T.click,
       T.beforeVisit,
@@ -621,6 +623,7 @@ test.describe("back button restoration", () => {
 
   test("does not restore vite pages", async ({ page }) => {
     await page.goto("./vite-page");
+    await waitForTurbolinksInit(page);
     const edit = page.getByRole("link").first();
     await page.evaluate((rRoot: any) => {
       rRoot.appendChild(document.createTextNode("edit1"));
@@ -709,7 +712,7 @@ test.describe("script loading order", () => {
 
     expect(customProxy.scriptLog).toEqual([]);
 
-    await customProxy.clickLink("with scripts");
+    await customProxy.clickLink("with scripts", { waitFor: 500 });
 
     expect(customProxy.scriptLog).toEqual([
       "head script: inline 1",
@@ -763,7 +766,7 @@ test.describe("script loading order", () => {
     expect(customProxy.scriptLog).toEqual([]);
 
     // come back to scripts page
-    await customProxy.clickLink("with scripts 2");
+    await customProxy.clickLink("with scripts 2", { waitFor: 500 });
 
     // runs body scripts but no hea scripts
     expect(customProxy.scriptLog).toEqual([
@@ -805,7 +808,7 @@ test.describe("script loading order", () => {
       "head script: deferred",
     ]);
 
-    await customProxy.clickLink("all scripts");
+    await customProxy.clickLink("all scripts", { waitFor: 500 });
 
     // runs all body scripts but not existing head
     expect(customProxy.scriptLog).toEqual([
@@ -1011,7 +1014,10 @@ test.describe("with ALB", () => {
         await customProxy.goto();
         await expectLegacyPage(page);
 
-        await customProxy.clickLink("b");
+        await customProxy.clickLink("b", {
+          // Need to wait for bifrost vite to load - turbolinks:load fires earlier than that because it comes from legacy turbolinks.js loaded by old page
+          waitFor: 500,
+        });
         await expectBifrostPage(page);
 
         // going back to passthru page does full reload because passthru page has to be loaded through server
