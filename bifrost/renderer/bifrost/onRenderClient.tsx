@@ -7,7 +7,6 @@ import { PageContextNoProxyClient } from "../../types/internal";
 import { PassThruLayout } from "../utils/PassthruLayout";
 import { documentPropsToReact } from "../utils/buildHead";
 import { getPageContextOrConfig } from "../utils/getConfigOrPageContext";
-import { resolveScripts } from "../utils/resolveScripts";
 
 export async function bifrostOnRenderClient(
   pageContext: PageContextNoProxyClient

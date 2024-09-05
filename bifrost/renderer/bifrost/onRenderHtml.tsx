@@ -5,7 +5,6 @@ import { PageShell } from "../../lib/PageShell";
 import { PageContextNoProxyServer } from "../../types/internal";
 import { documentPropsToReact } from "../utils/buildHead";
 import { getPageContextOrConfig } from "../utils/getConfigOrPageContext";
-import { resolveScripts } from "../utils/resolveScripts";
 
 export async function bifrostOnRenderHtml(
   pageContext: PageContextNoProxyServer

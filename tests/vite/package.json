@@ -4,10 +4,10 @@
   "description": "",
   "scripts": {
     "dev": "tsx watch --ignore './vite.config.ts.timestamp*' --ignore '**/*.ts.build-*' server/index.ts | npx pino-pretty",
-    "start": "node dist/server/index.js",
+    "start": "NODE_ENV=production node dist/server/index.js",
     "build": "npm run build:server && npm run build:vite",
     "build:vite": "vite build --outDir dist/vite",
-    "build:server": "npm run tsc -p tsconfig-build.json"
+    "build:server": "tsc -p tsconfig-build.json"
   },
   "type": "module",
   "author": "",
