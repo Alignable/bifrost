@@ -271,6 +271,21 @@ test.describe("client navigation", () => {
     await expect(page.locator("body")).toContainText("hi");
   });
 
+  test("to proxied route that only serves json", async ({ page, baseURL }) => {
+    const customProxy = new CustomProxyPage(page, {
+      title: "a",
+      content: "<a href='/json-only'>json route</a>",
+    });
+    await customProxy.goto();
+
+    const responsePromise = page.waitForResponse("**/json-only");
+    // reloads because the route 400's on non-json requests
+    await page.getByText("json route").click();
+    expect((await responsePromise).ok()).toBeFalsy();
+
+    await expect(page.locator("body")).toContainText(`{"data":true}`);
+  });
+
   test("to proxied page with no layout", async ({ page, baseURL }) => {
     ensureAllNetworkSucceeds(page);
 

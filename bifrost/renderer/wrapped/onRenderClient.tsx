@@ -29,11 +29,11 @@ export async function wrappedOnRenderClient(
   pageContext: PageContextProxyClient
 ) {
   if ("snapshot" in pageContext) {
-    onRenderClientRestorationVisit(pageContext);
+    return onRenderClientRestorationVisit(pageContext);
   } else if (pageContext.isHydration) {
-    onRenderClientHydration(pageContext);
+    return onRenderClientHydration(pageContext);
   } else {
-    onRenderClientNavigation(pageContext);
+    return onRenderClientNavigation(pageContext);
   }
 }
 
@@ -62,8 +62,12 @@ async function onRenderClientNavigation(
   });
 
   if (resp.redirected) {
+    /// Redirect /
     Turbolinks.visit(resp.url);
     return;
+  }
+  if (!resp.ok) {
+    window.location.href = resp.url;
   }
   const html = await resp.text();
   const { layout, layoutProps } = pageContext.config.getLayout!(

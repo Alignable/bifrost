@@ -61,7 +61,16 @@ app.get("/json-route", async (req, res) => {
   } else if (format === "json") {
     res.status(200).json({ data: true });
   } else {
-    res.status(400);
+    res.status(400).send();
+  }
+});
+
+app.get("/json-only", async (req, res) => {
+  const format = req.accepts(["json"]);
+  if (format === "json") {
+    res.status(200).json({ data: true });
+  } else {
+    res.status(400).send();
   }
 });
 
