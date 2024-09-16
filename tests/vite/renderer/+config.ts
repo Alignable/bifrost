@@ -1,8 +1,9 @@
-import BifrostLibConfig from "@alignable/bifrost/renderer/+config";
 import { BifrostConfig } from "@alignable/bifrost";
+import BifrostLibConfig from "@alignable/bifrost/config";
 
 export default {
-  extends: BifrostLibConfig,
+  extends: [BifrostLibConfig],
+  proxyMode: false,
   favicon: "https://www.google.com/favicon.ico",
   scripts: [
     `<script>if (!window.turboDebug) {

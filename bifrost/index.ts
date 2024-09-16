@@ -39,6 +39,9 @@ export type {
   LayoutComponent,
   AugmentMe,
   PageContext,
+  GetLayout,
+  Scripts,
+  DynamicScripts,
 } from "./types/internal";
 export {
   usePageContext,

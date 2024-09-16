@@ -5,13 +5,9 @@ import proxy from "@fastify/http-proxy";
 import accepts from "@fastify/accepts";
 import forwarded from "@fastify/forwarded";
 import { Writable } from "stream";
-import { IncomingHttpHeaders, IncomingMessage } from "http";
-import {
-  Http2ServerRequest,
-  IncomingHttpHeaders as Http2IncomingHttpHeaders,
-} from "http2";
+import { IncomingMessage } from "http";
 import { renderPage } from "vike/server";
-import { AugmentMe } from "@alignable/bifrost";
+import { AugmentMe, GetLayout, PageContext } from "@alignable/bifrost";
 
 type RenderedPageContext = Awaited<
   ReturnType<
@@ -29,6 +25,7 @@ type RenderedPageContext = Awaited<
 declare module "fastify" {
   interface FastifyRequest {
     bifrostPageId?: string;
+    getLayout: GetLayout;
   }
 }
 
@@ -36,10 +33,7 @@ type RawRequestExtendedWithProxy = FastifyRequest<
   RequestGenericInterface,
   RawServerBase
 >["raw"] & {
-  _bfproxy?: {
-    isPageContext: boolean;
-    originalUrl?: string;
-  };
+  _bfproxy?: boolean;
 };
 
 function streamToString(stream: Writable): Promise<string> {
@@ -51,9 +45,6 @@ function streamToString(stream: Writable): Promise<string> {
   });
 }
 
-const wrappedProxyPageId = "/proxy/pages/wrapped";
-const passthruProxyPageId = "/proxy/pages/passthru";
-
 interface ViteProxyPluginOptions {
   upstream: URL;
   host: URL;
@@ -61,32 +52,13 @@ interface ViteProxyPluginOptions {
   buildPageContextInit?: (
     req: FastifyRequest
   ) => Promise<AugmentMe.PageContextInit>;
-  getLayout: (reply: FastifyReply<RawServerBase>) => {
-    layout: string;
-    layoutProps: AugmentMe.LayoutProps;
-  };
-  /// Use to signal to legacy backend to return special results (eg. remove navbar etc)
-  rewriteRequestHeaders?: (
-    req: Http2ServerRequest | IncomingMessage,
-    headers: Http2IncomingHttpHeaders | IncomingHttpHeaders
-  ) => Http2IncomingHttpHeaders | IncomingHttpHeaders;
 }
 /**
  * Fastify plugin that wraps @fasitfy/http-proxy to proxy Rails/Turbolinks server into a vike site.
  */
 export const viteProxyPlugin: FastifyPluginAsync<
   ViteProxyPluginOptions
-> = async (
-  fastify,
-  {
-    upstream,
-    host,
-    onError,
-    buildPageContextInit,
-    rewriteRequestHeaders,
-    getLayout,
-  }
-) => {
+> = async (fastify, { upstream, host, onError, buildPageContextInit }) => {
   async function replyWithPage(
     reply: FastifyReply<RawServerBase>,
     pageContext: RenderedPageContext
@@ -117,6 +89,7 @@ export const viteProxyPlugin: FastifyPluginAsync<
   }
   await fastify.register(accepts);
   fastify.decorateRequest("bifrostPageId", null);
+  fastify.decorateRequest("getLayout", null);
   await fastify.register(proxy, {
     upstream: upstream.href,
     websocket: true,
@@ -131,7 +104,7 @@ export const viteProxyPlugin: FastifyPluginAsync<
         };
 
         const pageContext = await renderPage<
-          { _pageId: string },
+          { _pageId: string } & PageContext,
           typeof pageContextInit
         >(pageContextInit);
 
@@ -141,30 +114,49 @@ export const viteProxyPlugin: FastifyPluginAsync<
           pageContext._pageId;
         req.bifrostPageId = originalPageId;
 
-        const proxy = pageContext._pageId === wrappedProxyPageId;
-        const passthruProxy = pageContext._pageId === passthruProxyPageId;
+        const proxyMode = pageContext.config?.proxyMode;
 
-        if (passthruProxy) {
-          req.log.info(`bifrost: passthru proxy to backend`);
-          // passthru proxy
-          return;
-        } else if (!proxy) {
-          req.log.info(`bifrost: rendering page ${pageContext._pageId}`);
-          return replyWithPage(reply, pageContext);
-        } else if (proxy) {
-          req.log.info(`bifrost: proxy route matched, proxying to backend`);
-          const isPageContext = !!pageContext.isClientSideNavigation;
-          (req.raw as RawRequestExtendedWithProxy)._bfproxy = {
-            isPageContext,
-            originalUrl: req.raw.url,
-          };
-          if (isPageContext) {
-            // page context expects json - we need html from legacy server
-            req.raw.headers["accept"] = "text/html";
-            // pageContext.json is added on client navigations to indicate we are returning just json for the client router
-            // we have to remove it before proxying though.
-            req.raw.url = req.raw.url!.replace("/index.pageContext.json", "");
+        switch (proxyMode) {
+          case "passthru": {
+            req.log.info(`bifrost: passthru proxy to backend`);
+            return;
           }
+          case "wrapped": {
+            req.log.info(`bifrost: proxy route matched, proxying to backend`);
+            if (!!pageContext.isClientSideNavigation) {
+              // This should never happen because wrapped proxy routes have no onBeforeRender. onRenderClient should make a request to the legacy backend.
+              req.log.error(
+                "Wrapped proxy route is requesting index.pageContext.json. Something is wrong with the client."
+              );
+              return reply.redirect(
+                req.url.replace("/index.pageContext.json", "")
+              );
+            }
+            if (!pageContext.config?.getLayout) {
+              req.log.error(
+                "Config missing getLayout on wrapped route! Falling back to passthru proxy"
+              );
+              return;
+            }
+
+            let proxyHeadersAlreadySet = true;
+            for (const [key, val] of Object.entries(
+              pageContext.config?.proxyHeaders || {}
+            )) {
+              proxyHeadersAlreadySet &&= req.headers[key.toLowerCase()] == val;
+              req.headers[key.toLowerCase()] = val;
+            }
+            // If proxy headers set, this is a client navigation meant to go direct to legacy backend.
+            // Use passthru proxy in this case. In prod, it'd be better to use ALB to flip target
+            if (proxyHeadersAlreadySet) return;
+
+            (req.raw as RawRequestExtendedWithProxy)._bfproxy = true;
+            req.getLayout = pageContext.config.getLayout;
+            return;
+          }
+          default:
+            req.log.info(`bifrost: rendering page ${pageContext._pageId}`);
+            return replyWithPage(reply, pageContext);
         }
       }
     },
@@ -185,20 +177,10 @@ export const viteProxyPlugin: FastifyPluginAsync<
           delete headers["if-unmodified-since"];
           delete headers["if-none-match"];
           delete headers["if-range"];
-          if (rewriteRequestHeaders) {
-            return rewriteRequestHeaders(request, headers);
-          }
         }
         return headers;
       },
       async onResponse(req, reply: FastifyReply<RawServerBase>, res) {
-        const { isPageContext = false, originalUrl = undefined } =
-          (req.raw as RawRequestExtendedWithProxy)._bfproxy || {};
-        if (isPageContext && originalUrl) {
-          // restore url rewrite
-          req.raw.url = originalUrl;
-        }
-
         if ([301, 302, 303, 307, 308].includes(reply.statusCode)) {
           const location = reply.getHeader("location") as string;
           if (location) {
@@ -209,24 +191,12 @@ export const viteProxyPlugin: FastifyPluginAsync<
               url.protocol = host.protocol;
             }
             reply.header("location", url);
-            if (isPageContext) {
-              return reply
-                .status(200)
-                .type("application/json")
-                .send(
-                  JSON.stringify({
-                    _pageId: wrappedProxyPageId,
-                    redirectTo: url,
-                  })
-                );
-            } else {
-              return reply.send(res);
-            }
+            return reply.send(res);
           }
         }
 
-        const { layout, layoutProps } = getLayout(reply);
-        if (!isPageContext && !layout) {
+        const layoutInfo = req.getLayout?.(reply.getHeaders());
+        if (!layoutInfo?.layout) {
           return reply.send(res);
         }
 
@@ -234,9 +204,11 @@ export const viteProxyPlugin: FastifyPluginAsync<
 
         const pageContextInit = {
           urlOriginal: req.url,
-          fromProxy: {
-            layout,
-            layoutProps,
+          // Critical that we don't set any passToClient values in pageContextInit
+          // If we do, Vike re-requests pageContext on client navigation. This breaks wrapped proxy.
+          wrappedServerOnly: {
+            layout: layoutInfo.layout,
+            layoutProps: layoutInfo.layoutProps,
             html,
           },
         };

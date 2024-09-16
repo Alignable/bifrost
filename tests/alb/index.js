@@ -15,9 +15,12 @@ const BIFROST_PATHS = [
   "/broken-page",
   "/json-route",
   "/body-test",
+  "/",
 ];
 
 proxy.addResolver((host, url, req) => {
+  if (req.headers["x-vite-proxy"]) return LEGACY_URL;
+
   const segment = "/" + new URL(url, BIFROST_URL).pathname.split("/")[1];
   return BIFROST_PATHS.some((path) => segment === path)
     ? BIFROST_URL

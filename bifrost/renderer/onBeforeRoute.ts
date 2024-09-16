@@ -19,8 +19,6 @@ const onBeforeRoute = () => {
         return {
           pageContext: {
             snapshot,
-            // isBackwardNavigation: true,
-            _pageId: "/proxy/pages/wrapped/restorationVisit",
           },
         };
       } else {

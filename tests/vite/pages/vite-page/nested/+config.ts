@@ -1,9 +1,8 @@
 import { BifrostConfig } from "@alignable/bifrost";
-import { MainNavLayout } from "../../layouts/MainNavLayout";
 
 export default {
-  Layout: MainNavLayout,
   documentProps: {
-    title: "Error",
+    title: "nested vite page",
   },
+  scripts: ["<script>console.log('hello from vite-page/nested')</script>"],
 } satisfies BifrostConfig;

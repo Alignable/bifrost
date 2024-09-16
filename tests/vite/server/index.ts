@@ -54,24 +54,12 @@ async function startServer() {
     host: HOST,
     async buildPageContextInit(req) {
       // hit auth server etc.
-      return { loggedIn: true };
+      return { loggedIn: !!(req.query as any).loggedIn };
     },
     onError(e, pageContext) {
       if (pageContext.httpResponse) {
         pageContext.httpResponse.headers.push(["X-TEST-ONERROR", "true"]);
       }
-    },
-    rewriteRequestHeaders(req, headers) {
-      headers["X-VITE-PROXY"] = "1"; // Signal to legacy backend we're coming from proxy
-      return headers;
-    },
-    getLayout(reply) {
-      return {
-        layout: reply.getHeader("X-REACT-LAYOUT") as string,
-        layoutProps: {
-          currentNav: reply.getHeader("X-REACT-CURRENT-NAV") as string,
-        },
-      };
     },
   });
 

@@ -1,16 +1,14 @@
 import React from "react";
 import ReactDOMServer from "react-dom/server";
 import { dangerouslySkipEscape, escapeInject } from "vike/server";
-import { PageContextProxyServer } from "../../../types/internal.js";
-import { PageShell } from "../../../lib/PageShell.js";
+import { PageContextProxyServer } from "../../types/internal.js";
+import { PageShell } from "../../lib/PageShell.js";
 import jsdom from "jsdom";
-import { getElementAttributes } from "../../../lib/getElementAttributes.js";
+import { getElementAttributes } from "../../lib/getElementAttributes.js";
 
-export default async function onRenderHtml(
-  pageContext: PageContextProxyServer
-) {
-  if (pageContext.proxy) {
-    const { proxy, layoutProps, layout } = pageContext;
+export async function wrappedOnRenderHtml(pageContext: PageContextProxyServer) {
+  if (pageContext.wrappedServerOnly) {
+    const { html, layoutProps, layout } = pageContext.wrappedServerOnly;
 
     const { layoutMap } = pageContext.config;
     if (!layoutMap) {
@@ -19,10 +17,10 @@ export default async function onRenderHtml(
     const Layout = layoutMap[layout];
     if (!Layout) {
       // passthru
-      return { documentHtml: proxy, pageContext: {} };
+      return { documentHtml: html, pageContext: {} };
     }
 
-    const dom = new jsdom.JSDOM(proxy);
+    const dom = new jsdom.JSDOM(html);
     const doc = dom.window.document;
     const bodyEl = doc.querySelector("body");
     const head = doc.querySelector("head");
@@ -45,13 +43,12 @@ export default async function onRenderHtml(
     <!DOCTYPE html>
     <html>
         <head>
-          ${dangerouslySkipEscape(head.innerHTML)}
           ${
             // We need to fire turbolinks:load exactly on DCL, so it must be a blocking head script to catch DCL event.
             // Vite loads scripts with type="module" so the rest of our code will show up too late.
             // TODO: figure out how to bundle this better. at least read from a .js file
             dangerouslySkipEscape(`<script>
-          window.Turbolinks = {controller:{restorationIdentifier: ''}};
+          window.Turbolinks = {controller:{restorationIdentifier: ''},supported:true};
           addEventListener("DOMContentLoaded", () => {
             const event = new Event("turbolinks:load", { bubbles: true, cancelable: true });
             event.data = {url: window.location.href};
@@ -59,6 +56,7 @@ export default async function onRenderHtml(
           })
           </script>`)
           }
+          ${dangerouslySkipEscape(head.innerHTML)}
         </head>
         <body ${dangerouslySkipEscape(
           Object.entries(getElementAttributes(bodyEl))
@@ -71,7 +69,7 @@ export default async function onRenderHtml(
 
     return {
       documentHtml,
-      pageContext: {},
+      pageContext: { layout, layoutProps },
     };
   } else {
     // do nothing: Just exists to signal fastify server that no routes matched and we should proxy

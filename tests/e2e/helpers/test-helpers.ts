@@ -51,10 +51,21 @@ export function storeConsoleLog(page: Page): string[] {
   return logs;
 }
 
-export function waitForScriptRun(page: Page): Promise<ConsoleMessage> {
+export function waitForConsoleLog(
+  page: Page,
+  filter: (msg: ConsoleMessage) => boolean
+): Promise<ConsoleMessage> {
   return new Promise(function (resolve) {
-    page.on("console", (msg) => msg.text().includes("script") && resolve(msg));
+    page.on("console", (msg) => filter(msg) && resolve(msg));
   });
+}
+
+export function waitForScriptRun(page: Page): Promise<ConsoleMessage> {
+  return waitForConsoleLog(page, (msg) => msg.text().includes("script"));
+}
+
+export async function waitForTurbolinksInit(page: Page) {
+  return page.waitForFunction("window.Turbolinks?.controller?.started");
 }
 
 // Generally bad practice to hard wait in tests but we need to verify "no more console logs"

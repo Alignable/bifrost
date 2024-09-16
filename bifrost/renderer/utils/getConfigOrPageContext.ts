@@ -1,4 +1,4 @@
-import { PageContextNoProxy } from "../types/internal.js";
+import { PageContextNoProxy } from "../../types/internal.js";
 
 type ConfigOrContext = PageContextNoProxy | PageContextNoProxy["config"];
 

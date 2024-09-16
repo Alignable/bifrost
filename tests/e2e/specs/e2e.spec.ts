@@ -8,6 +8,7 @@ import {
   StringMatcher,
   sleep,
   ensureBrowserNavigation,
+  waitForTurbolinksInit,
 } from "../helpers/test-helpers";
 import { CustomProxyPage } from "../helpers/custom-proxy-page";
 import { Turbolinks as T } from "../../fake-backend/page-builder";
@@ -22,7 +23,7 @@ test.describe("pages", () => {
       layout: "",
       content: "lorem ipsum",
     });
-    await customProxy.goto();
+    await customProxy.goto({ waitFor: 0 });
 
     await expect(page).toHaveTitle("page");
     // only content on page is the lorem ipsum - nothing added by layout
@@ -50,7 +51,7 @@ test.describe("pages", () => {
       layout: "jaiosdfjo",
       content: "lorem ipsum",
     });
-    await customProxy.goto();
+    await customProxy.goto({ waitFor: 0 });
     await expect(page).toHaveTitle("visitor page");
     await expect(page.getByText("lorem ipsum")).toHaveCount(1);
     // layout is not inserted
@@ -67,6 +68,20 @@ test.describe("pages", () => {
       "content",
       "vite page"
     );
+    await expect(page.getByText("Vite is here")).toHaveCount(1);
+  });
+
+  test("it serves nested vite pages", async ({ page }) => {
+    await page.goto("./vite-page/nested");
+
+    await expect(page).toHaveTitle("nested vite page");
+    await expect(page.getByText("Vite is here")).toHaveCount(1);
+  });
+
+  test("it serves vite pages on root path", async ({ page }) => {
+    await page.goto("./");
+
+    await expect(page).toHaveTitle("root page");
     await expect(page.getByText("Vite is here")).toHaveCount(1);
   });
 
@@ -191,6 +206,7 @@ test("body attributes are copied over", async ({ page }) => {
 
 test("uses config body attributes", async ({ page }) => {
   await page.goto("./body-test");
+  await waitForTurbolinksInit(page);
   const body = page.locator("body").last();
   expect(await body.getAttribute("id")).toEqual("body-test-id");
   expect(await body.getAttribute("class")).toEqual("body-test-classname");
@@ -200,6 +216,28 @@ test("uses config body attributes", async ({ page }) => {
   await expect(page).toHaveTitle("vite page");
   expect(await body2.getAttribute("id")).toEqual("test-id");
   expect(await body2.getAttribute("class")).toEqual("test-classname");
+});
+
+test.describe("script configs", () => {
+  test("renders cumulative scripts", async ({ page }) => {
+    const logs = storeConsoleLog(page);
+    await page.goto("./vite-page/nested");
+
+    // inserted by vite-page's config
+    expect(logs).toContain("hello from vite-page");
+    // inserted by nested's config
+    expect(logs).toContain("hello from vite-page/nested");
+  });
+
+  test("uses page context conditionally", async ({ page }) => {
+    let logs = storeConsoleLog(page);
+    await page.goto("./head-test?loggedIn=1");
+    expect(logs).toContain("logged in");
+
+    logs = storeConsoleLog(page);
+    await page.goto("./head-test");
+    expect(logs).not.toContain("logged in");
+  });
 });
 
 // If passToClient is misconfigured we will end up sending proxy content in HTML and the JSON hydration blob, doubling page size.
@@ -231,6 +269,21 @@ test.describe("client navigation", () => {
     await page.getByText("json route").click();
     await expect(page).toHaveTitle("json route");
     await expect(page.locator("body")).toContainText("hi");
+  });
+
+  test("to proxied route that only serves json", async ({ page, baseURL }) => {
+    const customProxy = new CustomProxyPage(page, {
+      title: "a",
+      content: "<a href='/json-only'>json route</a>",
+    });
+    await customProxy.goto();
+
+    const responsePromise = page.waitForResponse("**/json-only");
+    // reloads because the route 400's on non-json requests
+    await page.getByText("json route").click();
+    expect((await responsePromise).ok()).toBeFalsy();
+
+    await expect(page.locator("body")).toContainText(`{"data":true}`);
   });
 
   test("to proxied page with no layout", async ({ page, baseURL }) => {
@@ -387,7 +440,7 @@ test.describe("turbolinks: events", () => {
       ],
     });
     await customProxy.goto();
-    await customProxy.clickLink("second page");
+    await customProxy.clickLink("second page", { waitFor: 500 });
     expect(customProxy.scriptAndTurbolinksLog).toEqual([
       T.click,
       T.beforeVisit,
@@ -585,6 +638,7 @@ test.describe("back button restoration", () => {
 
   test("does not restore vite pages", async ({ page }) => {
     await page.goto("./vite-page");
+    await waitForTurbolinksInit(page);
     const edit = page.getByRole("link").first();
     await page.evaluate((rRoot: any) => {
       rRoot.appendChild(document.createTextNode("edit1"));
@@ -673,7 +727,7 @@ test.describe("script loading order", () => {
 
     expect(customProxy.scriptLog).toEqual([]);
 
-    await customProxy.clickLink("with scripts");
+    await customProxy.clickLink("with scripts", { waitFor: 500 });
 
     expect(customProxy.scriptLog).toEqual([
       "head script: inline 1",
@@ -727,7 +781,7 @@ test.describe("script loading order", () => {
     expect(customProxy.scriptLog).toEqual([]);
 
     // come back to scripts page
-    await customProxy.clickLink("with scripts 2");
+    await customProxy.clickLink("with scripts 2", { waitFor: 500 });
 
     // runs body scripts but no hea scripts
     expect(customProxy.scriptLog).toEqual([
@@ -769,7 +823,7 @@ test.describe("script loading order", () => {
       "head script: deferred",
     ]);
 
-    await customProxy.clickLink("all scripts");
+    await customProxy.clickLink("all scripts", { waitFor: 500 });
 
     // runs all body scripts but not existing head
     expect(customProxy.scriptLog).toEqual([
@@ -975,7 +1029,10 @@ test.describe("with ALB", () => {
         await customProxy.goto();
         await expectLegacyPage(page);
 
-        await customProxy.clickLink("b");
+        await customProxy.clickLink("b", {
+          // Need to wait for bifrost vite to load - turbolinks:load fires earlier than that because it comes from legacy turbolinks.js loaded by old page
+          waitFor: 500,
+        });
         await expectBifrostPage(page);
 
         // going back to passthru page does full reload because passthru page has to be loaded through server
@@ -1021,7 +1078,7 @@ test.describe("with ALB", () => {
     test.describe("pointing to legacy backend for route Bifrost expects to handle", () => {
       // SSR is obviously fine - backend will just do what it does
 
-      test("Navigating causes full reload", async ({ page }) => {
+      test("client side proxy works", async ({ page }) => {
         const customProxy = new CustomProxyPage(page, {
           title: "a",
           links: [{ title: "b", endpoint: "custom-bifrost" }],
@@ -1030,22 +1087,9 @@ test.describe("with ALB", () => {
         await customProxy.goto();
         await expectBifrostPage(page);
 
-        // expect a 404 from legacy backend on the index.pageContext.json request - that is inevitable
-        const on404 = new Promise((resolve) =>
-          page.on("response", (response) => {
-            console.log("response", response.request().url());
-            if (
-              response.request().url().includes("index.pageContext.json") &&
-              response.status() === 404
-            ) {
-              resolve(true);
-            }
-          })
-        );
-        await customProxy.clickLink("b", { browserReload: true });
-        expect(await on404).toBeTruthy();
-        await expectLegacyPage(page);
-      }); // or it could gracefully proxy without reload? but that would require onbeforerender to move to client?
+        await customProxy.clickLink("b", { browserReload: false });
+        await expectBifrostPage(page);
+      });
     });
   });
 });

@@ -1,28 +1,46 @@
 import { type Config } from "vike/types";
+import { bifrostConfig } from "./configs/bifrost";
+import { wrappedConfig } from "./configs/wrapped";
 
-const passToClient = [
-  "layoutProps",
-  "pageProps",
-  "redirectTo",
-  "bodyAttrs",
-  "documentProps",
-  "scripts",
-  "is404",
-];
 export default {
-  passToClient,
-  onRenderClient: "import:@alignable/bifrost/renderer/onRenderClient",
-  onRenderHtml: "import:@alignable/bifrost/renderer/onRenderHtml",
-  onBeforeRoute: "import:@alignable/bifrost/renderer/onBeforeRoute",
+  name: "@alignable/bifrost",
+  require: {
+    vike: ">=0.4.193",
+  },
+  clientHooks: true,
+
+  onBeforeRoute: "import:@alignable/bifrost/renderer/onBeforeRoute:default",
+  onRenderClient: "import:@alignable/bifrost/renderer/onRenderClient:default",
+  onRenderHtml: "import:@alignable/bifrost/renderer/onRenderHtml:default",
+  passToClient: [...bifrostConfig.passToClient, ...wrappedConfig.passToClient],
   clientRouting: true,
   hydrationCanBeAborted: true,
+
   meta: {
-    Layout: { env: { server: true, client: true } },
-    layoutProps: { env: { server: true, client: true } },
-    documentProps: { env: { server: true, client: true } },
-    bodyAttrs: { env: { server: true, client: true } },
-    scripts: { env: { server: true, client: true } },
-    favicon: { env: { server: true } },
-    onClientInit: { env: { client: true } },
+    ...bifrostConfig.meta,
+    ...wrappedConfig.meta,
+    onClientInit: { env: { client: true }, global: true },
+
+    proxyMode: {
+      env: { server: true, client: true, config: true },
+      effect({ configDefinedAt, configValue }) {
+        switch (configValue) {
+          case false:
+            return {};
+          case "wrapped":
+            return {
+              meta: {
+                onBeforeRender: { env: { client: true, server: false } },
+              },
+            };
+          case "passthru":
+            return {};
+          default:
+            throw new Error(
+              `${configDefinedAt} should be one of: false, "wrapped", "passthru"`
+            );
+        }
+      },
+    },
   },
 } satisfies Config;
