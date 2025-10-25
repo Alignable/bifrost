@@ -5,7 +5,7 @@ import { wrappedConfig } from "./configs/wrapped";
 export default {
   name: "@alignable/bifrost",
   require: {
-    vike: ">=0.4.193",
+    vike: ">=0.4.244",
   },
   clientHooks: true,
 

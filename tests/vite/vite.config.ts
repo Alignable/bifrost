@@ -9,6 +9,9 @@ const config: UserConfig = {
       baseAssets: "/bifrost-assets",
     }),
   ],
+  build: {
+    outDir: "./dist/vite",
+  },
 };
 
 export default config;

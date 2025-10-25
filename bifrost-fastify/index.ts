@@ -15,7 +15,6 @@ type RenderedPageContext = Awaited<
       {
         redirectTo?: string;
         isClientSideNavigation?: boolean;
-        _pageId?: string;
       },
       { urlOriginal: string }
     >
@@ -24,7 +23,7 @@ type RenderedPageContext = Awaited<
 
 declare module "fastify" {
   interface FastifyRequest {
-    bifrostPageId?: string;
+    bifrostPageId?: string | null;
     getLayout: GetLayout;
   }
 }
@@ -104,15 +103,12 @@ export const viteProxyPlugin: FastifyPluginAsync<
         };
 
         const pageContext = await renderPage<
-          { _pageId: string } & PageContext,
+          PageContext,
           typeof pageContextInit
         >(pageContextInit);
 
-        // should stop relying on unstable _debugRouteMatches after this issue is closed: https://github.com/vikejs/vike/issues/1112
-        const originalPageId =
-          (pageContext as any)?._debugRouteMatches?.[0]?.pageId ||
-          pageContext._pageId;
-        req.bifrostPageId = originalPageId;
+        // this does not handle getting the original pageId when errors are thrown: https://github.com/vikejs/vike/issues/1112
+        req.bifrostPageId = pageContext.pageId;
 
         const proxyMode = pageContext.config?.proxyMode;
 
@@ -155,7 +151,7 @@ export const viteProxyPlugin: FastifyPluginAsync<
             return;
           }
           default:
-            req.log.info(`bifrost: rendering page ${pageContext._pageId}`);
+            req.log.info(`bifrost: rendering page ${pageContext.pageId}`);
             return replyWithPage(reply, pageContext);
         }
       }

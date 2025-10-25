@@ -1,3 +1,4 @@
+import { dangerouslySkipEscape } from "vike/server";
 import {
   PageContextNoProxyServer,
   PageContextProxyServer,
@@ -13,7 +14,7 @@ export default async function onRenderHtml(
       return await wrappedOnRenderHtml(pageContext as PageContextProxyServer);
     case "passthru":
       return {
-        pageContext: {},
+        documentHtml: dangerouslySkipEscape(""),
       };
     default:
       return await bifrostOnRenderHtml(pageContext as PageContextNoProxyServer);

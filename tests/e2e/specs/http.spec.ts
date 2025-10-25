@@ -60,7 +60,9 @@ test.describe("requests", () => {
       expect(req.headers()["x-test-pageid"]).toBe("/proxy/pages/passthru");
     });
 
-    test("returns original page id on error pages", async ({ request }) => {
+    test.skip("returns original page id on error pages", async ({
+      request,
+    }) => {
       const req = await request.get("./broken-page");
       expect(req.headers()["x-test-pageid"]).toBe("/pages/broken-page");
     });
