@@ -6,9 +6,6 @@
     "bifrost-fastify",
     "tests/*"
   ],
-  "devDependencies": {
-    "concurrently": "^7.6.0"
-  },
   "scripts": {
     "test": "npm run -w=tests-playwright test",
     "build": "npm run -w=bifrost -w=bifrost-fastify build",
