@@ -1029,10 +1029,12 @@ test.describe("with ALB", () => {
         await customProxy.goto();
         await expectLegacyPage(page);
 
+        // Turbolinks does full page reload because data-track scripts change
         await customProxy.clickLink("b", {
-          // Need to wait for bifrost vite to load - turbolinks:load fires earlier than that because it comes from legacy turbolinks.js loaded by old page
-          waitFor: 500,
+          waitFor: 0,
+          browserReload: true,
         });
+        await page.waitForLoadState("networkidle");
         await expectBifrostPage(page);
 
         // going back to passthru page does full reload because passthru page has to be loaded through server
