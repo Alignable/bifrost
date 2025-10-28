@@ -24,6 +24,7 @@ export default {
     proxyMode: {
       env: { server: true, client: true, config: true },
       effect({ configDefinedAt, configValue }) {
+        // TODO: Make this set clientRouting https://github.com/vikejs/vike/commit/86fe9b4554e2fc1934ac60ffeb755305350ec2bc
         switch (configValue) {
           case false:
             return {};
@@ -34,6 +35,7 @@ export default {
               },
             };
           case "passthru":
+            // Must set clientRouting false to tell Vike to hit the server for all passthru pages (which will get load balanced to legacy backend)
             return {};
           default:
             throw new Error(
