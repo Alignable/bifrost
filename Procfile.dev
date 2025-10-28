@@ -1,0 +1,5 @@
+bifrost: npm run -w=bifrost dev 
+bifrost-fastify: npm run -w=bifrost-fastify dev
+tests_vite: PORT=5555 npm run -w=tests-vite dev 
+tests_alb: npm run -w=tests-alb dev 
+tests_backend: npm run -w=tests-backend dev

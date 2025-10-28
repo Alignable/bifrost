@@ -18,6 +18,7 @@
     "@fastify/compress": "^6.2.1",
     "@fastify/middie": "^8.1.0",
     "@fastify/static": "^6.10.1",
+    "@vitejs/plugin-react": "^3.0.0",
     "uuid": "^9.0.0",
     "vike": "0.4.193",
     "vite": "^5.1.0"

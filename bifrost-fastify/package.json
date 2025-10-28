@@ -33,7 +33,8 @@
     "typescript": "^5.0.4"
   },
   "scripts": {
-    "build": "tsup"
+    "build": "tsup",
+    "dev": "tsup --watch"
   },
   "files": [
     "dist"

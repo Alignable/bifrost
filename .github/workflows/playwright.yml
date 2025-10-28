@@ -1,0 +1,29 @@
+name: Playwright Tests
+on:
+  push:
+    branches: [main, master]
+  pull_request:
+
+jobs:
+  test:
+    timeout-minutes: 60
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version: "20"
+      - name: Install dependencies
+        run: npm ci
+      - name: Build Bifrost
+        run: npm run build
+      - name: Run Playwright tests
+        uses: docker://mcr.microsoft.com/playwright:v1.55.1-noble
+        with:
+          args: env HOME=/root PLAYWRIGHT_JUNIT_OUTPUT_NAME=results.xml npm run -w=tests-playwright test -- --reporter=junit
+          retention-days: 30
+      - name: Test Summary
+        if: ${{ !cancelled() }}
+        uses: test-summary/action@v2
+        with:
+          paths: tests/e2e/results.xml

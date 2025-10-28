@@ -38,9 +38,9 @@
     }
   },
   "scripts": {
-    "dev": "",
+    "dev": "tsup --watch",
     "release": "release-me patch",
-    "build": "tsup && node ./tsup-fix-filenames.js",
+    "build": "tsup",
     "tsc": "tsc"
   },
   "files": [
