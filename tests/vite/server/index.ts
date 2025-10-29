@@ -33,8 +33,6 @@ async function startServer() {
     const { createDevMiddleware } = await import("vike/server");
     const { devMiddleware } = await createDevMiddleware({ root });
     app.use(devMiddleware);
-    // // hack to force vite to regenerate dependency cache. optimizeDeps.exclude doesnt work due to VPS
-    // await fs.rm("node_modules/.vite", { recursive: true, force: true });
   }
 
   app.addHook("onSend", async (req, reply) => {

@@ -7,8 +7,6 @@ const onBeforeRoute = (pageContext: PageContext) => {
     const Turbolinks = window.Turbolinks;
 
     const currentVisit = Turbolinks.controller.currentVisit;
-    // if (!currentVisit || currentVisit.state === "completed") {
-    // old/nonexistent currentVisit means VPS is doing history navigation. Ideally we might turn off VPS' onpopstate listener.
     if (pageContext.isBackwardNavigation) {
       const snapshot = Turbolinks.controller.getCachedSnapshotForLocation(
         window.location.href
