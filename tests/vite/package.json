@@ -21,6 +21,7 @@
     "@vitejs/plugin-react": "^4.7.0",
     "uuid": "^9.0.0",
     "vike": "0.4.244",
+    "vike-react": "^0.6.10",
     "vite": "^6.3.5"
   },
   "devDependencies": {

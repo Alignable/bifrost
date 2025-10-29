@@ -1,12 +1,11 @@
-import { BifrostConfig } from "@alignable/bifrost";
-import BifrostLibConfig from "@alignable/bifrost/config";
+import React from "react";
+import { usePageContext } from "vike-react/usePageContext";
 
-export default {
-  extends: [BifrostLibConfig],
-  proxyMode: false,
-  favicon: "https://www.google.com/favicon.ico",
-  scripts: [
-    `<script>if (!window.turboDebug) {
+export function Head() {
+  const pageContext = usePageContext();
+  return (
+    <>
+      <script>{`if (!window.turboDebug) {
   [
     "turbolinks:click",
     "turbolinks:before-visit",
@@ -21,6 +20,8 @@ export default {
     document.addEventListener(e, () => console.log(e));
   });
   window.turboDebug = true;
-}</script>`,
-  ],
-} satisfies BifrostConfig;
+}`}</script>
+      {pageContext.loggedIn && <script>console.log('logged in')</script>}
+    </>
+  );
+}

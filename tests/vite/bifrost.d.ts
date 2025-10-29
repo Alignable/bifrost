@@ -4,8 +4,16 @@ declare module "@alignable/bifrost" {
     interface PageContextInit {
       loggedIn: boolean;
     }
-    interface LayoutProps {
-      currentNav: string;
+  }
+}
+
+declare global {
+  namespace Vike {
+    // interface PageContext {
+    //   currentNav: string;
+    // }
+    interface Config {
+      currentNav?: string;
     }
   }
 }

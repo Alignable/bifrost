@@ -1,10 +1,7 @@
 import { MainNavLayout } from "../../layouts/MainNavLayout";
-import { BifrostConfig } from "@alignable/bifrost";
+import { Config } from "vike/types";
 
 export default {
   Layout: MainNavLayout,
-  layoutProps: { currentNav: "tmp" },
-  documentProps: {
-    title: "react body",
-  },
-} satisfies BifrostConfig;
+  title: "react body",
+} satisfies Config;

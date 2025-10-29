@@ -6,7 +6,7 @@
   "types": "./dist/index.d.ts",
   "exports": {
     "./config": {
-      "types": "./dist/renderer/+config.d.ts",
+      "types": "./dist/renderer/_config.d.ts",
       "default": "./dist/renderer/+config.js"
     },
     "./renderer/onRenderClient": {
@@ -30,7 +30,7 @@
   "typesVersions": {
     "*": {
       "config": [
-        "./dist/renderer/+config.d.ts"
+        "./dist/renderer/_config.d.ts"
       ],
       ".": [
         "./dist/index.d.ts"
