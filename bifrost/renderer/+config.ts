@@ -5,7 +5,7 @@ import { wrappedConfig } from "./configs/wrapped";
 export default {
   name: "@alignable/bifrost",
   require: {
-    vike: ">=0.4.193",
+    vike: ">=0.4.244",
   },
   clientHooks: true,
 
@@ -34,7 +34,8 @@ export default {
               },
             };
           case "passthru":
-            return {};
+            // tell Vike to hit the server for all passthru pages (which will get load balanced to legacy backend)
+            return { clientRouting: false };
           default:
             throw new Error(
               `${configDefinedAt} should be one of: false, "wrapped", "passthru"`

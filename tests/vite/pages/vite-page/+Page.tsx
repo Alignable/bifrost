@@ -18,6 +18,9 @@ export default function Page() {
       <a href="/react-body-script-injection">react body</a>
       <a href="/head-test">head test</a>
       <div onClick={() => navigate("/head-test")}>programmatic navigate</div>
+      <a href="#anchor">anchor link</a>
+      <h2 id="anchor">anchor link test</h2>
+      <div style={{ height: "1000px" }}></div>
     </>
   );
 }

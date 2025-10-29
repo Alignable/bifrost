@@ -328,6 +328,22 @@ test.describe("client navigation", () => {
       await expect(page).toHaveTitle("head test");
     });
   });
+
+  test("to anchor on page", async ({ page }) => {
+    await page.goto("./vite-page", { waitUntil: "networkidle" });
+    await expect(page).toHaveTitle("vite page");
+    await ensureNoBrowserNavigation(page, async () => {
+      const anchorLink = page.getByRole("link", { name: "anchor link" });
+      await anchorLink.click();
+      expect(await page.evaluate(() => window.scrollY)).toBeGreaterThan(100);
+      // verify url
+      expect(page.url().endsWith("vite-page#anchor")).toBeTruthy();
+
+      await page.goBack();
+      expect(await page.evaluate(() => window.scrollY)).toEqual(0);
+      expect(page.url().endsWith("vite-page")).toBeTruthy();
+    });
+  });
 });
 
 test.describe("redirects", () => {

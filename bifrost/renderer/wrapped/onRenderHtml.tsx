@@ -73,6 +73,6 @@ export async function wrappedOnRenderHtml(pageContext: PageContextProxyServer) {
     };
   } else {
     // do nothing: Just exists to signal fastify server that no routes matched and we should proxy
-    return {};
+    return { documentHtml: dangerouslySkipEscape("") };
   }
 }

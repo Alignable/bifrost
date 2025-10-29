@@ -4,7 +4,6 @@ import middie from "@fastify/middie";
 import fastifyStatic from "@fastify/static";
 import fastify from "fastify";
 import path from "path";
-import fs from "fs/promises";
 import { fileURLToPath } from "url";
 import { viteProxyPlugin } from "@alignable/bifrost-fastify";
 
@@ -31,15 +30,9 @@ async function startServer() {
       prefix: "/bifrost-assets/assets/",
     });
   } else {
-    const vite = await import("vite");
-    // hack to force vite to regenerate dependency cache. optimizeDeps.exclude doesnt work due to VPS
-    await fs.rm("node_modules/.vite", { recursive: true, force: true });
-
-    const viteServer = await vite.createServer({
-      root,
-      server: { middlewareMode: true },
-    });
-    await app.use(viteServer.middlewares);
+    const { createDevMiddleware } = await import("vike/server");
+    const { devMiddleware } = await createDevMiddleware({ root });
+    app.use(devMiddleware);
   }
 
   app.addHook("onSend", async (req, reply) => {

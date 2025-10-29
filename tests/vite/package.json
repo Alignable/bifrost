@@ -6,7 +6,7 @@
     "dev": "tsx watch --ignore './vite.config.ts.timestamp*' --ignore '**/*.ts.build-*' server/index.ts | npx pino-pretty",
     "start": "NODE_ENV=production node dist/server/index.js",
     "build": "npm run build:server && npm run build:vite",
-    "build:vite": "vite build --outDir dist/vite",
+    "build:vite": "vite build",
     "build:server": "tsc -p tsconfig-build.json"
   },
   "type": "module",
@@ -18,10 +18,10 @@
     "@fastify/compress": "^6.2.1",
     "@fastify/middie": "^8.1.0",
     "@fastify/static": "^6.10.1",
-    "@vitejs/plugin-react": "^3.0.0",
+    "@vitejs/plugin-react": "^4.7.0",
     "uuid": "^9.0.0",
-    "vike": "0.4.193",
-    "vite": "^5.1.0"
+    "vike": "0.4.244",
+    "vite": "^6.3.5"
   },
   "devDependencies": {
     "@types/uuid": "^9.0.1",
