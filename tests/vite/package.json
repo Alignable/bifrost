@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "description": "",
   "scripts": {
-    "dev": "tsx watch --ignore './vite.config.ts.timestamp*' --ignore '**/*.ts.build-*' server/index.ts | npx pino-pretty",
+    "dev": "nodemon --ignore './vite.config.ts.timestamp*' --ignore '**/*.ts.build-*' --watch ../../bifrost server/index.ts | pino-pretty",
     "start": "NODE_ENV=production node dist/server/index.js",
     "build": "npm run build:server && npm run build:vite",
     "build:vite": "vite build",
@@ -26,6 +26,8 @@
   },
   "devDependencies": {
     "@types/uuid": "^9.0.1",
+    "nodemon": "^3.1.10",
+    "pino-pretty": "^13.1.2",
     "tsx": "^4.7.0"
   }
 }
