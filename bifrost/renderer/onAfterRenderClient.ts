@@ -3,11 +3,12 @@ import {
   PageContextProxyClient,
 } from "../types/internal.js";
 import { Turbolinks } from "../lib/turbolinks/index.js";
-import { wrappedOnRenderClient } from "./wrapped/onRenderClient.js";
+import { bifrostOnAfterRenderClient } from "./bifrost/onAfterRenderClient.js";
+import { wrappedOnAfterRenderClient } from "./wrapped/onAfterRenderClient.js";
 
 Turbolinks.start();
 
-export default async function onRenderClient(
+export default async function onAfterRenderClient(
   pageContext: PageContextNoProxyClient | PageContextProxyClient
 ) {
   if ("redirectTo" in pageContext && pageContext.redirectTo) {
@@ -15,8 +16,8 @@ export default async function onRenderClient(
     return;
   }
   if (pageContext.config.proxyMode === "wrapped") {
-    return await wrappedOnRenderClient(pageContext as PageContextProxyClient);
+    return await wrappedOnAfterRenderClient(pageContext);
   } else if (pageContext.config.proxyMode === false) {
-    // return await bifrostOnRenderClient(pageContext as PageContextNoProxyClient);
+    return await bifrostOnAfterRenderClient(pageContext);
   }
 }

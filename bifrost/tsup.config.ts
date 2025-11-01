@@ -15,21 +15,24 @@ async function* getFiles(dir: string): AsyncGenerator<string> {
 }
 
 export default defineConfig({
-  entry: ["./index.ts", "./renderer/**/*.ts?(x)", "./proxy/**/*.ts?(x)"],
+  entry: [
+    "./index.ts",
+    "./renderer/config.ts",
+    "./renderer/Head.tsx",
+    "./renderer/Wrapper.tsx",
+    "./renderer/onBeforeRenderClient.ts",
+    "./renderer/onAfterRenderClient.ts",
+    "./renderer/onBeforeRenderHtml.ts",
+    "./renderer/onBeforeRoute.ts",
+  ],
   format: "esm",
   clean: true,
   sourcemap: true,
   dts: true,
   async onSuccess() {
-    for await (const f of getFiles("./dist")) {
-      const parsed = parse(f);
-      if (parsed.base.startsWith("_") && parsed.ext === ".ts") {
-        const newname = format({
-          ...parsed,
-          base: parsed.base.replace("_", "+"),
-        });
-        await rename(f, newname);
-      }
-    }
+    // Rename config.js to +config.js
+    // the plus sign in +config.js is required by vite to understand the import as a "pointer": https://github.com/vikejs/vike/blob/e78cc65993c4aa9af3666ecde118cf28c135af5f/packages/vike/node/vite/shared/resolveVikeConfigInternal/transpileAndExecuteFile.ts#L238
+    // However, config.d.ts must remain without plus sign or typescript can't find it, even with typesVersions in package.json
+    await rename("./dist/renderer/config.js", "./dist/renderer/+config.js");
   },
 });

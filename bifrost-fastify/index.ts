@@ -8,6 +8,7 @@ import { Writable } from "stream";
 import { IncomingMessage } from "http";
 import { renderPage } from "vike/server";
 import { AugmentMe, GetLayout, PageContext } from "@alignable/bifrost";
+import jsdom from "jsdom";
 
 type RenderedPageContext = Awaited<
   ReturnType<
@@ -198,14 +199,22 @@ export const viteProxyPlugin: FastifyPluginAsync<
 
         const html = await streamToString(res);
 
+        const dom = new jsdom.JSDOM(html);
+        const doc = dom.window.document;
+        const body = doc.querySelector("body");
+        const head = doc.querySelector("head");
+        if (!body || !head) {
+          throw new Error("Proxy failed");
+        }
         const pageContextInit = {
           urlOriginal: req.url,
           // Critical that we don't set any passToClient values in pageContextInit
           // If we do, Vike re-requests pageContext on client navigation. This breaks wrapped proxy.
           wrappedServerOnly: {
+            body: body.innerHTML,
+            head: head,
             layout: layoutInfo.layout,
             layoutProps: layoutInfo.layoutProps,
-            html,
           },
         };
         const pageContext = await renderPage(pageContextInit);

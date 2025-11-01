@@ -1,8 +1,8 @@
-import { BifrostProxyConfig } from "@alignable/bifrost";
+import { Config } from "vike/types";
 
 export default {
   proxyMode: "wrapped",
   proxyHeaders: {
     "X-VITE-PROXY": "1",
   },
-} satisfies BifrostProxyConfig;
+} satisfies Config;

@@ -22,7 +22,7 @@ Install a Fastify server
 Install `@alignable/bifrost` and `@alignable/bifrost-fastify`
 
 In fastify, register viteProxyPlugin
-Create your default config `renderer/+config.ts` with `extends [BifrostConfig]` and default `proxyMode: false`, which lets you build Vike-rendered pages.
+Create your default config `renderer/config.ts` with `extends [BifrostConfig]` and default `proxyMode: false`, which lets you build Vike-rendered pages.
 
 ### Proxy modes
 

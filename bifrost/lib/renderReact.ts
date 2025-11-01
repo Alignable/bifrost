@@ -4,7 +4,12 @@ import { Root, createRoot, hydrateRoot } from "react-dom/client";
 let root: Root;
 
 export function renderReact(page: ReactNode, isHydration: boolean) {
-  const container = document.getElementById("page-view")!;
+  let container = document.getElementById("root")!;
+  if (!container) {
+    container = document.createElement("div");
+    container.id = "root";
+    document.body.appendChild(container);
+  }
   if (isHydration) {
     root = hydrateRoot(container, page);
   } else {
