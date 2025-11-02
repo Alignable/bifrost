@@ -9,7 +9,6 @@ const BIFROST_PATHS = [
   "/custom-incorrect",
   "/react-body-script-injection",
   "/head-test",
-  "/navigation-test",
   "/slow-page",
   "/this-is-a-custom-route",
   "/broken-page",

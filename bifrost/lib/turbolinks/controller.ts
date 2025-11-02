@@ -5,7 +5,6 @@ import { Location, Locatable } from "./location";
 import { Action, isAction } from "./types";
 import { closest, defer, dispatch, uuid } from "./util";
 import { Visit } from "./visit";
-import { setNavigation } from "../../renderer/useNavigation";
 import { PageContextProxyClientHydration } from "../../types/internal";
 
 export type TimingData = {};
@@ -189,7 +188,6 @@ export class Controller {
   }
 
   notifyApplicationBeforeVisitingLocation(location: Location) {
-    setNavigation({ state: "loading" });
     return dispatch("turbolinks:before-visit", {
       data: { url: location.absoluteURL },
       cancelable: true,
@@ -207,7 +205,6 @@ export class Controller {
   }
 
   notifyApplicationBeforeRender() {
-    setNavigation({ state: "idle" });
     return dispatch("turbolinks:before-render");
   }
 

@@ -47,7 +47,6 @@ export {
   usePageContext,
   PageContextProvider,
 } from "./renderer/usePageContext.js";
-export { useNavigation } from "./renderer/useNavigation.js";
 
 export const navigate: typeof vikeNavigate = async (url, opts) => {
   window.Turbolinks.visit(url, {
