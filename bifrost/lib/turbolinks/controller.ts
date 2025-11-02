@@ -11,7 +11,7 @@ export type TimingData = {};
 export type VisitOptions = { action: Action };
 
 export interface Snapshot {
-  bodyEl: Element;
+  bodyEl: HTMLElement;
   headEl: HTMLHeadElement;
   pageContext: PageContextProxyClientHydration;
 }

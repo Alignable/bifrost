@@ -1,6 +1,7 @@
 import { type Config } from "vike/types";
 import { wrappedConfig } from "./configs/wrapped";
-import { AugmentMe, GetLayout } from "../types/internal";
+import { type AugmentMe, GetLayout } from "../types/internal";
+import { type Snapshot } from "../lib/turbolinks/controller";
 
 export default {
   name: "@alignable/bifrost",
@@ -68,6 +69,7 @@ declare global {
     interface PageContextClient {
       _wrappedBodyHtml?: string;
       _waitForHeadScripts?: () => Promise<void>;
+      snapshot?: Snapshot;
     }
     interface PageContextServer {
       wrappedServerOnly?: {
