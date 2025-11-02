@@ -1,16 +1,18 @@
 import { PageContextServer } from "vike/types";
+import { useConfig } from "vike-react/useConfig";
 import { jsdomToReactComponent } from "../../lib/htmlToReact";
 import { getElementAttributes } from "../../lib/getElementAttributes";
 
 export function wrappedOnBeforeRenderHtml(pageContext: PageContextServer) {
   if (pageContext.wrappedServerOnly) {
     const { head } = pageContext.wrappedServerOnly;
-    pageContext.config.Head = pageContext.config.Head || [];
-    pageContext.config.Head?.push(jsdomToReactComponent(head));
+    const config = useConfig();
 
-    pageContext.config.bodyAttributes = [
-      getElementAttributes(pageContext.wrappedServerOnly.body),
-    ];
+    config({
+      Head: jsdomToReactComponent(head),
+      bodyAttributes: getElementAttributes(pageContext.wrappedServerOnly.body),
+    });
+
     pageContext.layout = pageContext.wrappedServerOnly.layout;
     pageContext.layoutProps = pageContext.wrappedServerOnly.layoutProps;
   }

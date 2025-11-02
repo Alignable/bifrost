@@ -3,8 +3,8 @@ import {
   PageContextProxyClient,
 } from "../types/internal.js";
 import { Turbolinks } from "../lib/turbolinks/index.js";
-import { bifrostOnBeforeRenderClient } from "./bifrost/onBeforeRenderClient.js";
-import { wrappedOnBeforeRenderClient } from "./wrapped/onBeforeRenderClient.js";
+import { bifrostOnBeforeRenderClient } from "./bifrost/onBeforeRenderClient";
+import { wrappedOnBeforeRenderClient } from "./wrapped/onBeforeRenderClient";
 
 Turbolinks.start();
 

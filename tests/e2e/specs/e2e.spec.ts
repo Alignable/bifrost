@@ -991,6 +991,7 @@ test.describe("script loading order", () => {
       page.getByText("legacy page").click()
     );
     await expect(page).toHaveTitle("legacy page");
+    await sleep(50);
 
     // regular client-side load order
     expect(logs.filter((s) => s.includes("script"))).toEqual([
