@@ -26,6 +26,7 @@ declare module "fastify" {
   interface FastifyRequest {
     bifrostPageId?: string | null;
     getLayout: GetLayout;
+    layoutMap?: Record<string, React.ComponentType<any>>;
   }
 }
 
@@ -90,6 +91,7 @@ export const viteProxyPlugin: FastifyPluginAsync<
   await fastify.register(accepts);
   fastify.decorateRequest("bifrostPageId", null);
   fastify.decorateRequest("getLayout", null);
+  fastify.decorateRequest("layoutMap", null);
   await fastify.register(proxy, {
     upstream: upstream.href,
     websocket: true,
@@ -149,6 +151,7 @@ export const viteProxyPlugin: FastifyPluginAsync<
 
             (req.raw as RawRequestExtendedWithProxy)._bfproxy = true;
             req.getLayout = pageContext.config.getLayout;
+            req.layoutMap = pageContext.config.layoutMap;
             return;
           }
           default:
@@ -193,7 +196,7 @@ export const viteProxyPlugin: FastifyPluginAsync<
         }
 
         const layoutInfo = req.getLayout?.(reply.getHeaders());
-        if (!layoutInfo?.layout) {
+        if (!req.layoutMap?.[layoutInfo?.layout]) {
           return reply.send(res);
         }
 
@@ -211,8 +214,8 @@ export const viteProxyPlugin: FastifyPluginAsync<
           // Critical that we don't set any passToClient values in pageContextInit
           // If we do, Vike re-requests pageContext on client navigation. This breaks wrapped proxy.
           wrappedServerOnly: {
-            body: body.innerHTML,
-            head: head,
+            body,
+            head,
             layout: layoutInfo.layout,
             layoutProps: layoutInfo.layoutProps,
           },

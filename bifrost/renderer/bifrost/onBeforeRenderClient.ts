@@ -1,7 +1,9 @@
-import { PageContext } from "vike/types";
+import { PageContextClient } from "vike/types";
 import { Turbolinks } from "../../lib/turbolinks";
 
-export async function bifrostOnBeforeRenderClient(pageContext: PageContext) {
+export async function bifrostOnBeforeRenderClient(
+  pageContext: PageContextClient
+) {
   // TODO: Is this still needed?
   // Back button leading to 404 means we hit a page bifrost can't handle in the browser history.
   // Reload allows us to revert to passthru proxy and/or let ALB handle
@@ -12,6 +14,6 @@ export async function bifrostOnBeforeRenderClient(pageContext: PageContext) {
 
   if (!pageContext.isHydration) {
     await new Promise(requestAnimationFrame);
-    await Turbolinks._vikeBeforeRender();
+    pageContext._waitForHeadScripts = await Turbolinks._vikeBeforeRender();
   }
 }

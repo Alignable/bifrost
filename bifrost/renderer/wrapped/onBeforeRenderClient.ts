@@ -26,6 +26,10 @@ export async function wrappedOnBeforeRenderClient(
     const { layout, layoutProps } = pageContext.config.getLayout!(
       Object.fromEntries(resp.headers.entries())
     );
+    if (!pageContext.config.layoutMap?.[layout]) {
+      // Fallback to full reload if layout not found
+      window.location.href = resp.url;
+    }
 
     const parsed = document.createElement("html");
     parsed.innerHTML = html;
@@ -35,10 +39,13 @@ export async function wrappedOnBeforeRenderClient(
     await new Promise(requestAnimationFrame);
     const waitForHeadScripts = await Turbolinks._vikeBeforeRender(headEl, true);
 
+    // Copy over body because vike-react only handles body on initial render
     document.body
       .getAttributeNames()
       .forEach((n) => document.body.removeAttribute(n));
     copyElementAttributes(document.body, bodyEl);
+
+    console.log(pageContext.config.bodyAttributes);
 
     pageContext._waitForHeadScripts = waitForHeadScripts;
     pageContext.layout = layout;

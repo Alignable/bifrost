@@ -22,7 +22,7 @@ export function WrappedWrapper({ children }: { children: React.ReactNode }) {
           <Content
             Layout={layoutFromPageContext(pageContext.layout, pageContext)}
             layoutProps={pageContext.layoutProps}
-            body={body}
+            body={body.innerHTML}
           />
         </>
       );

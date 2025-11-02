@@ -1,8 +1,10 @@
-import { PageContext } from "vike/types";
+import { PageContextClient } from "vike/types";
 import { Turbolinks } from "../../lib/turbolinks";
 
-export async function bifrostOnAfterRenderClient(pageContext: PageContext) {
+export async function bifrostOnAfterRenderClient(
+  pageContext: PageContextClient
+) {
   if (!pageContext.isHydration) {
-    await Turbolinks._vikeAfterRender();
+    await Turbolinks._vikeAfterRender(pageContext._waitForHeadScripts);
   }
 }

@@ -87,7 +87,10 @@ export class CustomProxyPage {
     await (browserReload ? ensureBrowserNavigation : ensureNoBrowserNavigation)(
       this.page,
       async () => {
-        await this.page.getByRole("link").filter({ hasText: title }).click();
+        const clickPromise = this.page
+          .getByRole("link")
+          .filter({ hasText: title })
+          .click();
 
         if (waitFor == "turbolinks") {
           await waitForConsoleLog(
@@ -97,6 +100,7 @@ export class CustomProxyPage {
         } else {
           await sleep(waitFor); // TODO: wait on something smarter.
         }
+        await clickPromise;
 
         if (title === "vite page") {
           this.pageData = undefined;

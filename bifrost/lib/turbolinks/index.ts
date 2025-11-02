@@ -94,7 +94,7 @@ export const Turbolinks = {
         );
       }
 
-      // focusFirstAutofocusableElement();
+      focusFirstAutofocusableElement();
 
       controller.viewRendered();
       controller.adapter.visitRendered(controller.currentVisit);

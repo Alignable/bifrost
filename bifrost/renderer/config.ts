@@ -72,7 +72,7 @@ declare global {
     interface PageContextServer {
       wrappedServerOnly?: {
         // Up to onRenderHtml to move layout/layoutProps out so they can be passedToClient
-        body: string;
+        body: HTMLBodyElement;
         head: HTMLHeadElement;
         layout: string;
         layoutProps: AugmentMe.LayoutProps;

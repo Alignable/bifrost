@@ -286,7 +286,10 @@ test.describe("client navigation", () => {
     await expect(page.locator("body")).toContainText(`{"data":true}`);
   });
 
-  test("to proxied page with no layout", async ({ page, baseURL }) => {
+  test("to proxied page with no layout fallsback and reloads", async ({
+    page,
+    baseURL,
+  }) => {
     ensureAllNetworkSucceeds(page);
 
     const customProxy = new CustomProxyPage(page, {
@@ -299,10 +302,13 @@ test.describe("client navigation", () => {
       ],
     });
     await customProxy.goto();
-    await customProxy.clickLink("b");
+    await customProxy.clickLink("b", { browserReload: true, waitFor: 0 });
   });
 
-  test("to proxied page with unknown layout", async ({ page, baseURL }) => {
+  test("to proxied page with unknown layout fallsback and reloads", async ({
+    page,
+    baseURL,
+  }) => {
     ensureAllNetworkSucceeds(page);
 
     const customProxy = new CustomProxyPage(page, {
@@ -315,7 +321,7 @@ test.describe("client navigation", () => {
       ],
     });
     await customProxy.goto();
-    await customProxy.clickLink("b");
+    await customProxy.clickLink("b", { browserReload: true, waitFor: 0 });
   });
 
   test("navigate() works and does not reload", async ({ page }) => {
@@ -396,47 +402,196 @@ test.describe("turbolinks: events", () => {
     expect(customProxy.turbolinksLog).toEqual(["turbolinks:load"]);
   });
 
-  test("navigating proxy page => proxy page, it fires everything", async ({
+  test("on SSR load of vite page, it just fires turbolinks:load", async ({
     page,
   }) => {
-    const customProxy = new CustomProxyPage(page, {
-      title: "first page",
-      content: "first page body content",
-      links: [{ title: "second page", content: "second page body content" }],
-    });
-    await customProxy.goto();
+    const logs = storeConsoleLog(page);
+    await page.goto("./vite-page");
 
-    const head1 = (m: StringMatcher) => m.toEqual("first page");
-    const head2 = (m: StringMatcher) => m.toEqual("second page");
-    const body1 = (m: StringMatcher) => m.toContain("first page body content");
-    const body2 = (m: StringMatcher) => m.toContain("second page body content");
+    expect(logs).toContain("turbolinks:load");
+  });
 
-    // assert we get to the second page at the exact right time
-    const waitForTurbolinks = validateDOMOnTurbolinks(
+  test.describe("client navigation", () => {
+    test("navigating proxy page => proxy page, it fires everything", async ({
       page,
-      ["title", "body"], // grab textcontent of these selectors to assert against
-      [
-        [T.click, head1, body1],
-        [T.beforeVisit, head1, body1],
-        [T.visit, head1, body1],
-        [T.beforeCache, head1, body1],
-        [T.beforeRender, head2, body1],
-        [T.render, head2, body2],
-        [T.load, head2, body2],
-      ]
-    );
-    await customProxy.clickLink("second page");
-    await waitForTurbolinks;
-    expect(customProxy.turbolinksLog).toEqual([
-      T.click,
-      T.beforeVisit,
-      T.visit,
-      T.beforeCache,
-      T.beforeRender,
-      T.render,
-      T.load,
-    ]);
-    await expectNoMoreScripts(page);
+    }) => {
+      const customProxy = new CustomProxyPage(page, {
+        title: "first page",
+        content: "first page body content",
+        links: [{ title: "second page", content: "second page body content" }],
+      });
+      await customProxy.goto();
+
+      const head1 = (m: StringMatcher) => m.toEqual("first page");
+      const head2 = (m: StringMatcher) => m.toEqual("second page");
+      const body1 = (m: StringMatcher) =>
+        m.toContain("first page body content");
+      const body2 = (m: StringMatcher) =>
+        m.toContain("second page body content");
+
+      // assert we get to the second page at the exact right time
+      const waitForTurbolinks = validateDOMOnTurbolinks(
+        page,
+        ["title", "body"], // grab textcontent of these selectors to assert against
+        [
+          [T.click, head1, body1],
+          [T.beforeVisit, head1, body1],
+          [T.visit, head1, body1],
+          [T.beforeCache, head1, body1],
+          [T.beforeRender, head2, body1],
+          [T.render, head2, body2],
+          [T.load, head2, body2],
+        ]
+      );
+      await customProxy.clickLink("second page");
+      await waitForTurbolinks;
+      expect(customProxy.turbolinksLog).toEqual([
+        T.click,
+        T.beforeVisit,
+        T.visit,
+        T.beforeCache,
+        T.beforeRender,
+        T.render,
+        T.load,
+      ]);
+      await expectNoMoreScripts(page);
+    });
+
+    test("navigating vite page => vite page, it fires all events except cache", async ({
+      page,
+    }) => {
+      ensureAllNetworkSucceeds(page);
+
+      await page.goto("./vite-page", {
+        waitUntil: "networkidle",
+      });
+      await expect(page).toHaveTitle("vite page");
+
+      const head1 = (m: StringMatcher) => m.toEqual("vite page");
+      const head2 = (m: StringMatcher) => m.toEqual("head test");
+      const body1 = (m: StringMatcher) => m.toContain("vite is here");
+      const body2 = (m: StringMatcher) => m.toContain("head testing");
+
+      // assert we arent on the second page until load fires
+      const waitForTurbolinks = validateDOMOnTurbolinks(
+        page,
+        ["title", "body"],
+        [
+          [T.click, head1, body1],
+          [T.beforeVisit, head1, body1],
+          [T.visit, head1, body1],
+          // Proxy pages swap over head, fire beforeRender, then render body.
+          // Vite pages DO NOT as there is no need.
+          // We could, if desired, run turbolinks mergeHead, but we'd prefer to maintain behavior parity with vike-react
+          [T.beforeRender, head1, body1],
+          [T.render, head2, body2],
+          [T.load, head2, body2],
+        ]
+      );
+      const logs = storeConsoleLog(page);
+
+      await ensureNoBrowserNavigation(page, () =>
+        page.getByText("head test").click()
+      );
+      await expect(page).toHaveTitle("head test");
+      await waitForTurbolinks;
+      expect(logs.filter((s) => s.startsWith("turbolinks:"))).toEqual([
+        T.click,
+        T.beforeVisit,
+        T.visit,
+        T.beforeRender,
+        T.render,
+        T.load,
+      ]);
+      await expectNoMoreScripts(page);
+    });
+
+    test("navigating proxy => vite page fires all events", async ({ page }) => {
+      const customProxy = new CustomProxyPage(page, {
+        title: "first page",
+        content: "first page body content",
+      });
+      await customProxy.goto();
+
+      const head1 = (m: StringMatcher) => m.toEqual("first page");
+      const head2 = (m: StringMatcher) => m.toEqual("vite page");
+      const body1 = (m: StringMatcher) =>
+        m.toContain("first page body content");
+      const body2 = (m: StringMatcher) => m.toContain("vite is here");
+
+      // assert we arent on the second page until load fires
+      const waitForTurbolinks = validateDOMOnTurbolinks(
+        page,
+        ["title", "body"],
+        [
+          [T.click, head1, body1],
+          [T.beforeVisit, head1, body1],
+          [T.visit, head1, body1],
+          [T.beforeCache, head1, body1],
+          [T.beforeRender, head1, body1],
+          [T.render, head2, body2],
+          [T.load, head2, body2],
+        ]
+      );
+      await customProxy.clickLink("vite page");
+      await waitForTurbolinks;
+      expect(customProxy.turbolinksLog).toEqual([
+        T.click,
+        T.beforeVisit,
+        T.visit,
+        T.beforeCache,
+        T.beforeRender,
+        T.render,
+        T.load,
+      ]);
+      await expectNoMoreScripts(page);
+    });
+
+    // We do not want to cache new pages
+    test("navigating vite page => proxy page fires all events EXCEPT cache", async ({
+      page,
+    }) => {
+      ensureAllNetworkSucceeds(page);
+
+      await page.goto("./vite-page", {
+        waitUntil: "networkidle",
+      });
+      await expect(page).toHaveTitle("vite page");
+
+      const head1 = (m: StringMatcher) => m.toEqual("vite page");
+      const head2 = (m: StringMatcher) => m.toEqual("legacy page");
+      const body1 = (m: StringMatcher) => m.toContain("vite is here");
+      const body2 = (m: StringMatcher) => m.toContain("legacy body");
+
+      // assert we arent on the second page until load fires
+      const waitForTurbolinks = validateDOMOnTurbolinks(
+        page,
+        ["title", "body"],
+        [
+          [T.click, head1, body1],
+          [T.beforeVisit, head1, body1],
+          [T.visit, head1, body1],
+          [T.beforeRender, head2, body1],
+          [T.render, head2, body2],
+          [T.load, head2, body2],
+        ]
+      );
+      const logs = storeConsoleLog(page);
+
+      await ensureNoBrowserNavigation(page, () =>
+        page.getByText("legacy page").click()
+      );
+      await expect(page).toHaveTitle("legacy page");
+      await waitForTurbolinks;
+      expect(logs.filter((s) => s.startsWith("turbolinks:"))).toEqual([
+        T.click,
+        T.beforeVisit,
+        T.visit,
+        T.beforeRender,
+        T.render,
+        T.load,
+      ]);
+    });
   });
 
   test("runs blocking head scripts and inline body scripts before turbolinks:render", async ({
@@ -471,98 +626,6 @@ test.describe("turbolinks: events", () => {
       "body script: blocking",
     ]);
     await expectNoMoreScripts(page);
-  });
-
-  test("loading vite page fires turbolinks:load", async ({ page }) => {
-    const logs = storeConsoleLog(page);
-    await page.goto("./vite-page");
-
-    expect(logs).toContain("turbolinks:load");
-  });
-
-  test("navigating proxy => vite page fires all events", async ({ page }) => {
-    const customProxy = new CustomProxyPage(page, {
-      title: "first page",
-      content: "first page body content",
-    });
-    await customProxy.goto();
-
-    const head1 = (m: StringMatcher) => m.toEqual("first page");
-    const head2 = (m: StringMatcher) => m.toEqual("vite page");
-    const body1 = (m: StringMatcher) => m.toContain("first page body content");
-    const body2 = (m: StringMatcher) => m.toContain("vite is here");
-
-    // assert we arent on the second page until load fires
-    const waitForTurbolinks = validateDOMOnTurbolinks(
-      page,
-      ["title", "body"],
-      [
-        [T.click, head1, body1],
-        [T.beforeVisit, head1, body1],
-        [T.visit, head1, body1],
-        [T.beforeCache, head1, body1],
-        [T.beforeRender, head2, body1],
-        [T.render, head2, body2],
-        [T.load, head2, body2],
-      ]
-    );
-    await customProxy.clickLink("vite page");
-    await waitForTurbolinks;
-    expect(customProxy.turbolinksLog).toEqual([
-      T.click,
-      T.beforeVisit,
-      T.visit,
-      T.beforeCache,
-      T.beforeRender,
-      T.render,
-      T.load,
-    ]);
-  });
-
-  // We do not want to cache new pages
-  test("leaving vite page to proxy page fires all events EXCEPT cache", async ({
-    page,
-  }) => {
-    ensureAllNetworkSucceeds(page);
-
-    await page.goto("./vite-page", {
-      waitUntil: "networkidle",
-    });
-    await expect(page).toHaveTitle("vite page");
-
-    const head1 = (m: StringMatcher) => m.toEqual("vite page");
-    const head2 = (m: StringMatcher) => m.toEqual("legacy page");
-    const body1 = (m: StringMatcher) => m.toContain("vite is here");
-    const body2 = (m: StringMatcher) => m.toContain("legacy body");
-
-    // assert we arent on the second page until load fires
-    const waitForTurbolinks = validateDOMOnTurbolinks(
-      page,
-      ["title", "body"],
-      [
-        [T.click, head1, body1],
-        [T.beforeVisit, head1, body1],
-        [T.visit, head1, body1],
-        [T.beforeRender, head2, body1],
-        [T.render, head2, body2],
-        [T.load, head2, body2],
-      ]
-    );
-    const logs = storeConsoleLog(page);
-
-    await ensureNoBrowserNavigation(page, () =>
-      page.getByText("legacy page").click()
-    );
-    await expect(page).toHaveTitle("legacy page");
-    await waitForTurbolinks;
-    expect(logs.filter((s) => s.startsWith("turbolinks:"))).toEqual([
-      T.click,
-      T.beforeVisit,
-      T.visit,
-      T.beforeRender,
-      T.render,
-      T.load,
-    ]);
   });
 });
 
