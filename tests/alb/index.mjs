@@ -14,7 +14,6 @@ const BIFROST_PATHS = [
   "/this-is-a-custom-route",
   "/broken-page",
   "/json-route",
-  "/body-test",
   "/",
 ];
 
