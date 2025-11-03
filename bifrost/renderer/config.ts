@@ -8,10 +8,6 @@ export default {
     "vike-react": ">=0.6.10",
   },
 
-  // can prob del?
-  clientHooks: true,
-  clientRouting: true,
-
   onBeforeRoute: "import:@alignable/bifrost/renderer/onBeforeRoute:default",
   onBeforeRenderClient:
     "import:@alignable/bifrost/renderer/onBeforeRenderClient:default",
@@ -20,7 +16,6 @@ export default {
   onBeforeRenderHtml:
     "import:@alignable/bifrost/renderer/onBeforeRenderHtml:default",
   Head: "import:@alignable/bifrost/renderer/Head:default",
-  Wrapper: "import:@alignable/bifrost/renderer/Wrapper:default",
 
   passToClient: ["layout", "layoutProps", "redirectTo"],
 
@@ -36,6 +31,7 @@ export default {
             return {};
           case "wrapped":
             return {
+              Page: "import:@alignable/bifrost/renderer/wrapped/Page:default" as any,
               meta: {
                 onBeforeRender: { env: { client: true, server: false } },
               },
@@ -72,19 +68,25 @@ declare global {
       layout: string;
       layoutProps: Vike.LayoutProps;
 
-      /// TODO: remove?
+      /// TODO: remove? will need to handle turbolinks controller when navigating. this would let us stop re-exporting navigate also.
       redirectTo?: string;
+
+      // Not passed to client, derived in onBeforeRenderHtml and onBeforeRenderClient
+      _turbolinksProxy?: {
+        body: HTMLElement;
+      };
     }
     interface PageContextClient {
-      _wrappedBodyHtml?: string;
-      _waitForHeadScripts?: () => Promise<void>;
       snapshot?: Snapshot;
+      _waitForHeadScripts?: () => Promise<void>;
     }
     interface PageContextServer {
       wrappedServerOnly?: {
-        // Up to onRenderHtml to move layout/layoutProps out so they can be passedToClient
         body: HTMLBodyElement;
         head: HTMLHeadElement;
+        // layout/layoutProps CANNOT be in pageContextInit as that will force Vike to make pageContext.json requests
+        // https://vike.dev/pageContext.json#avoid-pagecontext-json-requests
+        // Instead, we nest them inside wrappedServerOnly and move them to top-level pageContext in onBeforeRenderHtml
         layout: string;
         layoutProps: Vike.LayoutProps;
       };

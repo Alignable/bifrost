@@ -7,8 +7,9 @@ export async function wrappedOnBeforeRenderClient(
   pageContext: PageContextClient
 ) {
   if (pageContext.isHydration) {
-    pageContext._wrappedBodyHtml =
-      document.getElementById("proxied-body")!.innerHTML;
+    pageContext._turbolinksProxy = {
+      body: document.getElementById("proxied-body")!,
+    };
     return;
   }
 
@@ -20,13 +21,15 @@ export async function wrappedOnBeforeRenderClient(
     }
     const { layoutProps, layout } = pageContext.snapshot.pageContext;
     const { bodyEl, headEl } = pageContext.snapshot;
-    const proxyBodyEl = bodyEl.querySelector("#proxied-body");
-    if (!proxyBodyEl) {
+    const proxyBodyEl = bodyEl.querySelector("#proxied-body")!;
+    if (!proxyBodyEl || !(proxyBodyEl instanceof HTMLElement)) {
       throw new Error("proxied body not found in cached snapshot");
     }
     pageContext.layout = layout;
     pageContext.layoutProps = layoutProps;
-    pageContext._wrappedBodyHtml = proxyBodyEl.innerHTML;
+    pageContext._turbolinksProxy = {
+      body: proxyBodyEl,
+    };
 
     pageContext._waitForHeadScripts = await Turbolinks._vikeBeforeRender(
       headEl,
@@ -61,7 +64,9 @@ export async function wrappedOnBeforeRenderClient(
     const headEl = parsed.querySelector("head")!;
     pageContext.layout = layout;
     pageContext.layoutProps = layoutProps;
-    pageContext._wrappedBodyHtml = bodyEl.innerHTML;
+    pageContext._turbolinksProxy = {
+      body: bodyEl,
+    };
 
     pageContext._waitForHeadScripts = await Turbolinks._vikeBeforeRender(
       headEl,
@@ -71,7 +76,7 @@ export async function wrappedOnBeforeRenderClient(
   }
 }
 
-// Copy over body because vike-react only handles body on initial render
+// Copy over body attributes because vike-react only handles body on initial render
 function copyBody(bodyEl: HTMLElement) {
   document.body
     .getAttributeNames()

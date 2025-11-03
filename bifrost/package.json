@@ -13,9 +13,9 @@
       "types": "./dist/renderer/Head.d.ts",
       "default": "./dist/renderer/Head.js"
     },
-    "./renderer/Wrapper": {
-      "types": "./dist/renderer/Wrapper.d.ts",
-      "default": "./dist/renderer/Wrapper.js"
+    "./renderer/wrapped/Page": {
+      "types": "./dist/renderer/wrapped/Page.d.ts",
+      "default": "./dist/renderer/wrapped/Page.js"
     },
     "./renderer/onBeforeRenderClient": {
       "types": "./dist/renderer/onBeforeRenderClient.d.ts",

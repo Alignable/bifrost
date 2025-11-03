@@ -12,5 +12,5 @@
     "esModuleInterop": true,
     "noEmit": true
   },
-  "include": ["renderer", "lib", "index.ts", "types.ts"]
+  "include": ["renderer", "lib", "index.ts"]
 }
