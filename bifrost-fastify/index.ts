@@ -200,6 +200,7 @@ export const viteProxyPlugin: FastifyPluginAsync<
 
         const html = await streamToString(res);
 
+        // TODO: jsdom is perf bottleneck. We should not deeply parse dom. Just get head, body, and attributes
         const dom = new jsdom.JSDOM(html);
         const doc = dom.window.document;
         const body = doc.querySelector("body");
