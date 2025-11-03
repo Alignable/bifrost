@@ -1,6 +1,7 @@
 import { PageContextClient } from "vike/types";
 import { Turbolinks } from "../../lib/turbolinks";
 import { copyElementAttributes } from "../../lib/turbolinks/util";
+import { mergeHead } from "../../lib/turbolinks/mergeHead";
 
 // TODO: Should this live in +data or onData instead?
 export async function wrappedOnBeforeRenderClient(
@@ -31,10 +32,10 @@ export async function wrappedOnBeforeRenderClient(
       body: proxyBodyEl,
     };
 
-    pageContext._waitForHeadScripts = await Turbolinks._vikeBeforeRender(
-      headEl,
-      true
-    );
+    await Turbolinks._vikeBeforeRender(() => {
+      const waitForHeadScripts = mergeHead(headEl);
+      pageContext._waitForHeadScripts = () => waitForHeadScripts;
+    });
     copyBody(bodyEl);
   } else {
     const resp = await fetch(pageContext.urlOriginal, {
@@ -68,10 +69,10 @@ export async function wrappedOnBeforeRenderClient(
       body: bodyEl,
     };
 
-    pageContext._waitForHeadScripts = await Turbolinks._vikeBeforeRender(
-      headEl,
-      true
-    );
+    await Turbolinks._vikeBeforeRender(() => {
+      const waitForHeadScripts = mergeHead(headEl);
+      pageContext._waitForHeadScripts = () => waitForHeadScripts;
+    });
     copyBody(bodyEl);
   }
 }

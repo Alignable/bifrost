@@ -14,6 +14,7 @@ export async function wrappedOnAfterRenderClient(
   });
   if (!pageContext.isHydration) {
     // On client navigation, tell turbolinks to run scripts and fire events
-    await Turbolinks._vikeAfterRender(pageContext._waitForHeadScripts);
+    await pageContext._waitForHeadScripts?.();
+    await Turbolinks._vikeAfterRender(true);
   }
 }

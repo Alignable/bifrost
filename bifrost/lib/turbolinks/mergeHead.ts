@@ -1,3 +1,4 @@
+import { Turbolinks } from ".";
 import { createScriptElement } from "./util";
 
 interface ElementDetails {
@@ -7,13 +8,11 @@ const allHeadScriptsEverRun: { [outerHTML: string]: ElementDetails } = {};
 let firstLoad = true;
 let lastTrackedScriptSignature: string;
 
-export async function mergeHead(
-  head: HTMLHeadElement,
-  trackScripts: boolean,
-  reload: () => void
-) {
+// Returns promise that resolves when head scripts are loaded
+export async function mergeHead(head: HTMLHeadElement) {
   const newHead = categorizeHead(head);
   const oldHead = categorizeHead(document.head);
+  const reload = () => Turbolinks.controller.viewInvalidated();
 
   if (
     head
@@ -22,16 +21,15 @@ export async function mergeHead(
   ) {
     reload();
   }
-  if (trackScripts) {
-    lastTrackedScriptSignature =
-      lastTrackedScriptSignature ||
-      trackedElementSignature([...oldHead.scripts, ...oldHead.stylesheets]);
-    if (
-      lastTrackedScriptSignature !==
-      trackedElementSignature([...newHead.scripts, ...newHead.stylesheets])
-    ) {
-      reload();
-    }
+
+  lastTrackedScriptSignature =
+    lastTrackedScriptSignature ||
+    trackedElementSignature([...oldHead.scripts, ...oldHead.stylesheets]);
+  if (
+    lastTrackedScriptSignature !==
+    trackedElementSignature([...newHead.scripts, ...newHead.stylesheets])
+  ) {
+    reload();
   }
 
   if (firstLoad) {

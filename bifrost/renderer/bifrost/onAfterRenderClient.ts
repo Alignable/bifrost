@@ -5,6 +5,6 @@ export async function bifrostOnAfterRenderClient(
   pageContext: PageContextClient
 ) {
   if (!pageContext.isHydration) {
-    await Turbolinks._vikeAfterRender(pageContext._waitForHeadScripts);
+    await Turbolinks._vikeAfterRender(false);
   }
 }

@@ -14,6 +14,6 @@ export async function bifrostOnBeforeRenderClient(
 
   if (!pageContext.isHydration) {
     await new Promise(requestAnimationFrame);
-    pageContext._waitForHeadScripts = await Turbolinks._vikeBeforeRender();
+    await Turbolinks._vikeBeforeRender();
   }
 }

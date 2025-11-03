@@ -39,7 +39,7 @@ export class Visit {
   state = VisitState.initialized;
 
   requestInFlight = false;
-  renderFn?: () => Promise<void>;
+  renderFn?: () => void;
 
   constructor(
     controller: Controller,
@@ -128,12 +128,11 @@ export class Visit {
   }
 
   loadResponse() {
-    this.render(async () => {
+    this.render(() => {
       if (!this.renderFn)
         throw new Error("Render details not set before rendering");
       this.cacheSnapshot();
-      await this.renderFn();
-      this.complete();
+      this.renderFn();
     });
   }
 
@@ -195,7 +194,7 @@ export class Visit {
     }
   }
 
-  render(callback: () => Promise<void>) {
+  render(callback: () => void) {
     this.cancelRender();
     this.frame = requestAnimationFrame(() => {
       delete this.frame;
