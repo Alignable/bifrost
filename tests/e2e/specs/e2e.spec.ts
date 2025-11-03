@@ -326,8 +326,10 @@ test.describe("client navigation", () => {
     await expect(page).toHaveTitle("vite page");
     await ensureNoBrowserNavigation(page, async () => {
       const anchorLink = page.getByRole("link", { name: "anchor link" });
-      await anchorLink.click();
-      expect(await page.evaluate(() => window.scrollY)).toBeGreaterThan(100);
+      await ensureNoBrowserNavigation(page, async () => {
+        await anchorLink.click();
+      });
+      await page.waitForFunction(() => window.scrollY > 100);
       // verify url
       expect(page.url().endsWith("vite-page#anchor")).toBeTruthy();
 
