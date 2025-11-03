@@ -99,7 +99,8 @@ function copyNewHeadScriptElements(
   }
   if (blockingLoaded.length === 0) {
     // raf waits for react to finish
-    requestAnimationFrame(dispatch);
+    // requestAnimationFrame(dispatch);
+    dispatch();
   }
 }
 

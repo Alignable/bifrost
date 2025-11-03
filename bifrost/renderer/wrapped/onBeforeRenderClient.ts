@@ -28,7 +28,6 @@ export async function wrappedOnBeforeRenderClient(
     pageContext.layoutProps = layoutProps;
     pageContext._wrappedBodyHtml = proxyBodyEl.innerHTML;
 
-    await new Promise(requestAnimationFrame);
     pageContext._waitForHeadScripts = await Turbolinks._vikeBeforeRender(
       headEl,
       true
@@ -64,7 +63,6 @@ export async function wrappedOnBeforeRenderClient(
     pageContext.layoutProps = layoutProps;
     pageContext._wrappedBodyHtml = bodyEl.innerHTML;
 
-    await new Promise(requestAnimationFrame);
     pageContext._waitForHeadScripts = await Turbolinks._vikeBeforeRender(
       headEl,
       true
