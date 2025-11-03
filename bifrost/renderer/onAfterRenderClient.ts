@@ -1,15 +1,10 @@
-import {
-  PageContextNoProxyClient,
-  PageContextProxyClient,
-} from "../types/internal.js";
+import { PageContextClient } from "vike/types";
 import { Turbolinks } from "../lib/turbolinks/index.js";
 import { bifrostOnAfterRenderClient } from "./bifrost/onAfterRenderClient";
 import { wrappedOnAfterRenderClient } from "./wrapped/onAfterRenderClient";
 
-Turbolinks.start();
-
 export default async function onAfterRenderClient(
-  pageContext: PageContextNoProxyClient | PageContextProxyClient
+  pageContext: PageContextClient
 ) {
   if ("redirectTo" in pageContext && pageContext.redirectTo) {
     Turbolinks.visit(pageContext.redirectTo);

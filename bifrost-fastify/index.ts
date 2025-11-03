@@ -4,11 +4,12 @@ import { FastifyRequest, RequestGenericInterface } from "fastify/types/request";
 import proxy from "@fastify/http-proxy";
 import accepts from "@fastify/accepts";
 import forwarded from "@fastify/forwarded";
+import { type GetLayout } from "@alignable/bifrost/config";
 import { Writable } from "stream";
 import { IncomingMessage } from "http";
 import { renderPage } from "vike/server";
-import { AugmentMe, GetLayout, PageContext } from "@alignable/bifrost";
 import jsdom from "jsdom";
+import { PageContextServer } from "vike/types";
 
 type RenderedPageContext = Awaited<
   ReturnType<
@@ -52,7 +53,7 @@ interface ViteProxyPluginOptions {
   onError?: (error: any, pageContext: RenderedPageContext) => void;
   buildPageContextInit?: (
     req: FastifyRequest
-  ) => Promise<AugmentMe.PageContextInit>;
+  ) => Promise<Partial<Omit<PageContextServer, "headers">>>;
 }
 /**
  * Fastify plugin that wraps @fasitfy/http-proxy to proxy Rails/Turbolinks server into a vike site.
@@ -105,10 +106,7 @@ export const viteProxyPlugin: FastifyPluginAsync<
           ...(buildPageContextInit ? await buildPageContextInit(req) : {}),
         };
 
-        const pageContext = await renderPage<
-          PageContext,
-          typeof pageContextInit
-        >(pageContextInit);
+        const pageContext = await renderPage(pageContextInit);
 
         // this does not handle getting the original pageId when errors are thrown: https://github.com/vikejs/vike/issues/1112
         req.bifrostPageId = pageContext.pageId;

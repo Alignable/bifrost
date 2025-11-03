@@ -1,6 +1,4 @@
 import { type Config } from "vike/types";
-import { wrappedConfig } from "./configs/wrapped";
-import { type AugmentMe, GetLayout } from "../types/internal";
 import { type Snapshot } from "../lib/turbolinks/controller";
 
 export default {
@@ -24,11 +22,12 @@ export default {
   Head: "import:@alignable/bifrost/renderer/Head:default",
   Wrapper: "import:@alignable/bifrost/renderer/Wrapper:default",
 
-  passToClient: [...wrappedConfig.passToClient],
+  passToClient: ["layout", "layoutProps", "redirectTo"],
 
   meta: {
-    ...wrappedConfig.meta,
-
+    layoutMap: { env: { server: true, client: true } },
+    getLayout: { env: { server: true, client: true } },
+    proxyHeaders: { env: { server: true, client: true } },
     proxyMode: {
       env: { server: true, client: true, config: true },
       effect({ configDefinedAt, configValue }) {
@@ -54,6 +53,13 @@ export default {
   },
 } satisfies Config;
 
+export type GetLayout = (
+  headers: Record<string, number | string | string[] | undefined>
+) => {
+  layout: string;
+  layoutProps: Vike.LayoutProps;
+};
+
 declare global {
   namespace Vike {
     interface Config {
@@ -64,7 +70,10 @@ declare global {
     }
     interface PageContext {
       layout: string;
-      layoutProps: AugmentMe.LayoutProps;
+      layoutProps: Vike.LayoutProps;
+
+      /// TODO: remove?
+      redirectTo?: string;
     }
     interface PageContextClient {
       _wrappedBodyHtml?: string;
@@ -77,8 +86,9 @@ declare global {
         body: HTMLBodyElement;
         head: HTMLHeadElement;
         layout: string;
-        layoutProps: AugmentMe.LayoutProps;
+        layoutProps: Vike.LayoutProps;
       };
     }
+    interface LayoutProps {}
   }
 }

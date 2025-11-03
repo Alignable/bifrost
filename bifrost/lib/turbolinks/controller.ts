@@ -5,7 +5,7 @@ import { Location, Locatable } from "./location";
 import { Action, isAction } from "./types";
 import { closest, defer, dispatch, uuid } from "./util";
 import { Visit } from "./visit";
-import { PageContextProxyClientHydration } from "../../types/internal";
+import { PageContextClient } from "vike/types";
 
 export type TimingData = {};
 export type VisitOptions = { action: Action };
@@ -13,7 +13,7 @@ export type VisitOptions = { action: Action };
 export interface Snapshot {
   bodyEl: HTMLElement;
   headEl: HTMLHeadElement;
-  pageContext: PageContextProxyClientHydration;
+  pageContext: PageContextClient;
 }
 
 export class Controller {

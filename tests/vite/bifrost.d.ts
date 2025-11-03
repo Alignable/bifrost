@@ -1,19 +1,12 @@
-import "@alignable/bifrost";
-declare module "@alignable/bifrost" {
-  namespace AugmentMe {
-    interface PageContextInit {
-      loggedIn: boolean;
-    }
-  }
-}
-
 declare global {
   namespace Vike {
-    // interface PageContext {
-    //   currentNav: string;
-    // }
+    interface PageContextServer {
+      loggedIn: boolean;
+    }
     interface Config {
       currentNav?: string;
     }
   }
 }
+
+export {};

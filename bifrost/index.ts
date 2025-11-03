@@ -1,53 +1,7 @@
-export type {
-  Config,
-  Meta,
-  GuardAsync,
-  GuardSync,
-  OnBeforePrerenderStartAsync,
-  OnBeforePrerenderStartSync,
-  OnBeforeRenderAsync,
-  OnBeforeRenderSync,
-  OnBeforeRouteAsync,
-  OnBeforeRouteSync,
-  OnHydrationEndAsync,
-  OnHydrationEndSync,
-  OnPageTransitionEndAsync,
-  OnPageTransitionEndSync,
-  OnPageTransitionStartAsync,
-  OnPageTransitionStartSync,
-  OnPrerenderStartAsync,
-  OnPrerenderStartSync,
-  OnRenderClientAsync,
-  OnRenderClientSync,
-  OnRenderHtmlAsync,
-  OnRenderHtmlSync,
-  RouteAsync,
-  RouteSync,
-} from "vike/types";
 import { navigate as vikeNavigate } from "vike/client/router";
 export { prefetch } from "vike/client/router";
-import type {
-  ApplicationFacingPageContext,
-  AugmentMe,
-} from "./types/internal.js";
 
-export type {
-  DocumentProps,
-  LayoutMap,
-  NoProxyConfig as BifrostConfig,
-  ProxyConfig as BifrostProxyConfig,
-  LayoutComponent,
-  AugmentMe,
-  PageContext,
-  GetLayout,
-  Scripts,
-  DynamicScripts,
-} from "./types/internal";
-export {
-  usePageContext,
-  PageContextProvider,
-} from "./renderer/usePageContext.js";
-
+// TODO: Can we hook into onPageTransitionStart instead, allowing users to call Vike's navigate directly?
 export const navigate: typeof vikeNavigate = async (url, opts) => {
   window.Turbolinks.visit(url, {
     action: opts?.overwriteLastHistoryEntry ? "replace" : "advance",
@@ -58,11 +12,3 @@ export const navigate: typeof vikeNavigate = async (url, opts) => {
     });
   }
 };
-
-declare global {
-  namespace Vike {
-    interface PageContext
-      extends ApplicationFacingPageContext,
-        AugmentMe.PageContextInit {}
-  }
-}

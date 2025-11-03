@@ -21,7 +21,9 @@ export function Head() {
   });
   window.turboDebug = true;
 }`}</script>
-      {pageContext.loggedIn && <script>console.log('logged in')</script>}
+      {"loggedIn" in pageContext && pageContext.loggedIn && (
+        <script>console.log('logged in')</script>
+      )}
     </>
   );
 }

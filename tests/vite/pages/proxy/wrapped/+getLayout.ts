@@ -1,4 +1,4 @@
-import { GetLayout } from "@alignable/bifrost";
+import { GetLayout } from "@alignable/bifrost/config";
 
 const getLayout: GetLayout = function (headers) {
   return {

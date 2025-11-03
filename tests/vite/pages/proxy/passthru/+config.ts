@@ -1,6 +1,6 @@
-import { BifrostProxyConfig } from "@alignable/bifrost";
+import { Config } from "vike/types";
 
 export default {
   route: "/*",
   proxyMode: "passthru",
-} satisfies BifrostProxyConfig;
+} satisfies Config;
