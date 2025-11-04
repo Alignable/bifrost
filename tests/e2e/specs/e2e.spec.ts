@@ -341,41 +341,125 @@ test.describe("client navigation", () => {
 });
 
 test.describe("redirects", () => {
-  test("on initial load, follows redirect", async ({ page, baseURL }) => {
-    const customProxy = new CustomProxyPage(page, {
-      redirectTo: { title: "redirect destination" },
+  test.describe("proxied redirects", () => {
+    test("on initial load, follows redirect", async ({ page, baseURL }) => {
+      const customProxy = new CustomProxyPage(page, {
+        redirectTo: { title: "redirect destination" },
+      });
+      await customProxy.goto();
+      // verify we're still on main domain and didn't follow redirect to proxied server's domain
+      expect(page.url()).toContain(`${baseURL}/custom`);
     });
-    await customProxy.goto();
-    // verify we're still on main domain and didn't follow redirect to proxied server's domain
-    expect(page.url()).toContain(`${baseURL}/custom`);
+
+    test("on client navigation, follows redirect", async ({
+      page,
+      baseURL,
+    }) => {
+      ensureAllNetworkSucceeds(page);
+      const customProxy = new CustomProxyPage(page, {
+        title: "first page",
+        links: [{ redirectTo: { title: "redirect destination" } }],
+      });
+      await customProxy.goto();
+      await customProxy.clickLink("redirect destination");
+      expect(page.url()).toContain(`${baseURL}/custom`);
+      // back button works as expected
+      await customProxy.goBack();
+    });
+
+    test("sets cookies along the way", async ({ page, context, baseURL }) => {
+      ensureAllNetworkSucceeds(page);
+      const customProxy = new CustomProxyPage(page, {
+        title: "first page",
+        links: [
+          {
+            cookies: { cookie1: "value1" },
+            redirectTo: { title: "redirect destination" },
+          },
+        ],
+      });
+      await customProxy.goto();
+      await customProxy.clickLink("redirect destination");
+      expect(await context.cookies()).toMatchObject([
+        { name: "cookie1", value: "value1" },
+      ]);
+      expect(page.url()).toContain(`${baseURL}/custom`);
+    });
+
+    test("redirects to vite page", async ({ page, baseURL }) => {
+      ensureAllNetworkSucceeds(page);
+      const customProxy = new CustomProxyPage(page, {
+        title: "first page",
+        links: [
+          {
+            redirectTo: {
+              endpoint: "head-test",
+              title: "head test",
+            },
+          },
+        ],
+      });
+      await customProxy.goto();
+      await customProxy.clickLink("head test");
+      expect(page.url()).toContain(`${baseURL}/head-test`);
+    });
   });
 
-  test("on client navigation, follows redirect", async ({ page, baseURL }) => {
-    const customProxy = new CustomProxyPage(page, {
-      title: "first page",
-      links: [{ redirectTo: { title: "redirect destination" } }],
+  test.describe("vike-react throw redirect", () => {
+    test("on initial load, follows redirect", async ({ page }) => {
+      await page.goto("./redirect-page/redirect-to");
+
+      await page.waitForURL("./");
     });
-    await customProxy.goto();
-    await customProxy.clickLink("redirect destination");
-    expect(page.url()).toContain(`${baseURL}/custom`);
+
+    test("on client navigation, follows redirect", async ({ page }) => {
+      await page.goto("./redirect-page", { waitUntil: "networkidle" });
+
+      await ensureNoBrowserNavigation(page, () =>
+        page.getByText("redirect to home").click()
+      );
+      await page.waitForURL("./");
+      // back button works as expected
+      await ensureNoBrowserNavigation(page, async () => {
+        page.goBack();
+      });
+      await page.waitForURL("./redirect-page");
+    });
+
+    test("redirect to proxy page works", async ({ page, baseURL }) => {
+      await page.goto("./redirect-page", { waitUntil: "networkidle" });
+
+      await ensureNoBrowserNavigation(page, () =>
+        page.getByText("redirect to proxy page").click()
+      );
+      await expect(page).toHaveTitle("b");
+      // back button works as expected
+      await ensureNoBrowserNavigation(page, async () => {
+        page.goBack();
+      });
+      await page.waitForURL("./redirect-page");
+    });
   });
 
-  test("sets cookies along the way", async ({ page, context, baseURL }) => {
+  test("chained redirects", async ({ page, baseURL }) => {
+    // ensureAllNetworkSucceeds(page);
     const customProxy = new CustomProxyPage(page, {
       title: "first page",
       links: [
         {
-          cookies: { cookie1: "value1" },
-          redirectTo: { title: "redirect destination" },
+          redirectTo: {
+            redirectTo: {
+              title: "b",
+              endpoint: `redirect-page/redirect-to?redirectTo=${encodeURIComponent(
+                '/custom?page={"title":"b"}'
+              )}`,
+            },
+          },
         },
       ],
     });
     await customProxy.goto();
-    await customProxy.clickLink("redirect destination");
-    expect(await context.cookies()).toMatchObject([
-      { name: "cookie1", value: "value1" },
-    ]);
-    expect(page.url()).toContain(`${baseURL}/custom`);
+    await customProxy.clickLink("b");
   });
 });
 
@@ -579,6 +663,154 @@ test.describe("turbolinks: events", () => {
         T.render,
         T.load,
       ]);
+    });
+
+    test.describe("redirecting pages", () => {
+      test("navigating to redirecting proxy page", async ({
+        page,
+        baseURL,
+      }) => {
+        ensureAllNetworkSucceeds(page);
+
+        const customProxy = new CustomProxyPage(page, {
+          title: "first page",
+          content: "first page body content",
+          links: [
+            {
+              redirectTo: { title: "redirect destination" },
+              content: "destination content",
+            },
+          ],
+        });
+        await customProxy.goto();
+
+        const head1 = (m: StringMatcher) => m.toEqual("first page");
+        const head2 = (m: StringMatcher) => m.toEqual("redirect destination");
+        const body1 = (m: StringMatcher) =>
+          m.toContain("first page body content");
+        const body2 = (m: StringMatcher) => m.toContain("destination content");
+
+        // assert we get to the second page at the exact right time
+        const waitForTurbolinks = validateDOMOnTurbolinks(
+          page,
+          ["title", "body"], // grab textcontent of these selectors to assert against
+          [
+            [T.click, head1, body1],
+            [T.beforeVisit, head1, body1],
+            [T.visit, head1, body1],
+            [T.beforeCache, head1, body1],
+            [T.beforeRender, head2, body1],
+            [T.render, head2, body2],
+            [T.load, head2, body2],
+          ]
+        );
+        await customProxy.clickLink("redirect destination");
+        await waitForTurbolinks;
+        expect(customProxy.turbolinksLog).toEqual([
+          T.click,
+          T.beforeVisit,
+          T.visit,
+          T.beforeCache,
+          T.beforeRender,
+          T.render,
+          T.load,
+        ]);
+        await expectNoMoreScripts(page);
+      });
+
+      test("navigating to redirecting vite page", async ({ page, baseURL }) => {
+        ensureAllNetworkSucceeds(page);
+
+        await page.goto("./vite-page");
+
+        const head1 = (m: StringMatcher) => m.toEqual("vite page");
+        const head2 = (m: StringMatcher) => m.toEqual("head test");
+        const body1 = (m: StringMatcher) => m.toContain("vite is here");
+        const body2 = (m: StringMatcher) => m.toContain("head testing");
+
+        // assert we get to the second page at the exact right time
+        const waitForTurbolinks = validateDOMOnTurbolinks(
+          page,
+          ["title", "body"], // grab textcontent of these selectors to assert against
+          [
+            [T.click, head1, body1],
+            [T.beforeVisit, head1, body1],
+            [T.visit, head1, body1],
+            [T.beforeCache, head1, body1],
+            [T.beforeRender, head2, body1],
+            [T.render, head2, body2],
+            [T.load, head2, body2],
+          ]
+        );
+
+        const logs = storeConsoleLog(page);
+
+        await ensureNoBrowserNavigation(page, () =>
+          page.getByText("redirect page").click()
+        );
+        await expect(page).toHaveTitle("head test");
+        await page.waitForURL("./");
+        await waitForTurbolinks;
+        expect(logs.filter((s) => s.startsWith("turbolinks:"))).toEqual([
+          T.click,
+          T.beforeVisit,
+          T.visit,
+          T.beforeCache,
+          T.beforeRender,
+          T.render,
+          T.load,
+        ]);
+        await expectNoMoreScripts(page);
+      });
+    });
+
+    test.describe("navigate programmtically", () => {
+      test("from vite to vite", async ({ page }) => {
+        // ensureAllNetworkSucceeds(page);
+
+        await page.goto("./vite-page", {
+          waitUntil: "networkidle",
+        });
+
+        const head1 = (m: StringMatcher) => m.toEqual("vite page");
+        const head2 = (m: StringMatcher) => m.toEqual("head test");
+        const body1 = (m: StringMatcher) => m.toContain("vite is here");
+        const body2 = (m: StringMatcher) => m.toContain("head testing");
+
+        // assert we get to the second page at the exact right time
+        const waitForTurbolinks = validateDOMOnTurbolinks(
+          page,
+          ["title", "body"], // grab textcontent of these selectors to assert against
+          [
+            [T.click, head1, body1],
+            [T.beforeVisit, head1, body1],
+            [T.visit, head1, body1],
+            [T.beforeCache, head1, body1],
+            [T.beforeRender, head2, body1],
+            [T.render, head2, body2],
+            [T.load, head2, body2],
+          ]
+        );
+
+        const logs = storeConsoleLog(page);
+
+        await ensureNoBrowserNavigation(page, () =>
+          page.getByText("programmatic navigate").click()
+        );
+        await expect(page).toHaveTitle("head test");
+        await page.waitForURL("./head-test");
+        await waitForTurbolinks;
+        expect(logs.filter((s) => s.startsWith("turbolinks:"))).toEqual([
+          T.click,
+          T.beforeVisit,
+          T.visit,
+          T.beforeCache,
+          T.beforeRender,
+          T.render,
+          T.load,
+        ]);
+        await expectNoMoreScripts(page);
+      });
     });
   });
 
