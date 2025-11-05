@@ -5,7 +5,6 @@ import {
   activateNewBodyScriptElements,
   focusFirstAutofocusableElement,
 } from "./util";
-import { Visit } from "./visit";
 
 const controller = new Controller();
 

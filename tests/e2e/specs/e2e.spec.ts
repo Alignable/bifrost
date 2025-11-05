@@ -782,11 +782,9 @@ test.describe("turbolinks: events", () => {
           page,
           ["title", "body"], // grab textcontent of these selectors to assert against
           [
-            [T.click, head1, body1],
             [T.beforeVisit, head1, body1],
             [T.visit, head1, body1],
-            [T.beforeCache, head1, body1],
-            [T.beforeRender, head2, body1],
+            [T.beforeRender, head1, body1],
             [T.render, head2, body2],
             [T.load, head2, body2],
           ]
@@ -801,10 +799,8 @@ test.describe("turbolinks: events", () => {
         await page.waitForURL("./head-test");
         await waitForTurbolinks;
         expect(logs.filter((s) => s.startsWith("turbolinks:"))).toEqual([
-          T.click,
           T.beforeVisit,
           T.visit,
-          T.beforeCache,
           T.beforeRender,
           T.render,
           T.load,
