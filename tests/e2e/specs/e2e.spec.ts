@@ -677,8 +677,10 @@ test.describe("turbolinks: events", () => {
           content: "first page body content",
           links: [
             {
-              redirectTo: { title: "redirect destination" },
-              content: "destination content",
+              redirectTo: {
+                title: "redirect destination",
+                content: "destination content",
+              },
             },
           ],
         });
@@ -721,12 +723,12 @@ test.describe("turbolinks: events", () => {
       test("navigating to redirecting vite page", async ({ page, baseURL }) => {
         ensureAllNetworkSucceeds(page);
 
-        await page.goto("./vite-page");
+        await page.goto("./vite-page", { waitUntil: "networkidle" });
 
         const head1 = (m: StringMatcher) => m.toEqual("vite page");
-        const head2 = (m: StringMatcher) => m.toEqual("head test");
+        const head2 = (m: StringMatcher) => m.toEqual("root page");
         const body1 = (m: StringMatcher) => m.toContain("vite is here");
-        const body2 = (m: StringMatcher) => m.toContain("head testing");
+        const body2 = (m: StringMatcher) => m.toContain("root page");
 
         // assert we get to the second page at the exact right time
         const waitForTurbolinks = validateDOMOnTurbolinks(
@@ -736,8 +738,8 @@ test.describe("turbolinks: events", () => {
             [T.click, head1, body1],
             [T.beforeVisit, head1, body1],
             [T.visit, head1, body1],
-            [T.beforeCache, head1, body1],
-            [T.beforeRender, head2, body1],
+            // Proxy pages swap over head, fire beforeRender, then render body.
+            [T.beforeRender, head1, body1],
             [T.render, head2, body2],
             [T.load, head2, body2],
           ]
@@ -748,14 +750,12 @@ test.describe("turbolinks: events", () => {
         await ensureNoBrowserNavigation(page, () =>
           page.getByText("redirect page").click()
         );
-        await expect(page).toHaveTitle("head test");
         await page.waitForURL("./");
         await waitForTurbolinks;
         expect(logs.filter((s) => s.startsWith("turbolinks:"))).toEqual([
           T.click,
           T.beforeVisit,
           T.visit,
-          T.beforeCache,
           T.beforeRender,
           T.render,
           T.load,

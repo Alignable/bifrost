@@ -24,6 +24,7 @@ export default defineConfig({
     "./renderer/onBeforeRenderHtml.ts",
     "./renderer/onBeforeRoute.ts",
     "./renderer/wrapped/Page.tsx",
+    "./renderer/wrapped/onBeforeRender.client.ts",
   ],
   format: "esm",
   clean: true,

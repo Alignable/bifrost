@@ -144,7 +144,8 @@ export const viteProxyPlugin: FastifyPluginAsync<
               req.headers[key.toLowerCase()] = val;
             }
             // If proxy headers set, this is a client navigation meant to go direct to legacy backend.
-            // Use passthru proxy in this case. In prod, it'd be better to use ALB to flip target
+            // Use passthru proxy in this case.
+            // ALB CANNOT be used for this. see `onBeforeRenderClient` for details
             if (proxyHeadersAlreadySet) return;
 
             (req.raw as RawRequestExtendedWithProxy)._bfproxy = true;

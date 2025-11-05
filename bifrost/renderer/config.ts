@@ -32,6 +32,8 @@ export default {
           case "wrapped":
             return {
               Page: "import:@alignable/bifrost/renderer/wrapped/Page:default" as any,
+              onBeforeRender:
+                "import:@alignable/bifrost/renderer/wrapped/onBeforeRender:default",
               meta: {
                 onBeforeRender: { env: { client: true, server: false } },
               },
@@ -74,6 +76,7 @@ declare global {
       // Not passed to client, derived in onBeforeRenderHtml and onBeforeRenderClient
       _turbolinksProxy?: {
         body: HTMLElement;
+        head?: HTMLHeadElement;
       };
     }
     interface PageContextClient {

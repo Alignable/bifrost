@@ -1,4 +1,3 @@
-import { Turbolinks } from ".";
 import { createScriptElement } from "./util";
 
 interface ElementDetails {
@@ -12,7 +11,7 @@ let lastTrackedScriptSignature: string;
 export async function mergeHead(head: HTMLHeadElement) {
   const newHead = categorizeHead(head);
   const oldHead = categorizeHead(document.head);
-  const reload = () => Turbolinks.controller.viewInvalidated();
+  const reload = () => window.Turbolinks.controller.viewInvalidated();
 
   if (
     head

@@ -17,6 +17,10 @@
       "types": "./dist/renderer/wrapped/Page.d.ts",
       "default": "./dist/renderer/wrapped/Page.js"
     },
+    "./renderer/wrapped/onBeforeRender": {
+      "types": "./dist/renderer/wrapped/onBeforeRender.client.d.ts",
+      "default": "./dist/renderer/wrapped/onBeforeRender.client.js"
+    },
     "./renderer/onBeforeRenderClient": {
       "types": "./dist/renderer/onBeforeRenderClient.d.ts",
       "default": "./dist/renderer/onBeforeRenderClient.js"

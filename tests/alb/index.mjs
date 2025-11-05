@@ -24,7 +24,8 @@ console.log(`ALB up on http://localhost:5050`);
 
 const proxy = new Redbird({ port: 5050, cluster: 1, keepAlive: true });
 proxy.addResolver((host, url, req) => {
-  if (req.headers["x-vite-proxy"]) return LEGACY_URL;
+  // We previously hoped to use the ALB to proxy direct to legacy, but it fails to handle legacy => vike redirects
+  // if (req.headers["x-vite-proxy"]) return LEGACY_URL;
 
   const segment = "/" + new URL(url, BIFROST_URL).pathname.split("/")[1];
   return BIFROST_PATHS.some((path) => segment === path)

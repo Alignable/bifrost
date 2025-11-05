@@ -1,7 +1,7 @@
 import { PageContextClient } from "vike/types";
 import { Turbolinks } from "../lib/turbolinks/index.js";
 import { bifrostOnBeforeRenderClient } from "./bifrost/onBeforeRenderClient";
-import { wrappedOnBeforeRenderClient } from "./wrapped/onBeforeRenderClient";
+import { wrappedOnBeforeRenderClient } from "./wrapped/onBeforeRenderClient.js";
 
 Turbolinks.start();
 
