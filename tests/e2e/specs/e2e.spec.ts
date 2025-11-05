@@ -442,7 +442,8 @@ test.describe("redirects", () => {
   });
 
   test("chained redirects", async ({ page, baseURL }) => {
-    // ensureAllNetworkSucceeds(page);
+    ensureAllNetworkSucceeds(page);
+    const destination = `/custom?page=${encodeURIComponent('{"title":"b"}')}`;
     const customProxy = new CustomProxyPage(page, {
       title: "first page",
       links: [
@@ -450,9 +451,7 @@ test.describe("redirects", () => {
           redirectTo: {
             redirectTo: {
               title: "b",
-              endpoint: `redirect-page/redirect-to?redirectTo=${encodeURIComponent(
-                '/custom?page={"title":"b"}'
-              )}`,
+              endpoint: `redirect-page/redirect-to?to=${destination}`,
             },
           },
         },
@@ -460,6 +459,13 @@ test.describe("redirects", () => {
     });
     await customProxy.goto();
     await customProxy.clickLink("b");
+    // Verify turbolinks location follows redirect
+    const expectedUrl = "custom?page={%22title%22:%22b%22}";
+    await page.waitForFunction(
+      `(expectedUrl) =>
+        window.Turbolinks.controller.location.absoluteURL.endsWith(expectedUrl) && window.Turbolinks.controller.currentVisit.location.absoluteURL.endsWith(expectedUrl)`,
+      expectedUrl
+    );
   });
 });
 
@@ -766,7 +772,7 @@ test.describe("turbolinks: events", () => {
 
     test.describe("navigate programmtically", () => {
       test("from vite to vite", async ({ page }) => {
-        // ensureAllNetworkSucceeds(page);
+        ensureAllNetworkSucceeds(page);
 
         await page.goto("./vite-page", {
           waitUntil: "networkidle",

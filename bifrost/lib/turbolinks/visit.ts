@@ -136,6 +136,23 @@ export class Visit {
     });
   }
 
+  updateIfRedirect(url: string) {
+    const newLocation = Location.wrap(url);
+    if (this.location.isEqualTo(newLocation)) return;
+    console.log("redirected", this.location, newLocation);
+    this.redirectedToLocation = newLocation;
+  }
+
+  onCompleted() {
+    if (this.redirectedToLocation) {
+      this.location = this.redirectedToLocation;
+      this.controller.updateLocationAndRestorationIdentifier(
+        this.redirectedToLocation,
+        this.restorationIdentifier
+      );
+    }
+  }
+
   // HTTP request delegate
 
   /*
@@ -149,15 +166,6 @@ export class Visit {
     if (this.adapter.visitRequestProgressed) {
       this.adapter.visitRequestProgressed(this);
     }
-  }
-
-  requestCompletedWithResponse(
-    response: string,
-    redirectedToLocation?: Location
-  ) {
-    this.response = response;
-    this.redirectedToLocation = redirectedToLocation;
-    this.adapter.visitRequestCompleted(this);
   }
 
   requestFailedWithStatusCode(statusCode: number, response?: string) {

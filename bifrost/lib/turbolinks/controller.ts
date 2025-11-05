@@ -79,6 +79,15 @@ export class Controller {
     this.progressBarDelay = delay;
   }
 
+  // For after redirect, on page load we update this info for ios adapter
+  updateLocationAndRestorationIdentifier(
+    locatable: Locatable,
+    restorationIdentifier: string
+  ) {
+    this.location = Location.wrap(locatable);
+    this.restorationIdentifier = restorationIdentifier;
+  }
+
   // History delegate
 
   historyPoppedToLocationWithRestorationIdentifier(

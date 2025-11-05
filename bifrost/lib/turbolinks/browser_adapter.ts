@@ -16,10 +16,7 @@ export class BrowserAdapter implements Adapter {
   }
 
   visitProposedToLocationWithAction(location: Locatable, action: Action) {
-    this.controller.startVisitToLocationWithAction(
-      location,
-      action,
-    );
+    this.controller.startVisitToLocationWithAction(location, action);
   }
 
   visitStarted(visit: Visit) {
@@ -62,6 +59,7 @@ export class BrowserAdapter implements Adapter {
   }
 
   visitCompleted(visit: Visit) {
+    visit.onCompleted();
   }
 
   pageInvalidated() {

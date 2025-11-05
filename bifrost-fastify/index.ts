@@ -15,7 +15,6 @@ type RenderedPageContext = Awaited<
   ReturnType<
     typeof renderPage<
       {
-        redirectTo?: string;
         isClientSideNavigation?: boolean;
       },
       { urlOriginal: string }
@@ -73,10 +72,6 @@ export const viteProxyPlugin: FastifyPluginAsync<
       pageContext.errorWhileRendering
     ) {
       onError(pageContext.errorWhileRendering, pageContext);
-    }
-
-    if (pageContext.redirectTo && !pageContext.isClientSideNavigation) {
-      return reply.redirect(307, pageContext.redirectTo);
     }
 
     if (!httpResponse) {

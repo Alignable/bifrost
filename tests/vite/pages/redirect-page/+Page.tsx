@@ -5,7 +5,7 @@ export default function Page() {
     <div>
       <a href="/redirect-page/redirect-to">redirect to home</a>
       <a
-        href={`/redirect-page/redirect-to?redirectTo=${encodeURIComponent(
+        href={`/redirect-page/redirect-to?to=${encodeURIComponent(
           '/custom?page={"title":"b"}'
         )}`}
       >

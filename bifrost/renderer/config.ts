@@ -1,5 +1,6 @@
 import { type Config } from "vike/types";
 import { type Snapshot } from "../lib/turbolinks/controller";
+import { type Turbolinks } from "../lib/turbolinks";
 
 export default {
   name: "@alignable/bifrost",
@@ -17,7 +18,7 @@ export default {
     "import:@alignable/bifrost/renderer/onBeforeRenderHtml:default",
   Head: "import:@alignable/bifrost/renderer/Head:default",
 
-  passToClient: ["layout", "layoutProps", "redirectTo"],
+  passToClient: ["layout", "layoutProps"],
 
   meta: {
     layoutMap: { env: { server: true, client: true } },
@@ -70,9 +71,6 @@ declare global {
       layout: string;
       layoutProps: Vike.LayoutProps;
 
-      /// TODO: remove? will need to handle turbolinks controller when navigating. this would let us stop re-exporting navigate also.
-      redirectTo?: string;
-
       // Not passed to client, derived in onBeforeRenderHtml and onBeforeRenderClient
       _turbolinksProxy?: {
         body: HTMLElement;
@@ -95,5 +93,9 @@ declare global {
       };
     }
     interface LayoutProps {}
+  }
+
+  interface Window {
+    Turbolinks: Turbolinks;
   }
 }

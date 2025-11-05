@@ -3,7 +3,7 @@
 import { PageContext } from "vike/types";
 
 const onBeforeRoute = (pageContext: PageContext) => {
-  if (typeof window !== "undefined") {
+  if (typeof window !== "undefined" && pageContext.isClientSide) {
     const Turbolinks = window.Turbolinks;
 
     const currentVisit = Turbolinks.controller.currentVisit;
@@ -31,6 +31,9 @@ const onBeforeRoute = (pageContext: PageContext) => {
     ) {
       // No currentVisit means someone called `navigate()` directly. Tell turbolinks about it
       Turbolinks.visit(pageContext.urlOriginal);
+    } else if (currentVisit?.state === "started") {
+      // It would be great if Vike exposed some isRedirecting flag, but we can infer it
+      currentVisit.updateIfRedirect(pageContext.urlOriginal);
     }
   }
   return { pageContext: {} };
