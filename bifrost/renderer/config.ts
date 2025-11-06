@@ -17,6 +17,7 @@ export default {
   onBeforeRenderHtml:
     "import:@alignable/bifrost/renderer/onBeforeRenderHtml:default",
   Head: "import:@alignable/bifrost/renderer/Head:default",
+  headHtmlEnd: "import:@alignable/bifrost/renderer/headHtmlEnd:default",
 
   passToClient: ["layout", "layoutProps"],
 

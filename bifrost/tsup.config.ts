@@ -23,6 +23,7 @@ export default defineConfig({
     "./renderer/onAfterRenderClient.ts",
     "./renderer/onBeforeRenderHtml.ts",
     "./renderer/onBeforeRoute.ts",
+    "./renderer/headHtmlEnd.ts",
     "./renderer/wrapped/Page.tsx",
     "./renderer/wrapped/onBeforeRender.client.ts",
   ],

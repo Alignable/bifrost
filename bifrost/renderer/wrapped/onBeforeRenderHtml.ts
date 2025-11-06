@@ -1,6 +1,5 @@
 import { PageContextServer } from "vike/types";
 import { useConfig } from "vike-react/useConfig";
-import { jsdomToReactComponent } from "../../lib/htmlToReact";
 import { getElementAttributes } from "../../lib/getElementAttributes";
 
 export function wrappedOnBeforeRenderHtml(pageContext: PageContextServer) {
@@ -9,11 +8,6 @@ export function wrappedOnBeforeRenderHtml(pageContext: PageContextServer) {
     const config = useConfig();
 
     config({
-      // There is no way to set Head in vike-react with a plain string of html
-      // So our pipeline is string -> jsdom -> React -> string
-      // This is obviously bad, though head tag should generally be small.
-      // TODO: instrument performance
-      Head: jsdomToReactComponent(head),
       bodyAttributes: getElementAttributes(pageContext.wrappedServerOnly.body),
     });
 
