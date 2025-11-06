@@ -6,7 +6,11 @@ import { redirect } from "vike/abort";
 export default async function wrappedOnBeforeRender(
   pageContext: PageContextClient
 ) {
-  if (!pageContext?.snapshot && !pageContext.isHydration) {
+  if (
+    pageContext.isClientSide &&
+    !pageContext?.snapshot &&
+    !pageContext.isHydration
+  ) {
     /*
     Mermaid diagram of client side navigation logic:
 

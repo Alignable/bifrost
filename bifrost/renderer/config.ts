@@ -34,7 +34,7 @@ export default {
             return {
               Page: "import:@alignable/bifrost/renderer/wrapped/Page:default" as any,
               onBeforeRender:
-                "import:@alignable/bifrost/renderer/wrapped/onBeforeRender:default",
+                "import:@alignable/bifrost/renderer/wrapped/onBeforeRender.client:default",
               meta: {
                 onBeforeRender: { env: { client: true, server: false } },
               },
