@@ -20,6 +20,7 @@ const turbolinksLoadEvent = `addEventListener("DOMContentLoaded", () => {
  */
 const turbolinksBackButton = `
 addEventListener("popstate", (event) => {
+  window._bifrost_pop_state = true
   if(event.state && event.state.turbolinks) window.location.reload();
 });`;
 
