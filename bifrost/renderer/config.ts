@@ -94,8 +94,4 @@ declare global {
     }
     interface LayoutProps {}
   }
-
-  interface Window {
-    Turbolinks: Turbolinks;
-  }
 }
