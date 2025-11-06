@@ -60,7 +60,7 @@ export default async function wrappedOnBeforeRender(
       }
     }
     if (!resp.ok) {
-      window.location.href = resp.url;
+      throw redirect(resp.url);
     }
     const html = await resp.text();
     const { layout, layoutProps } = pageContext.config.getLayout!(
@@ -68,7 +68,8 @@ export default async function wrappedOnBeforeRender(
     );
     if (!pageContext.config.layoutMap?.[layout]) {
       // Fallback to full reload if layout not found
-      window.location.href = resp.url;
+      // window.location.href = resp.url;
+      throw redirect(resp.url);
     }
 
     const parsed = document.createElement("html");

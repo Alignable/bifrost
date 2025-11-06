@@ -80,7 +80,10 @@ export class CustomProxyPage {
     {
       browserReload = false,
       waitFor = "turbolinks",
-    }: { browserReload?: boolean; waitFor?: "turbolinks" | number } = {}
+    }: {
+      browserReload?: boolean;
+      waitFor?: "turbolinks" | string | number;
+    } = {}
   ) {
     this.consoleLog = storeConsoleLog(this.page);
 
@@ -97,7 +100,9 @@ export class CustomProxyPage {
             this.page,
             (msg) => msg.text() === "turbolinks:load"
           );
-        } else {
+        } else if (typeof waitFor === "string") {
+          await waitForConsoleLog(this.page, (msg) => msg.text() === waitFor);
+        } else if (typeof waitFor === "number") {
           await sleep(waitFor); // TODO: wait on something smarter.
         }
         await clickPromise;

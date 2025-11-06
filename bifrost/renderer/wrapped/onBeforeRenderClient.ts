@@ -33,16 +33,14 @@ export async function wrappedOnBeforeRenderClient(
     };
 
     await Turbolinks._vikeBeforeRender(() => {
-      const waitForHeadScripts = mergeHead(headEl);
-      pageContext._waitForHeadScripts = () => waitForHeadScripts;
+      pageContext._waitForHeadScripts = mergeHead(headEl);
     });
     copyBody(bodyEl);
   } else {
     const { head, body } = pageContext._turbolinksProxy!;
 
     await Turbolinks._vikeBeforeRender(() => {
-      const waitForHeadScripts = mergeHead(head!);
-      pageContext._waitForHeadScripts = () => waitForHeadScripts;
+      pageContext._waitForHeadScripts = mergeHead(head!);
     });
     copyBody(body);
   }

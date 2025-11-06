@@ -170,12 +170,10 @@ test.describe("trailing slashes on custom routes", () => {
 });
 
 test("it keeps the favicon between pages", async ({ page }) => {
-  await page.goto("./vite-page");
-  await sleep(500);
+  await page.goto("./vite-page", { waitUntil: "networkidle" });
   await ensureNoBrowserNavigation(page, () =>
     page.getByText("head test").click()
   );
-  await sleep(500);
   await expect(page.locator("link[rel='icon']")).toHaveCount(1);
 });
 
@@ -326,9 +324,7 @@ test.describe("client navigation", () => {
     await expect(page).toHaveTitle("vite page");
     await ensureNoBrowserNavigation(page, async () => {
       const anchorLink = page.getByRole("link", { name: "anchor link" });
-      await ensureNoBrowserNavigation(page, async () => {
-        await anchorLink.click();
-      });
+      await anchorLink.click();
       await page.waitForFunction(() => window.scrollY > 100);
       // verify url
       expect(page.url().endsWith("vite-page#anchor")).toBeTruthy();
@@ -995,7 +991,7 @@ test.describe("script loading order", () => {
 
     await customProxy.goto();
 
-    expect(customProxy.scriptLog).toEqual([
+    expect(customProxy.scriptAndTurbolinksLog).toEqual([
       "head script: inline 1",
       "head script: blocking",
       "body script: blocking",
@@ -1003,6 +999,7 @@ test.describe("script loading order", () => {
       "body script: inline 2",
       "body script: blocking",
       "head script: deferred",
+      T.load,
     ]);
 
     await expectNoMoreScripts(page);
@@ -1016,8 +1013,10 @@ test.describe("script loading order", () => {
 
     const customProxy = new CustomProxyPage(page, {
       title: "scriptless",
+      endpoint: "custom",
       links: [
         {
+          endpoint: "custom",
           title: "with scripts",
           headScripts: ["inline1", "blocking", "defer"],
           bodyScripts: ["blocking", "inline1", "inline2", "blocking"],
@@ -1030,12 +1029,20 @@ test.describe("script loading order", () => {
 
     await customProxy.clickLink("with scripts", { waitFor: 500 });
 
-    expect(customProxy.scriptLog).toEqual([
+    expect(customProxy.scriptAndTurbolinksLog).toEqual([
+      T.click,
+      T.beforeVisit,
+      T.visit,
+      T.beforeCache,
       "head script: inline 1",
+      T.beforeRender,
       "head script: blocking",
       "body script: inline 1", // order of inlines is respected
       "body script: inline 2",
-      "head script: deferred", // deferred runs earlier which is different
+      T.render,
+      T.load,
+      // These run after turbolinks:load, unlike on SSR. This matches behavior of turbolinks
+      "head script: deferred",
       "body script: blocking", // remote scripts load after inline due to network req. could be stricter about script order
       "body script: blocking",
     ]);
@@ -1155,7 +1162,10 @@ test.describe("script loading order", () => {
 
       await customProxy.goto();
 
-      await customProxy.clickLink("no tracked", { browserReload: true });
+      await customProxy.clickLink("no tracked", {
+        browserReload: true,
+        waitFor: "onClientInit",
+      });
     });
 
     test("adding tracked scripts triggers full reload", async ({ page }) => {
