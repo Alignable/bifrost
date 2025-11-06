@@ -29,8 +29,9 @@ const onBeforeRoute = (pageContext: PageContext) => {
       Turbolinks.controller.started &&
       (!currentVisit || currentVisit.state === "completed")
     ) {
-      // No currentVisit means someone called `navigate()` directly. Tell turbolinks about it
-      Turbolinks.visit(pageContext.urlOriginal);
+      throw new Error(
+        `Bifrost does not support calling navigate() directly. Use navigate from "@alignable/bifrost" or Turbolinks.visit() instead.`
+      );
     } else if (currentVisit?.state === "started") {
       // It would be great if Vike exposed some isRedirecting flag, but we can infer it
       currentVisit.updateIfRedirect(pageContext.urlOriginal);

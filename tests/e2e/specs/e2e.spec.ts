@@ -308,17 +308,6 @@ test.describe("client navigation", () => {
     await customProxy.clickLink("b", { browserReload: true, waitFor: 0 });
   });
 
-  test("navigate() works and does not reload", async ({ page }) => {
-    await page.goto("./vite-page", {
-      waitUntil: "networkidle",
-    });
-    await expect(page).toHaveTitle("vite page");
-    await ensureNoBrowserNavigation(page, async () => {
-      await page.getByText("head test").click();
-      await expect(page).toHaveTitle("head test");
-    });
-  });
-
   test("to anchor on page", async ({ page }) => {
     await page.goto("./vite-page", { waitUntil: "networkidle" });
     await expect(page).toHaveTitle("vite page");
@@ -766,7 +755,7 @@ test.describe("turbolinks: events", () => {
       });
     });
 
-    test.describe("navigate programmtically", () => {
+    test.describe("navigate() programmtically", () => {
       test("from vite to vite", async ({ page }) => {
         ensureAllNetworkSucceeds(page);
 
@@ -795,7 +784,7 @@ test.describe("turbolinks: events", () => {
         const logs = storeConsoleLog(page);
 
         await ensureNoBrowserNavigation(page, () =>
-          page.getByText("programmatic navigate").click()
+          page.getByText("bifrost programmatic navigate").click()
         );
         await expect(page).toHaveTitle("head test");
         await page.waitForURL("./head-test");
@@ -808,6 +797,18 @@ test.describe("turbolinks: events", () => {
           T.load,
         ]);
         await expectNoMoreScripts(page);
+      });
+
+      test("it does not allow directly calling vike navigate", async ({
+        page,
+      }) => {
+        await page.goto("./vite-page", {
+          waitUntil: "networkidle",
+        });
+        await page.getByText("banned programmatic navigate").click();
+        await expect(page.getByText("500 Internal Server Error")).toHaveCount(
+          1
+        );
       });
     });
   });
