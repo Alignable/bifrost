@@ -1,14 +1,15 @@
 import React from "react";
 import { usePageContext } from "vike-react/usePageContext";
 import { type PageContext } from "vike/types";
-import "../config"; // tsup can't find augmented PageContext without this import. https://github.com/egoist/tsup/issues/1239
+import "../config";
+import "../../lib/type";
 
 export default function Page() {
   const pageContext = usePageContext();
 
   const bodyHtml = pageContext.isClientSide
     ? pageContext._turbolinksProxy?.body?.innerHTML
-    : pageContext.wrappedServerOnly?.bodyInnerHtml;
+    : pageContext._wrappedServerOnly?.bodyInnerHtml;
 
   if (bodyHtml) {
     const Layout = layoutFromPageContext(pageContext.layout, pageContext);

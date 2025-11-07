@@ -1,6 +1,4 @@
 import { type Config } from "vike/types";
-import { type Snapshot } from "../lib/turbolinks/controller";
-import { type Turbolinks } from "../lib/turbolinks";
 
 export default {
   name: "@alignable/bifrost",
@@ -78,29 +76,10 @@ declare global {
     interface PageContext {
       layout: string;
       layoutProps: Vike.LayoutProps;
-
-      // Not passed to client, derived in onBeforeRenderHtml and onBeforeRenderClient
-      _turbolinksProxy?: {
-        body: HTMLElement;
-        head?: HTMLHeadElement;
-      };
-    }
-    interface PageContextClient {
-      snapshot?: Snapshot;
-      _waitForHeadScripts?: () => Promise<void>;
-    }
-    interface PageContextServer {
-      wrappedServerOnly?: {
-        bodyAttributes: Record<string, string>;
-        bodyInnerHtml: string;
-        headInnerHtml: string;
-        // layout/layoutProps CANNOT be in pageContextInit as that will force Vike to make pageContext.json requests
-        // https://vike.dev/pageContext.json#avoid-pagecontext-json-requests
-        // Instead, we nest them inside wrappedServerOnly and move them to top-level pageContext in onBeforeRenderHtml
-        layout: string;
-        layoutProps: Vike.LayoutProps;
-      };
     }
     interface LayoutProps {}
   }
 }
+
+// This is only used for fastify integration
+export { type WrappedServerOnly } from "../lib/type";

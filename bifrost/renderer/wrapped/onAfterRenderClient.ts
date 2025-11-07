@@ -1,4 +1,5 @@
-import { PageContextClient } from "vike/types";
+import "../../lib/type";
+import type { PageContextClient } from "vike/types";
 import { Turbolinks } from "../../lib/turbolinks";
 import { getElementAttributes } from "../../lib/getElementAttributes";
 

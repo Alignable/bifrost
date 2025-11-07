@@ -34,7 +34,7 @@ const onBeforeRoute = (pageContext: PageContext) => {
         if (!!snapshot) {
           return {
             pageContext: {
-              snapshot,
+              _snapshot: snapshot,
             },
           };
         } else {

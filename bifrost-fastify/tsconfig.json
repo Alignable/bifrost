@@ -6,7 +6,8 @@
     "moduleResolution": "node",
     "skipLibCheck": true,
     "esModuleInterop": true,
-    "noEmit": true
+    "noEmit": true,
+    "types": ["@alignable/bifrost/config"]
   },
   "include": ["./index.ts", "lib"]
 }

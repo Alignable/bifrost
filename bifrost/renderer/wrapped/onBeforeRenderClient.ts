@@ -1,5 +1,5 @@
-import "../config";
-import { PageContextClient } from "vike/types";
+import "../../lib/type";
+import type { PageContextClient } from "vike/types";
 import { Turbolinks } from "../../lib/turbolinks";
 import { copyElementAttributes } from "../../lib/turbolinks/util";
 import { mergeHead } from "../../lib/turbolinks/mergeHead";
@@ -16,14 +16,14 @@ export default async function wrappedOnBeforeRenderClient(
     return;
   }
 
-  if (pageContext?.snapshot) {
+  if (pageContext?._snapshot) {
     if (pageContext.isHydration) {
       throw new Error(
         "restoration visit should never happen on initial render"
       );
     }
-    const { layoutProps, layout } = pageContext.snapshot.pageContext;
-    const { bodyEl, headEl } = pageContext.snapshot;
+    const { layoutProps, layout } = pageContext._snapshot.pageContext;
+    const { bodyEl, headEl } = pageContext._snapshot;
     const proxyBodyEl = bodyEl.querySelector("#proxied-body")!;
     if (!proxyBodyEl || !(proxyBodyEl instanceof HTMLElement)) {
       throw new Error("proxied body not found in cached snapshot");

@@ -4,7 +4,7 @@ import { FastifyRequest, RequestGenericInterface } from "fastify/types/request";
 import proxy from "@fastify/http-proxy";
 import accepts from "@fastify/accepts";
 import forwarded from "@fastify/forwarded";
-import { type GetLayout } from "@alignable/bifrost/config";
+import type { GetLayout, WrappedServerOnly } from "@alignable/bifrost/config";
 import { Writable } from "stream";
 import { IncomingMessage } from "http";
 import { renderPage } from "vike/server";
@@ -207,13 +207,13 @@ export const viteProxyPlugin: FastifyPluginAsync<
           urlOriginal: req.url,
           // Critical that we don't set any passToClient values in pageContextInit
           // If we do, Vike re-requests pageContext on client navigation. This breaks wrapped proxy.
-          wrappedServerOnly: {
+          _wrappedServerOnly: {
             bodyAttributes,
             bodyInnerHtml,
             headInnerHtml,
             layout: layoutInfo.layout,
             layoutProps: layoutInfo.layoutProps,
-          },
+          } satisfies WrappedServerOnly,
         };
         const pageContext = await renderPage(pageContextInit);
         return replyWithPage(reply, pageContext);
