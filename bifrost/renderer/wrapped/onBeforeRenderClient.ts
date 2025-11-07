@@ -1,10 +1,12 @@
+import "../config";
 import { PageContextClient } from "vike/types";
 import { Turbolinks } from "../../lib/turbolinks";
 import { copyElementAttributes } from "../../lib/turbolinks/util";
 import { mergeHead } from "../../lib/turbolinks/mergeHead";
 
-// TODO: Should this live in +data or onData instead?
-export async function wrappedOnBeforeRenderClient(
+Turbolinks.start();
+
+export default async function wrappedOnBeforeRenderClient(
   pageContext: PageContextClient
 ) {
   if (pageContext.isHydration) {

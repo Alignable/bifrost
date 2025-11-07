@@ -2,7 +2,7 @@ import { PageContextClient } from "vike/types";
 import { Turbolinks } from "../../lib/turbolinks";
 import { getElementAttributes } from "../../lib/getElementAttributes";
 
-export async function wrappedOnAfterRenderClient(
+export default async function wrappedOnAfterRenderClient(
   pageContext: PageContextClient
 ) {
   const { layoutProps, layout } = pageContext;

@@ -6,18 +6,14 @@ export default {
   name: "@alignable/bifrost",
   require: {
     vike: ">=0.4.244",
-    "vike-react": ">=0.6.10",
+    "vike-react": ">=0.6.11",
   },
 
-  onBeforeRoute: "import:@alignable/bifrost/renderer/onBeforeRoute:default",
-  onBeforeRenderClient:
-    "import:@alignable/bifrost/renderer/onBeforeRenderClient:default",
-  onAfterRenderClient:
-    "import:@alignable/bifrost/renderer/onAfterRenderClient:default",
-  onBeforeRenderHtml:
-    "import:@alignable/bifrost/renderer/onBeforeRenderHtml:default",
-  Head: "import:@alignable/bifrost/renderer/Head:default",
-  headHtmlEnd: "import:@alignable/bifrost/renderer/headHtmlEnd:default",
+  Head: "import:@alignable/bifrost/__internal/renderer/Head:default",
+  headHtmlEnd:
+    "import:@alignable/bifrost/__internal/renderer/headHtmlEnd:default",
+  onBeforeRoute:
+    "import:@alignable/bifrost/__internal/renderer/onBeforeRoute:default",
 
   passToClient: ["layout", "layoutProps"],
 
@@ -30,12 +26,23 @@ export default {
       effect({ configDefinedAt, configValue }) {
         switch (configValue) {
           case false:
-            return {};
+            return {
+              onBeforeRenderClient:
+                "import:@alignable/bifrost/__internal/renderer/bifrost/onBeforeRenderClient:default",
+              onAfterRenderClient:
+                "import:@alignable/bifrost/__internal/renderer/bifrost/onAfterRenderClient:default",
+            };
           case "wrapped":
             return {
-              Page: "import:@alignable/bifrost/renderer/wrapped/Page:default" as any,
+              Page: "import:@alignable/bifrost/__internal/renderer/wrapped/Page:default" as any,
+              onBeforeRenderHtml:
+                "import:@alignable/bifrost/__internal/renderer/wrapped/onBeforeRenderHtml:default",
               onBeforeRender:
-                "import:@alignable/bifrost/renderer/wrapped/onBeforeRender.client:default",
+                "import:@alignable/bifrost/__internal/renderer/wrapped/onBeforeRender.client:default",
+              onBeforeRenderClient:
+                "import:@alignable/bifrost/__internal/renderer/wrapped/onBeforeRenderClient:default",
+              onAfterRenderClient:
+                "import:@alignable/bifrost/__internal/renderer/wrapped/onAfterRenderClient:default",
               meta: {
                 onBeforeRender: { env: { client: true, server: false } },
               },

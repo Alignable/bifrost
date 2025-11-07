@@ -9,37 +9,9 @@
       "types": "./dist/renderer/config.d.ts",
       "default": "./dist/renderer/+config.js"
     },
-    "./renderer/Head": {
-      "types": "./dist/renderer/Head.d.ts",
-      "default": "./dist/renderer/Head.js"
-    },
-    "./renderer/wrapped/Page": {
-      "types": "./dist/renderer/wrapped/Page.d.ts",
-      "default": "./dist/renderer/wrapped/Page.js"
-    },
-    "./renderer/wrapped/onBeforeRender.client": {
-      "types": "./dist/renderer/wrapped/onBeforeRender.client.d.ts",
-      "default": "./dist/renderer/wrapped/onBeforeRender.client.js"
-    },
-    "./renderer/headHtmlEnd": {
-      "types": "./dist/renderer/headHtmlEnd.d.ts",
-      "default": "./dist/renderer/headHtmlEnd.js"
-    },
-    "./renderer/onBeforeRenderClient": {
-      "types": "./dist/renderer/onBeforeRenderClient.d.ts",
-      "default": "./dist/renderer/onBeforeRenderClient.js"
-    },
-    "./renderer/onAfterRenderClient": {
-      "types": "./dist/renderer/onAfterRenderClient.d.ts",
-      "default": "./dist/renderer/onAfterRenderClient.js"
-    },
-    "./renderer/onBeforeRenderHtml": {
-      "types": "./dist/renderer/onBeforeRenderHtml.d.ts",
-      "default": "./dist/renderer/onBeforeRenderHtml.js"
-    },
-    "./renderer/onBeforeRoute": {
-      "types": "./dist/renderer/onBeforeRoute.d.ts",
-      "default": "./dist/renderer/onBeforeRoute.js"
+    "./__internal/renderer/*": {
+      "types": "./dist/renderer/*.d.ts",
+      "default": "./dist/renderer/*.js"
     },
     ".": {
       "types": "./dist/index.d.ts",

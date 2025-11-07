@@ -1,7 +1,9 @@
 import { PageContextClient } from "vike/types";
 import { Turbolinks } from "../../lib/turbolinks";
 
-export async function bifrostOnBeforeRenderClient(
+Turbolinks.start();
+
+export default async function bifrostOnBeforeRenderClient(
   pageContext: PageContextClient
 ) {
   // TODO: Is this still needed?

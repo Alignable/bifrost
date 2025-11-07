@@ -15,18 +15,7 @@ async function* getFiles(dir: string): AsyncGenerator<string> {
 }
 
 export default defineConfig({
-  entry: [
-    "./index.ts",
-    "./renderer/config.ts",
-    "./renderer/Head.tsx",
-    "./renderer/onBeforeRenderClient.ts",
-    "./renderer/onAfterRenderClient.ts",
-    "./renderer/onBeforeRenderHtml.ts",
-    "./renderer/onBeforeRoute.ts",
-    "./renderer/headHtmlEnd.ts",
-    "./renderer/wrapped/Page.tsx",
-    "./renderer/wrapped/onBeforeRender.client.ts",
-  ],
+  entry: ["./index.ts", "./renderer/**/*"],
   format: "esm",
   clean: true,
   sourcemap: true,
