@@ -12,7 +12,10 @@ export const MainNavLayout = ({
   return (
     <div>
       <nav>Main Nav Layout vite</nav>
-      <p>selected: {pageContext?.config?.currentNav || currentNav}</p>
+      <p>
+        selected:{" "}
+        {pageContext.currentNav || pageContext.config?.currentNav || currentNav}
+      </p>
       {children}
     </div>
   );

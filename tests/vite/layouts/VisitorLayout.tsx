@@ -6,7 +6,6 @@ export const VisitorLayout = ({
   currentNav,
 }: {
   children: React.ReactNode;
-  /// TODO: move to page context and adopt vike-react in bifrost?
   currentNav?: string;
 }) => {
   const pageContext = usePageContext();

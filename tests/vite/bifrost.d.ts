@@ -3,6 +3,9 @@ declare global {
     interface PageContextServer {
       loggedIn: boolean;
     }
+    interface PageContext {
+      currentNav?: string;
+    }
     interface Config {
       currentNav?: string;
     }
