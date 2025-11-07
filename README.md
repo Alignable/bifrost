@@ -37,9 +37,10 @@ The "passthru" proxy mode is an option of incremental migration. Passthru routes
 1. In Rails check for a `x-vite-proxy` (name configurable) header and skip rendering the layout, so Bifrost can render the layout, enabling seamless page transitions. Also return which layout the page needs + any layout config/props via another header.
 2. In Bifrost, setup a page with `proxyMode: wrapped` and configure the following:
    1. `getLayout` is a function to pull layout name and properties from the headers returned by Rails.
-   2. `layoutMap` maps layout names to layout components
-   3. `proxyHeaders` adds the `x-vite-proxy` (or other named header) to signal Rails you're coming from Bifrost.
-   4. `meta: { onBeforeRender: { env: { client: true, server: false } } }` is temporarily required.
+   2. Augment `Vike.ProxyLayoutInfo` with props for your layout
+   3. `+Layout.tsx` can call `usePageContext` and use `proxyLayoutInfo` to render the appropriate data from getLayout
+   4. `proxyHeaders` adds the `x-vite-proxy` (or other named header) to signal Rails you're coming from Bifrost.
+   5. `meta: { onBeforeRender: { env: { client: true, server: false } } }` is temporarily required.
 3. Move your navbar/layouts to be render-able via Bifrost
 
 ## Building new Vike Pages

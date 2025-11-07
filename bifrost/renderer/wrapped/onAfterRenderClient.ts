@@ -6,11 +6,10 @@ import { getElementAttributes } from "../../lib/getElementAttributes";
 export default async function wrappedOnAfterRenderClient(
   pageContext: PageContextClient
 ) {
-  const { layoutProps, layout } = pageContext;
+  const { proxyLayoutInfo } = pageContext;
   const bodyEl = document.getElementById("proxied-body")!;
   Turbolinks._vpsCachePageContext({
-    layoutProps,
-    layout,
+    proxyLayoutInfo,
     bodyAttrs: getElementAttributes(bodyEl),
   });
   if (!pageContext.isHydration) {

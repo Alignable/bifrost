@@ -13,10 +13,9 @@ export default {
   onBeforeRoute:
     "import:@alignable/bifrost/__internal/renderer/onBeforeRoute:default",
 
-  passToClient: ["layout", "layoutProps"],
+  passToClient: ["proxyLayoutInfo"],
 
   meta: {
-    layoutMap: { env: { server: true, client: true } },
     getLayout: { env: { server: true, client: true } },
     proxyHeaders: { env: { server: true, client: true } },
     proxyMode: {
@@ -58,26 +57,24 @@ export default {
   },
 } satisfies Config;
 
+/**
+ * Returning null tells Bifrost to run passthru proxy
+ */
 export type GetLayout = (
   headers: Record<string, number | string | string[] | undefined>
-) => {
-  layout: string;
-  layoutProps: Vike.LayoutProps;
-};
+) => Vike.ProxyLayoutInfo | null;
 
 declare global {
   namespace Vike {
     interface Config {
       proxyMode?: false | "wrapped" | "passthru";
-      layoutMap?: Record<string, React.ComponentType<any>>;
       proxyHeaders?: Record<string, string>;
       getLayout?: GetLayout;
     }
     interface PageContext {
-      layout: string;
-      layoutProps: Vike.LayoutProps;
+      proxyLayoutInfo?: ProxyLayoutInfo;
     }
-    interface LayoutProps {}
+    interface ProxyLayoutInfo {}
   }
 }
 

@@ -69,10 +69,10 @@ export default async function wrappedOnBeforeRender(
       throw redirect(resp.url);
     }
     const html = await resp.text();
-    const { layout, layoutProps } = pageContext.config.getLayout!(
+    const layoutInfo = pageContext.config.getLayout!(
       Object.fromEntries(resp.headers.entries())
     );
-    if (!pageContext.config.layoutMap?.[layout]) {
+    if (!layoutInfo) {
       // Fallback to full reload if layout not found
       // window.location.href = resp.url;
       throw redirect(resp.url);
@@ -82,8 +82,7 @@ export default async function wrappedOnBeforeRender(
     parsed.innerHTML = html;
     const bodyEl = parsed.querySelector("body")!;
     const headEl = parsed.querySelector("head")!;
-    pageContext.layout = layout;
-    pageContext.layoutProps = layoutProps;
+    pageContext.proxyLayoutInfo = layoutInfo;
     pageContext._turbolinksProxy = {
       body: bodyEl,
       head: headEl,

@@ -22,14 +22,13 @@ export default async function wrappedOnBeforeRenderClient(
         "restoration visit should never happen on initial render"
       );
     }
-    const { layoutProps, layout } = pageContext._snapshot.pageContext;
+    const { proxyLayoutInfo } = pageContext._snapshot.pageContext;
     const { bodyEl, headEl } = pageContext._snapshot;
     const proxyBodyEl = bodyEl.querySelector("#proxied-body")!;
     if (!proxyBodyEl || !(proxyBodyEl instanceof HTMLElement)) {
       throw new Error("proxied body not found in cached snapshot");
     }
-    pageContext.layout = layout;
-    pageContext.layoutProps = layoutProps;
+    pageContext.proxyLayoutInfo = proxyLayoutInfo;
     pageContext._turbolinksProxy = {
       body: proxyBodyEl,
     };
