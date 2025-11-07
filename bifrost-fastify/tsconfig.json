@@ -8,5 +8,5 @@
     "esModuleInterop": true,
     "noEmit": true
   },
-  "files": ["./index.ts"],
+  "include": ["./index.ts", "lib"]
 }

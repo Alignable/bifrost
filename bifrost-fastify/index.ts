@@ -8,8 +8,8 @@ import { type GetLayout } from "@alignable/bifrost/config";
 import { Writable } from "stream";
 import { IncomingMessage } from "http";
 import { renderPage } from "vike/server";
-import jsdom from "jsdom";
 import { PageContextServer } from "vike/types";
+import { extractDomElements } from "./lib/extractDomElements";
 
 type RenderedPageContext = Awaited<
   ReturnType<
@@ -196,21 +196,21 @@ export const viteProxyPlugin: FastifyPluginAsync<
 
         const html = await streamToString(res);
 
-        // TODO: jsdom is perf bottleneck. We should not deeply parse dom. Just get head, body, and attributes
-        const dom = new jsdom.JSDOM(html);
-        const doc = dom.window.document;
-        const body = doc.querySelector("body");
-        const head = doc.querySelector("head");
-        if (!body || !head) {
+        const { bodyAttributes, bodyInnerHtml, headInnerHtml } =
+          extractDomElements(html);
+
+        if (!bodyInnerHtml || !headInnerHtml) {
           throw new Error("Proxy failed");
         }
+
         const pageContextInit = {
           urlOriginal: req.url,
           // Critical that we don't set any passToClient values in pageContextInit
           // If we do, Vike re-requests pageContext on client navigation. This breaks wrapped proxy.
           wrappedServerOnly: {
-            body,
-            head,
+            bodyAttributes,
+            bodyInnerHtml,
+            headInnerHtml,
             layout: layoutInfo.layout,
             layoutProps: layoutInfo.layoutProps,
           },

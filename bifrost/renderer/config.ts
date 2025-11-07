@@ -84,8 +84,9 @@ declare global {
     }
     interface PageContextServer {
       wrappedServerOnly?: {
-        body: HTMLBodyElement;
-        head: HTMLHeadElement;
+        bodyAttributes: Record<string, string>;
+        bodyInnerHtml: string;
+        headInnerHtml: string;
         // layout/layoutProps CANNOT be in pageContextInit as that will force Vike to make pageContext.json requests
         // https://vike.dev/pageContext.json#avoid-pagecontext-json-requests
         // Instead, we nest them inside wrappedServerOnly and move them to top-level pageContext in onBeforeRenderHtml

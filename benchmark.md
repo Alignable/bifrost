@@ -49,15 +49,15 @@ Wrapped proxy adds on top of passthru proxy:
 - vike renderPage
 - rendering react
 
-Flamegraph showed ~30% of time spent is on JSDOM. We can replace JSDOM with faster parser and do not need to construct a DOM.
+Previously, jsdom got ~250 req/s.
 
 ```
 Bombarding http://localhost:5050/custom?page=%7B%22title%22:%22b%22%7D for 10s using 125 connection(s)
 Statistics        Avg      Stdev        Max
-  Reqs/sec       264.68     101.11     456.45
-  Latency      462.75ms      0.95s      8.42s
+  Reqs/sec      1145.73     682.67    2501.49
+  Latency      108.91ms    12.41ms   306.31ms
   HTTP codes:
-    1xx - 0, 2xx - 2752, 3xx - 0, 4xx - 0, 5xx - 0
+    1xx - 0, 2xx - 11510, 3xx - 0, 4xx - 0, 5xx - 0
     others - 0
-  Throughput:     1.06MB/s
+  Throughput:     4.61MB/s
 ```

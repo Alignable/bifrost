@@ -12,9 +12,12 @@
     "@fastify/reply-from": "^9.0.1",
     "compression": "^1.7.4",
     "cross-env": "^7.0.3",
+    "dom-serializer": "^2.0.0",
+    "domhandler": "^5.0.3",
+    "domutils": "^3.2.2",
     "fastify": "^4.9.2",
+    "htmlparser2": "^10.0.0",
     "sirv": "^2.0.2",
-    "jsdom": "^22.1.0",
     "vite": "^6.3.5"
   },
   "peerDependencies": {
@@ -24,7 +27,6 @@
   },
   "devDependencies": {
     "@types/connect": "^3.4.35",
-    "@types/jsdom": "^21.1.1",
     "@types/node": "^18.11.9",
     "@types/react": "^18.0.8",
     "@types/react-dom": "^18.0.3",

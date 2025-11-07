@@ -6,7 +6,11 @@ import "../config"; // tsup can't find augmented PageContext without this import
 export default function Page() {
   const pageContext = usePageContext();
 
-  if (pageContext._turbolinksProxy) {
+  const bodyHtml = pageContext.isClientSide
+    ? pageContext._turbolinksProxy?.body?.innerHTML
+    : pageContext.wrappedServerOnly?.bodyInnerHtml;
+
+  if (bodyHtml) {
     const Layout = layoutFromPageContext(pageContext.layout, pageContext);
     const layoutProps = pageContext.layoutProps;
     return (
@@ -14,7 +18,7 @@ export default function Page() {
         <div
           id="proxied-body"
           dangerouslySetInnerHTML={{
-            __html: pageContext._turbolinksProxy.body.innerHTML,
+            __html: bodyHtml,
           }}
         />
       </Layout>
