@@ -45,7 +45,7 @@
   "peerDependencies": {
     "react": ">=18",
     "typescript": ">=4.7",
-    "vike": ">=0.4.244",
+    "vike": ">=0.4.245-commit-4d0629e",
     "vike-react": ">=0.6.11"
   },
   "devDependencies": {
@@ -60,7 +60,7 @@
     "typescript": "^5.0.4",
     "vike-react": "0.6.11",
     "vite": "^6.3.5",
-    "vike": "0.4.244",
+    "vike": "0.4.245-commit-4d0629e",
     "cross-env": "^7.0.3"
   }
 }

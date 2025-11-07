@@ -18,10 +18,8 @@ const turbolinksLoadEvent = `addEventListener("DOMContentLoaded", () => {
  *
  * Further discussion on Vike handling this natively: https://github.com/vikejs/vike/issues/2801
  */
-const turbolinksBackButton = `
-addEventListener("popstate", (event) => {
-  window._bifrost_pop_state = true
-  if(event.state && event.state.turbolinks) window.location.reload();
+const turbolinksBackButton = `addEventListener("popstate", (e) => {
+  if(e.state && e.state.turbolinks) window.location.reload();
 });`;
 
 export default function Head() {

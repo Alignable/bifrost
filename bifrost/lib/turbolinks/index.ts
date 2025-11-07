@@ -28,6 +28,8 @@ export const Turbolinks = {
   },
 
   start() {
+    if (window.Turbolinks?.controller?.started) return;
+
     // because this runs after ios hooks, we have to recover. See onRenderHtml
     if (
       window.Turbolinks !== Turbolinks &&

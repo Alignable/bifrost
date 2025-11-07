@@ -103,7 +103,7 @@ export class CustomProxyPage {
         } else if (typeof waitFor === "string") {
           await waitForConsoleLog(this.page, (msg) => msg.text() === waitFor);
         } else if (typeof waitFor === "number") {
-          await sleep(waitFor); // TODO: wait on something smarter.
+          await sleep(waitFor);
         }
         await clickPromise;
 

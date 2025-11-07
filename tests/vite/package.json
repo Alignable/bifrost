@@ -20,7 +20,7 @@
     "@fastify/static": "^6.10.1",
     "@vitejs/plugin-react": "^4.7.0",
     "uuid": "^9.0.0",
-    "vike": "0.4.244",
+    "vike": "0.4.245-commit-4d0629e",
     "vike-react": "^0.6.10",
     "vite": "^6.3.5"
   },

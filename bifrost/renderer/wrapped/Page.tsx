@@ -35,7 +35,7 @@ function layoutFromPageContext(layout: string, pageContext: PageContext) {
   }
   const Layout = layoutMap[layout];
   if (!Layout) {
-    // TODO: Figure out handling. Previously would render passthru
+    // Fastify server should exit before we ever get to this point
     throw new Error("Layout not found in layoutMap");
   }
   return Layout;
