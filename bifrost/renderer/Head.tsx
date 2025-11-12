@@ -25,9 +25,11 @@ const turbolinksBackButton = `addEventListener("popstate", (e) => {
 export default function Head() {
   return (
     <>
-      <script>
-        {turbolinksIOSCompat + turbolinksLoadEvent + turbolinksBackButton}
-      </script>
+      <script
+        dangerouslySetInnerHTML={{
+          __html: turbolinksIOSCompat + turbolinksLoadEvent + turbolinksBackButton
+        }}
+      />
     </>
   );
 }
