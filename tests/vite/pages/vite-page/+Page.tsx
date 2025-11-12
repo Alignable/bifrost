@@ -1,5 +1,6 @@
-import { navigate } from "@alignable/bifrost";
 import React from "react";
+import { navigate as vikeNavigate } from "vike/client/router";
+import { navigate as bifrostNavigate } from "@alignable/bifrost";
 
 const CUSTOM_HREF = {
   title: "legacy page",
@@ -17,7 +18,17 @@ export default function Page() {
       </a>
       <a href="/react-body-script-injection">react body</a>
       <a href="/head-test">head test</a>
-      <div onClick={() => navigate("/head-test")}>programmatic navigate</div>
+      <div onClick={() => vikeNavigate("/head-test")}>
+        banned programmatic navigate
+      </div>
+      <div
+        onClick={() =>
+          bifrostNavigate("/head-test", { overwriteLastHistoryEntry: true })
+        }
+      >
+        bifrost programmatic navigate
+      </div>
+      <a href="/redirect-page/redirect-to">redirect page</a>
       <a href="#anchor">anchor link</a>
       <h2 id="anchor">anchor link test</h2>
       <div style={{ height: "1000px" }}></div>

@@ -1,4 +1,4 @@
-import React, {useEffect} from "react";
+import React, { useEffect } from "react";
 
 const CUSTOM_HREF = {
   title: "legacy page",
@@ -10,13 +10,15 @@ const CUSTOM_HREF = {
 export default function Page() {
   useEffect(() => {
     const script = document.createElement("script");
-    script.innerHTML = "console.log('hello')"
+    script.innerHTML = "console.log('hello')";
 
     document.body.appendChild(script);
 
-    // Cleanup script only on the last unmounted instance of TrustpilotWidget
     return () => {
-      document.body.removeChild(script);
+      // React can run cleanup twice
+      if (document.body.contains(script)) {
+        document.body.removeChild(script);
+      }
     };
   }, []);
 
@@ -26,9 +28,7 @@ export default function Page() {
       <a href={`/custom?page=${encodeURI(JSON.stringify(CUSTOM_HREF))}`}>
         legacy page
       </a>
-      <a href="/vite-page">
-        vite page
-      </a>
+      <a href="/vite-page">vite page</a>
     </>
   );
 }

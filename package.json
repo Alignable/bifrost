@@ -10,5 +10,8 @@
     "test": "npm run -w=tests-playwright test",
     "build": "npm run -w=bifrost -w=bifrost-fastify build",
     "publish": "npm -w=bifrost -w=bifrost-fastify publish --access public"
+  },
+  "engines": {
+    "node": ">=22"
   }
 }

@@ -1,0 +1,3 @@
+tests_vite: LOG_LEVEL=error PORT=5555 npm run -w=tests-vite start
+tests_alb: npm run -w=tests-alb start 
+tests_backend: npm run -w=tests-backend start

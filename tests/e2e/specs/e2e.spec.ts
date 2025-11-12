@@ -170,12 +170,10 @@ test.describe("trailing slashes on custom routes", () => {
 });
 
 test("it keeps the favicon between pages", async ({ page }) => {
-  await page.goto("./vite-page");
-  await sleep(500);
+  await page.goto("./vite-page", { waitUntil: "networkidle" });
   await ensureNoBrowserNavigation(page, () =>
     page.getByText("head test").click()
   );
-  await sleep(500);
   await expect(page.locator("link[rel='icon']")).toHaveCount(1);
 });
 
@@ -202,20 +200,6 @@ test("body attributes are copied over", async ({ page }) => {
   expect(await body.getAttribute("class")).toBeNull();
   expect(await body.getAttribute("data-thing")).toBeNull();
   expect(await body.getAttribute("data-other")).toEqual("false");
-});
-
-test("uses config body attributes", async ({ page }) => {
-  await page.goto("./body-test");
-  await waitForTurbolinksInit(page);
-  const body = page.locator("body").last();
-  expect(await body.getAttribute("id")).toEqual("body-test-id");
-  expect(await body.getAttribute("class")).toEqual("body-test-classname");
-
-  await page.getByText("Vite Page Link").click();
-  const body2 = page.locator("body").last();
-  await expect(page).toHaveTitle("vite page");
-  expect(await body2.getAttribute("id")).toEqual("test-id");
-  expect(await body2.getAttribute("class")).toEqual("test-classname");
 });
 
 test.describe("script configs", () => {
@@ -286,7 +270,10 @@ test.describe("client navigation", () => {
     await expect(page.locator("body")).toContainText(`{"data":true}`);
   });
 
-  test("to proxied page with no layout", async ({ page, baseURL }) => {
+  test("to proxied page with no layout fallsback and reloads", async ({
+    page,
+    baseURL,
+  }) => {
     ensureAllNetworkSucceeds(page);
 
     const customProxy = new CustomProxyPage(page, {
@@ -299,10 +286,13 @@ test.describe("client navigation", () => {
       ],
     });
     await customProxy.goto();
-    await customProxy.clickLink("b");
+    await customProxy.clickLink("b", { browserReload: true, waitFor: 0 });
   });
 
-  test("to proxied page with unknown layout", async ({ page, baseURL }) => {
+  test("to proxied page with unknown layout fallsback and reloads", async ({
+    page,
+    baseURL,
+  }) => {
     ensureAllNetworkSucceeds(page);
 
     const customProxy = new CustomProxyPage(page, {
@@ -315,18 +305,7 @@ test.describe("client navigation", () => {
       ],
     });
     await customProxy.goto();
-    await customProxy.clickLink("b");
-  });
-
-  test("navigate() works and does not reload", async ({ page }) => {
-    await page.goto("./vite-page", {
-      waitUntil: "networkidle",
-    });
-    await expect(page).toHaveTitle("vite page");
-    await ensureNoBrowserNavigation(page, async () => {
-      await page.getByText("head test").click();
-      await expect(page).toHaveTitle("head test");
-    });
+    await customProxy.clickLink("b", { browserReload: true, waitFor: 0 });
   });
 
   test("to anchor on page", async ({ page }) => {
@@ -335,7 +314,7 @@ test.describe("client navigation", () => {
     await ensureNoBrowserNavigation(page, async () => {
       const anchorLink = page.getByRole("link", { name: "anchor link" });
       await anchorLink.click();
-      expect(await page.evaluate(() => window.scrollY)).toBeGreaterThan(100);
+      await page.waitForFunction(() => window.scrollY > 100);
       // verify url
       expect(page.url().endsWith("vite-page#anchor")).toBeTruthy();
 
@@ -347,41 +326,131 @@ test.describe("client navigation", () => {
 });
 
 test.describe("redirects", () => {
-  test("on initial load, follows redirect", async ({ page, baseURL }) => {
-    const customProxy = new CustomProxyPage(page, {
-      redirectTo: { title: "redirect destination" },
+  test.describe("proxied redirects", () => {
+    test("on initial load, follows redirect", async ({ page, baseURL }) => {
+      const customProxy = new CustomProxyPage(page, {
+        redirectTo: { title: "redirect destination" },
+      });
+      await customProxy.goto();
+      // verify we're still on main domain and didn't follow redirect to proxied server's domain
+      expect(page.url()).toContain(`${baseURL}/custom`);
     });
-    await customProxy.goto();
-    // verify we're still on main domain and didn't follow redirect to proxied server's domain
-    expect(page.url()).toContain(`${baseURL}/custom`);
+
+    test("on client navigation, follows redirect", async ({
+      page,
+      baseURL,
+    }) => {
+      ensureAllNetworkSucceeds(page);
+      const customProxy = new CustomProxyPage(page, {
+        title: "first page",
+        links: [{ redirectTo: { title: "redirect destination" } }],
+      });
+      await customProxy.goto();
+      await customProxy.clickLink("redirect destination");
+      expect(page.url()).toContain(`${baseURL}/custom`);
+      // back button works as expected
+      await customProxy.goBack();
+    });
+
+    test("sets cookies along the way", async ({ page, context, baseURL }) => {
+      ensureAllNetworkSucceeds(page);
+      const customProxy = new CustomProxyPage(page, {
+        title: "first page",
+        links: [
+          {
+            cookies: { cookie1: "value1" },
+            redirectTo: { title: "redirect destination" },
+          },
+        ],
+      });
+      await customProxy.goto();
+      await customProxy.clickLink("redirect destination");
+      expect(await context.cookies()).toMatchObject([
+        { name: "cookie1", value: "value1" },
+      ]);
+      expect(page.url()).toContain(`${baseURL}/custom`);
+    });
+
+    test("redirects to vite page", async ({ page, baseURL }) => {
+      ensureAllNetworkSucceeds(page);
+      const customProxy = new CustomProxyPage(page, {
+        title: "first page",
+        links: [
+          {
+            redirectTo: {
+              endpoint: "head-test",
+              title: "head test",
+            },
+          },
+        ],
+      });
+      await customProxy.goto();
+      await customProxy.clickLink("head test");
+      expect(page.url()).toContain(`${baseURL}/head-test`);
+    });
   });
 
-  test("on client navigation, follows redirect", async ({ page, baseURL }) => {
-    const customProxy = new CustomProxyPage(page, {
-      title: "first page",
-      links: [{ redirectTo: { title: "redirect destination" } }],
+  test.describe("vike-react throw redirect", () => {
+    test("on initial load, follows redirect", async ({ page }) => {
+      await page.goto("./redirect-page/redirect-to");
+
+      await page.waitForURL("./");
     });
-    await customProxy.goto();
-    await customProxy.clickLink("redirect destination");
-    expect(page.url()).toContain(`${baseURL}/custom`);
+
+    test("on client navigation, follows redirect", async ({ page }) => {
+      await page.goto("./redirect-page", { waitUntil: "networkidle" });
+
+      await ensureNoBrowserNavigation(page, () =>
+        page.getByText("redirect to home").click()
+      );
+      await page.waitForURL("./");
+      // back button works as expected
+      await ensureNoBrowserNavigation(page, async () => {
+        page.goBack();
+      });
+      await page.waitForURL("./redirect-page");
+    });
+
+    test("redirect to proxy page works", async ({ page, baseURL }) => {
+      await page.goto("./redirect-page", { waitUntil: "networkidle" });
+
+      await ensureNoBrowserNavigation(page, () =>
+        page.getByText("redirect to proxy page").click()
+      );
+      await expect(page).toHaveTitle("b");
+      // back button works as expected
+      await ensureNoBrowserNavigation(page, async () => {
+        page.goBack();
+      });
+      await page.waitForURL("./redirect-page");
+    });
   });
 
-  test("sets cookies along the way", async ({ page, context, baseURL }) => {
+  test("chained redirects", async ({ page, baseURL }) => {
+    ensureAllNetworkSucceeds(page);
+    const destination = `/custom?page=${encodeURIComponent('{"title":"b"}')}`;
     const customProxy = new CustomProxyPage(page, {
       title: "first page",
       links: [
         {
-          cookies: { cookie1: "value1" },
-          redirectTo: { title: "redirect destination" },
+          redirectTo: {
+            redirectTo: {
+              title: "b",
+              endpoint: `redirect-page/redirect-to?to=${destination}`,
+            },
+          },
         },
       ],
     });
     await customProxy.goto();
-    await customProxy.clickLink("redirect destination");
-    expect(await context.cookies()).toMatchObject([
-      { name: "cookie1", value: "value1" },
-    ]);
-    expect(page.url()).toContain(`${baseURL}/custom`);
+    await customProxy.clickLink("b");
+    // Verify turbolinks location follows redirect
+    const expectedUrl = "custom?page={%22title%22:%22b%22}";
+    await page.waitForFunction(
+      `(expectedUrl) =>
+        window.Turbolinks.controller.location.absoluteURL.endsWith(expectedUrl) && window.Turbolinks.controller.currentVisit.location.absoluteURL.endsWith(expectedUrl)`,
+      expectedUrl
+    );
   });
 });
 
@@ -396,47 +465,352 @@ test.describe("turbolinks: events", () => {
     expect(customProxy.turbolinksLog).toEqual(["turbolinks:load"]);
   });
 
-  test("navigating proxy page => proxy page, it fires everything", async ({
+  test("on SSR load of vite page, it just fires turbolinks:load", async ({
     page,
   }) => {
-    const customProxy = new CustomProxyPage(page, {
-      title: "first page",
-      content: "first page body content",
-      links: [{ title: "second page", content: "second page body content" }],
-    });
-    await customProxy.goto();
+    const logs = storeConsoleLog(page);
+    await page.goto("./vite-page");
 
-    const head1 = (m: StringMatcher) => m.toEqual("first page");
-    const head2 = (m: StringMatcher) => m.toEqual("second page");
-    const body1 = (m: StringMatcher) => m.toContain("first page body content");
-    const body2 = (m: StringMatcher) => m.toContain("second page body content");
+    expect(logs).toContain("turbolinks:load");
+  });
 
-    // assert we get to the second page at the exact right time
-    const waitForTurbolinks = validateDOMOnTurbolinks(
+  test.describe("client navigation", () => {
+    test("navigating proxy page => proxy page, it fires everything", async ({
       page,
-      ["title", "body"], // grab textcontent of these selectors to assert against
-      [
-        [T.click, head1, body1],
-        [T.beforeVisit, head1, body1],
-        [T.visit, head1, body1],
-        [T.beforeCache, head1, body1],
-        [T.beforeRender, head2, body1],
-        [T.render, head2, body2],
-        [T.load, head2, body2],
-      ]
-    );
-    await customProxy.clickLink("second page");
-    await waitForTurbolinks;
-    expect(customProxy.turbolinksLog).toEqual([
-      T.click,
-      T.beforeVisit,
-      T.visit,
-      T.beforeCache,
-      T.beforeRender,
-      T.render,
-      T.load,
-    ]);
-    await expectNoMoreScripts(page);
+    }) => {
+      const customProxy = new CustomProxyPage(page, {
+        title: "first page",
+        content: "first page body content",
+        links: [{ title: "second page", content: "second page body content" }],
+      });
+      await customProxy.goto();
+
+      const head1 = (m: StringMatcher) => m.toEqual("first page");
+      const head2 = (m: StringMatcher) => m.toEqual("second page");
+      const body1 = (m: StringMatcher) =>
+        m.toContain("first page body content");
+      const body2 = (m: StringMatcher) =>
+        m.toContain("second page body content");
+
+      // assert we get to the second page at the exact right time
+      const waitForTurbolinks = validateDOMOnTurbolinks(
+        page,
+        ["title", "body"], // grab textcontent of these selectors to assert against
+        [
+          [T.click, head1, body1],
+          [T.beforeVisit, head1, body1],
+          [T.visit, head1, body1],
+          [T.beforeCache, head1, body1],
+          [T.beforeRender, head2, body1],
+          [T.render, head2, body2],
+          [T.load, head2, body2],
+        ]
+      );
+      await customProxy.clickLink("second page");
+      await waitForTurbolinks;
+      expect(customProxy.turbolinksLog).toEqual([
+        T.click,
+        T.beforeVisit,
+        T.visit,
+        T.beforeCache,
+        T.beforeRender,
+        T.render,
+        T.load,
+      ]);
+      await expectNoMoreScripts(page);
+    });
+
+    test("navigating vite page => vite page, it fires all events except cache", async ({
+      page,
+    }) => {
+      ensureAllNetworkSucceeds(page);
+
+      await page.goto("./vite-page", {
+        waitUntil: "networkidle",
+      });
+      await expect(page).toHaveTitle("vite page");
+
+      const head1 = (m: StringMatcher) => m.toEqual("vite page");
+      const head2 = (m: StringMatcher) => m.toEqual("head test");
+      const body1 = (m: StringMatcher) => m.toContain("vite is here");
+      const body2 = (m: StringMatcher) => m.toContain("head testing");
+
+      // assert we arent on the second page until load fires
+      const waitForTurbolinks = validateDOMOnTurbolinks(
+        page,
+        ["title", "body"],
+        [
+          [T.click, head1, body1],
+          [T.beforeVisit, head1, body1],
+          [T.visit, head1, body1],
+          // Proxy pages swap over head, fire beforeRender, then render body.
+          // Vite pages DO NOT as there is no need.
+          // We could, if desired, run turbolinks mergeHead, but we'd prefer to maintain behavior parity with vike-react
+          [T.beforeRender, head1, body1],
+          [T.render, head2, body2],
+          [T.load, head2, body2],
+        ]
+      );
+      const logs = storeConsoleLog(page);
+
+      await ensureNoBrowserNavigation(page, () =>
+        page.getByText("head test").click()
+      );
+      await expect(page).toHaveTitle("head test");
+      await waitForTurbolinks;
+      expect(logs.filter((s) => s.startsWith("turbolinks:"))).toEqual([
+        T.click,
+        T.beforeVisit,
+        T.visit,
+        T.beforeRender,
+        T.render,
+        T.load,
+      ]);
+      await expectNoMoreScripts(page);
+    });
+
+    test("navigating proxy => vite page fires all events", async ({ page }) => {
+      const customProxy = new CustomProxyPage(page, {
+        title: "first page",
+        content: "first page body content",
+      });
+      await customProxy.goto();
+
+      const head1 = (m: StringMatcher) => m.toEqual("first page");
+      const head2 = (m: StringMatcher) => m.toEqual("vite page");
+      const body1 = (m: StringMatcher) =>
+        m.toContain("first page body content");
+      const body2 = (m: StringMatcher) => m.toContain("vite is here");
+
+      // assert we arent on the second page until load fires
+      const waitForTurbolinks = validateDOMOnTurbolinks(
+        page,
+        ["title", "body"],
+        [
+          [T.click, head1, body1],
+          [T.beforeVisit, head1, body1],
+          [T.visit, head1, body1],
+          [T.beforeCache, head1, body1],
+          [T.beforeRender, head1, body1],
+          [T.render, head2, body2],
+          [T.load, head2, body2],
+        ]
+      );
+      await customProxy.clickLink("vite page");
+      await waitForTurbolinks;
+      expect(customProxy.turbolinksLog).toEqual([
+        T.click,
+        T.beforeVisit,
+        T.visit,
+        T.beforeCache,
+        T.beforeRender,
+        T.render,
+        T.load,
+      ]);
+      await expectNoMoreScripts(page);
+    });
+
+    // We do not want to cache new pages
+    test("navigating vite page => proxy page fires all events EXCEPT cache", async ({
+      page,
+    }) => {
+      ensureAllNetworkSucceeds(page);
+
+      await page.goto("./vite-page", {
+        waitUntil: "networkidle",
+      });
+      await expect(page).toHaveTitle("vite page");
+
+      const head1 = (m: StringMatcher) => m.toEqual("vite page");
+      const head2 = (m: StringMatcher) => m.toEqual("legacy page");
+      const body1 = (m: StringMatcher) => m.toContain("vite is here");
+      const body2 = (m: StringMatcher) => m.toContain("legacy body");
+
+      // assert we arent on the second page until load fires
+      const waitForTurbolinks = validateDOMOnTurbolinks(
+        page,
+        ["title", "body"],
+        [
+          [T.click, head1, body1],
+          [T.beforeVisit, head1, body1],
+          [T.visit, head1, body1],
+          [T.beforeRender, head2, body1],
+          [T.render, head2, body2],
+          [T.load, head2, body2],
+        ]
+      );
+      const logs = storeConsoleLog(page);
+
+      await ensureNoBrowserNavigation(page, () =>
+        page.getByText("legacy page").click()
+      );
+      await expect(page).toHaveTitle("legacy page");
+      await waitForTurbolinks;
+      expect(logs.filter((s) => s.startsWith("turbolinks:"))).toEqual([
+        T.click,
+        T.beforeVisit,
+        T.visit,
+        T.beforeRender,
+        T.render,
+        T.load,
+      ]);
+    });
+
+    test.describe("redirecting pages", () => {
+      test("navigating to redirecting proxy page", async ({
+        page,
+        baseURL,
+      }) => {
+        ensureAllNetworkSucceeds(page);
+
+        const customProxy = new CustomProxyPage(page, {
+          title: "first page",
+          content: "first page body content",
+          links: [
+            {
+              redirectTo: {
+                title: "redirect destination",
+                content: "destination content",
+              },
+            },
+          ],
+        });
+        await customProxy.goto();
+
+        const head1 = (m: StringMatcher) => m.toEqual("first page");
+        const head2 = (m: StringMatcher) => m.toEqual("redirect destination");
+        const body1 = (m: StringMatcher) =>
+          m.toContain("first page body content");
+        const body2 = (m: StringMatcher) => m.toContain("destination content");
+
+        // assert we get to the second page at the exact right time
+        const waitForTurbolinks = validateDOMOnTurbolinks(
+          page,
+          ["title", "body"], // grab textcontent of these selectors to assert against
+          [
+            [T.click, head1, body1],
+            [T.beforeVisit, head1, body1],
+            [T.visit, head1, body1],
+            [T.beforeCache, head1, body1],
+            [T.beforeRender, head2, body1],
+            [T.render, head2, body2],
+            [T.load, head2, body2],
+          ]
+        );
+        await customProxy.clickLink("redirect destination");
+        await waitForTurbolinks;
+        expect(customProxy.turbolinksLog).toEqual([
+          T.click,
+          T.beforeVisit,
+          T.visit,
+          T.beforeCache,
+          T.beforeRender,
+          T.render,
+          T.load,
+        ]);
+        await expectNoMoreScripts(page);
+      });
+
+      test("navigating to redirecting vite page", async ({ page, baseURL }) => {
+        ensureAllNetworkSucceeds(page);
+
+        await page.goto("./vite-page", { waitUntil: "networkidle" });
+
+        const head1 = (m: StringMatcher) => m.toEqual("vite page");
+        const head2 = (m: StringMatcher) => m.toEqual("root page");
+        const body1 = (m: StringMatcher) => m.toContain("vite is here");
+        const body2 = (m: StringMatcher) => m.toContain("root page");
+
+        // assert we get to the second page at the exact right time
+        const waitForTurbolinks = validateDOMOnTurbolinks(
+          page,
+          ["title", "body"], // grab textcontent of these selectors to assert against
+          [
+            [T.click, head1, body1],
+            [T.beforeVisit, head1, body1],
+            [T.visit, head1, body1],
+            // Proxy pages swap over head, fire beforeRender, then render body.
+            [T.beforeRender, head1, body1],
+            [T.render, head2, body2],
+            [T.load, head2, body2],
+          ]
+        );
+
+        const logs = storeConsoleLog(page);
+
+        await ensureNoBrowserNavigation(page, () =>
+          page.getByText("redirect page").click()
+        );
+        await page.waitForURL("./");
+        await waitForTurbolinks;
+        expect(logs.filter((s) => s.startsWith("turbolinks:"))).toEqual([
+          T.click,
+          T.beforeVisit,
+          T.visit,
+          T.beforeRender,
+          T.render,
+          T.load,
+        ]);
+        await expectNoMoreScripts(page);
+      });
+    });
+
+    test.describe("navigate() programmtically", () => {
+      test("from vite to vite", async ({ page }) => {
+        ensureAllNetworkSucceeds(page);
+
+        await page.goto("./vite-page", {
+          waitUntil: "networkidle",
+        });
+
+        const head1 = (m: StringMatcher) => m.toEqual("vite page");
+        const head2 = (m: StringMatcher) => m.toEqual("head test");
+        const body1 = (m: StringMatcher) => m.toContain("vite is here");
+        const body2 = (m: StringMatcher) => m.toContain("head testing");
+
+        // assert we get to the second page at the exact right time
+        const waitForTurbolinks = validateDOMOnTurbolinks(
+          page,
+          ["title", "body"], // grab textcontent of these selectors to assert against
+          [
+            [T.beforeVisit, head1, body1],
+            [T.visit, head1, body1],
+            [T.beforeRender, head1, body1],
+            [T.render, head2, body2],
+            [T.load, head2, body2],
+          ]
+        );
+
+        const logs = storeConsoleLog(page);
+
+        await ensureNoBrowserNavigation(page, () =>
+          page.getByText("bifrost programmatic navigate").click()
+        );
+        await expect(page).toHaveTitle("head test");
+        await page.waitForURL("./head-test");
+        await waitForTurbolinks;
+        expect(logs.filter((s) => s.startsWith("turbolinks:"))).toEqual([
+          T.beforeVisit,
+          T.visit,
+          T.beforeRender,
+          T.render,
+          T.load,
+        ]);
+        await expectNoMoreScripts(page);
+      });
+
+      test("it does not allow directly calling vike navigate", async ({
+        page,
+      }) => {
+        await page.goto("./vite-page", {
+          waitUntil: "networkidle",
+        });
+        await page.getByText("banned programmatic navigate").click();
+        await expect(page.getByText("500 Internal Server Error")).toHaveCount(
+          1
+        );
+      });
+    });
   });
 
   test("runs blocking head scripts and inline body scripts before turbolinks:render", async ({
@@ -471,98 +845,6 @@ test.describe("turbolinks: events", () => {
       "body script: blocking",
     ]);
     await expectNoMoreScripts(page);
-  });
-
-  test("loading vite page fires turbolinks:load", async ({ page }) => {
-    const logs = storeConsoleLog(page);
-    await page.goto("./vite-page");
-
-    expect(logs).toContain("turbolinks:load");
-  });
-
-  test("navigating proxy => vite page fires all events", async ({ page }) => {
-    const customProxy = new CustomProxyPage(page, {
-      title: "first page",
-      content: "first page body content",
-    });
-    await customProxy.goto();
-
-    const head1 = (m: StringMatcher) => m.toEqual("first page");
-    const head2 = (m: StringMatcher) => m.toEqual("vite page");
-    const body1 = (m: StringMatcher) => m.toContain("first page body content");
-    const body2 = (m: StringMatcher) => m.toContain("vite is here");
-
-    // assert we arent on the second page until load fires
-    const waitForTurbolinks = validateDOMOnTurbolinks(
-      page,
-      ["title", "body"],
-      [
-        [T.click, head1, body1],
-        [T.beforeVisit, head1, body1],
-        [T.visit, head1, body1],
-        [T.beforeCache, head1, body1],
-        [T.beforeRender, head2, body1],
-        [T.render, head2, body2],
-        [T.load, head2, body2],
-      ]
-    );
-    await customProxy.clickLink("vite page");
-    await waitForTurbolinks;
-    expect(customProxy.turbolinksLog).toEqual([
-      T.click,
-      T.beforeVisit,
-      T.visit,
-      T.beforeCache,
-      T.beforeRender,
-      T.render,
-      T.load,
-    ]);
-  });
-
-  // We do not want to cache new pages
-  test("leaving vite page to proxy page fires all events EXCEPT cache", async ({
-    page,
-  }) => {
-    ensureAllNetworkSucceeds(page);
-
-    await page.goto("./vite-page", {
-      waitUntil: "networkidle",
-    });
-    await expect(page).toHaveTitle("vite page");
-
-    const head1 = (m: StringMatcher) => m.toEqual("vite page");
-    const head2 = (m: StringMatcher) => m.toEqual("legacy page");
-    const body1 = (m: StringMatcher) => m.toContain("vite is here");
-    const body2 = (m: StringMatcher) => m.toContain("legacy body");
-
-    // assert we arent on the second page until load fires
-    const waitForTurbolinks = validateDOMOnTurbolinks(
-      page,
-      ["title", "body"],
-      [
-        [T.click, head1, body1],
-        [T.beforeVisit, head1, body1],
-        [T.visit, head1, body1],
-        [T.beforeRender, head2, body1],
-        [T.render, head2, body2],
-        [T.load, head2, body2],
-      ]
-    );
-    const logs = storeConsoleLog(page);
-
-    await ensureNoBrowserNavigation(page, () =>
-      page.getByText("legacy page").click()
-    );
-    await expect(page).toHaveTitle("legacy page");
-    await waitForTurbolinks;
-    expect(logs.filter((s) => s.startsWith("turbolinks:"))).toEqual([
-      T.click,
-      T.beforeVisit,
-      T.visit,
-      T.beforeRender,
-      T.render,
-      T.load,
-    ]);
   });
 });
 
@@ -710,7 +992,7 @@ test.describe("script loading order", () => {
 
     await customProxy.goto();
 
-    expect(customProxy.scriptLog).toEqual([
+    expect(customProxy.scriptAndTurbolinksLog).toEqual([
       "head script: inline 1",
       "head script: blocking",
       "body script: blocking",
@@ -718,6 +1000,7 @@ test.describe("script loading order", () => {
       "body script: inline 2",
       "body script: blocking",
       "head script: deferred",
+      T.load,
     ]);
 
     await expectNoMoreScripts(page);
@@ -731,8 +1014,10 @@ test.describe("script loading order", () => {
 
     const customProxy = new CustomProxyPage(page, {
       title: "scriptless",
+      endpoint: "custom",
       links: [
         {
+          endpoint: "custom",
           title: "with scripts",
           headScripts: ["inline1", "blocking", "defer"],
           bodyScripts: ["blocking", "inline1", "inline2", "blocking"],
@@ -745,12 +1030,20 @@ test.describe("script loading order", () => {
 
     await customProxy.clickLink("with scripts", { waitFor: 500 });
 
-    expect(customProxy.scriptLog).toEqual([
+    expect(customProxy.scriptAndTurbolinksLog).toEqual([
+      T.click,
+      T.beforeVisit,
+      T.visit,
+      T.beforeCache,
       "head script: inline 1",
+      T.beforeRender,
       "head script: blocking",
       "body script: inline 1", // order of inlines is respected
       "body script: inline 2",
-      "head script: deferred", // deferred runs earlier which is different
+      T.render,
+      T.load,
+      // These run after turbolinks:load, unlike on SSR. This matches behavior of turbolinks
+      "head script: deferred",
       "body script: blocking", // remote scripts load after inline due to network req. could be stricter about script order
       "body script: blocking",
     ]);
@@ -870,7 +1163,10 @@ test.describe("script loading order", () => {
 
       await customProxy.goto();
 
-      await customProxy.clickLink("no tracked", { browserReload: true });
+      await customProxy.clickLink("no tracked", {
+        browserReload: true,
+        waitFor: "onClientInit",
+      });
     });
 
     test("adding tracked scripts triggers full reload", async ({ page }) => {
@@ -942,6 +1238,7 @@ test.describe("script loading order", () => {
       page.getByText("legacy page").click()
     );
     await expect(page).toHaveTitle("legacy page");
+    await sleep(50);
 
     // regular client-side load order
     expect(logs.filter((s) => s.includes("script"))).toEqual([
@@ -1109,34 +1406,5 @@ test.describe("with ALB", () => {
         await expectBifrostPage(page);
       });
     });
-  });
-});
-
-test.describe("useNavigation", () => {
-  test("renders navigation state", async ({ page }) => {
-    await page.goto("./navigation-test", {
-      waitUntil: "networkidle",
-    });
-    await expect(page.locator("#nav-state")).toContainText("idle");
-    page.getByText("slow page").click();
-    await expect(page.locator("#nav-state")).toContainText("loading");
-  });
-
-  test("navigate() resolves after page load", async ({ page }) => {
-    await page.goto("./navigation-test", {
-      waitUntil: "networkidle",
-    });
-
-    await page.getByText("navigate()").click();
-    expect(await page.title()).not.toEqual("slow page");
-
-    // wait for navigate() promise resolve
-    await new Promise(function (resolve) {
-      page.on(
-        "console",
-        (msg) => msg.text() == "navigation promise resolved" && resolve(msg)
-      );
-    });
-    expect(await page.title()).toEqual("slow page");
   });
 });

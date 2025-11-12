@@ -1,9 +1,7 @@
-import { OnBeforeRenderSync } from "@alignable/bifrost";
+import { PageContext } from "vike/types";
 
-const onBeforeRender: OnBeforeRenderSync = (pageContext) => {
-  return {
-    pageContext: { layoutProps: { currentNav: "INSERTED BY ONBEFORERENDER" } },
-  };
+const onBeforeRender = (pageContext: PageContext) => {
+  pageContext.currentNav = "INSERTED BY ONBEFORERENDER";
 };
 
 export default onBeforeRender;

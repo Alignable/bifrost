@@ -4,16 +4,17 @@ import { FastifyRequest, RequestGenericInterface } from "fastify/types/request";
 import proxy from "@fastify/http-proxy";
 import accepts from "@fastify/accepts";
 import forwarded from "@fastify/forwarded";
+import type { GetLayout, WrappedServerOnly } from "@alignable/bifrost/config";
 import { Writable } from "stream";
 import { IncomingMessage } from "http";
 import { renderPage } from "vike/server";
-import { AugmentMe, GetLayout, PageContext } from "@alignable/bifrost";
+import { PageContextServer } from "vike/types";
+import { extractDomElements } from "./lib/extractDomElements";
 
 type RenderedPageContext = Awaited<
   ReturnType<
     typeof renderPage<
       {
-        redirectTo?: string;
         isClientSideNavigation?: boolean;
       },
       { urlOriginal: string }
@@ -50,7 +51,7 @@ interface ViteProxyPluginOptions {
   onError?: (error: any, pageContext: RenderedPageContext) => void;
   buildPageContextInit?: (
     req: FastifyRequest
-  ) => Promise<AugmentMe.PageContextInit>;
+  ) => Promise<Partial<Omit<PageContextServer, "headers">>>;
 }
 /**
  * Fastify plugin that wraps @fasitfy/http-proxy to proxy Rails/Turbolinks server into a vike site.
@@ -70,10 +71,6 @@ export const viteProxyPlugin: FastifyPluginAsync<
       pageContext.errorWhileRendering
     ) {
       onError(pageContext.errorWhileRendering, pageContext);
-    }
-
-    if (pageContext.redirectTo && !pageContext.isClientSideNavigation) {
-      return reply.redirect(307, pageContext.redirectTo);
     }
 
     if (!httpResponse) {
@@ -102,10 +99,7 @@ export const viteProxyPlugin: FastifyPluginAsync<
           ...(buildPageContextInit ? await buildPageContextInit(req) : {}),
         };
 
-        const pageContext = await renderPage<
-          PageContext,
-          typeof pageContextInit
-        >(pageContextInit);
+        const pageContext = await renderPage(pageContextInit);
 
         // this does not handle getting the original pageId when errors are thrown: https://github.com/vikejs/vike/issues/1112
         req.bifrostPageId = pageContext.pageId;
@@ -143,7 +137,8 @@ export const viteProxyPlugin: FastifyPluginAsync<
               req.headers[key.toLowerCase()] = val;
             }
             // If proxy headers set, this is a client navigation meant to go direct to legacy backend.
-            // Use passthru proxy in this case. In prod, it'd be better to use ALB to flip target
+            // Use passthru proxy in this case.
+            // ALB CANNOT be used for this. see `onBeforeRenderClient` for details
             if (proxyHeadersAlreadySet) return;
 
             (req.raw as RawRequestExtendedWithProxy)._bfproxy = true;
@@ -191,22 +186,30 @@ export const viteProxyPlugin: FastifyPluginAsync<
           }
         }
 
-        const layoutInfo = req.getLayout?.(reply.getHeaders());
-        if (!layoutInfo?.layout) {
+        const proxyLayoutInfo = req.getLayout?.(reply.getHeaders());
+        if (!proxyLayoutInfo) {
           return reply.send(res);
         }
 
         const html = await streamToString(res);
 
+        const { bodyAttributes, bodyInnerHtml, headInnerHtml } =
+          extractDomElements(html);
+
+        if (!bodyInnerHtml || !headInnerHtml) {
+          throw new Error("Proxy failed");
+        }
+
         const pageContextInit = {
           urlOriginal: req.url,
           // Critical that we don't set any passToClient values in pageContextInit
           // If we do, Vike re-requests pageContext on client navigation. This breaks wrapped proxy.
-          wrappedServerOnly: {
-            layout: layoutInfo.layout,
-            layoutProps: layoutInfo.layoutProps,
-            html,
-          },
+          _wrappedServerOnly: {
+            bodyAttributes,
+            bodyInnerHtml,
+            headInnerHtml,
+            proxyLayoutInfo,
+          } satisfies WrappedServerOnly,
         };
         const pageContext = await renderPage(pageContextInit);
         return replyWithPage(reply, pageContext);

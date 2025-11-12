@@ -12,23 +12,26 @@
     "@fastify/reply-from": "^9.0.1",
     "compression": "^1.7.4",
     "cross-env": "^7.0.3",
+    "dom-serializer": "^2.0.0",
+    "domhandler": "^5.0.3",
+    "domutils": "^3.2.2",
     "fastify": "^4.9.2",
+    "htmlparser2": "^10.0.0",
     "sirv": "^2.0.2",
     "vite": "^6.3.5"
   },
   "peerDependencies": {
     "@alignable/bifrost": "0.1.0",
     "fastify": "^4.9.2",
-    "vike": "0.4.244"
+    "vike": "0.4.245-commit-4d0629e"
   },
   "devDependencies": {
     "@types/connect": "^3.4.35",
-    "@types/jsdom": "^21.1.1",
     "@types/node": "^18.11.9",
     "@types/react": "^18.0.8",
     "@types/react-dom": "^18.0.3",
-    "react": "^18.2.0",
-    "react-dom": "^18.2.0",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0",
     "tsup": "^6.7.0",
     "typescript": "^5.0.4"
   },

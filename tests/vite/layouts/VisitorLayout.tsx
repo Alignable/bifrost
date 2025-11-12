@@ -1,10 +1,19 @@
-import { LayoutComponent } from "@alignable/bifrost";
 import React from "react";
+import { usePageContext } from "vike-react/usePageContext";
 
-export const VisitorLayout: LayoutComponent = (props) => (
-  <div>
-    <nav>visitor layout</nav>
-    <p>selected: {props.currentNav}</p>
-    {props.children}
-  </div>
-);
+export const VisitorLayout = ({
+  children,
+  currentNav,
+}: {
+  children: React.ReactNode;
+  currentNav?: string;
+}) => {
+  const pageContext = usePageContext();
+  return (
+    <div>
+      <nav>visitor layout</nav>
+      <p>selected: {pageContext?.config?.currentNav || currentNav}</p>
+      {children}
+    </div>
+  );
+};

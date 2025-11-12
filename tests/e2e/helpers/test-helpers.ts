@@ -123,19 +123,31 @@ export async function validateDOMOnTurbolinks<T>(
     ) => T extends Promise<unknown> ? never : T)[]
   ][]
 ) {
-  return Promise.all(
-    events.map(([eventName, ...callbacks]) =>
-      onDocumentEvent(page, eventName, selectors).then(
-        ([event, textContents]) =>
-          callbacks.forEach((cb, i) =>
-            cb(
-              expect.soft(
-                textContents[i],
-                `${eventName} failed on ${selectors[i]}`
+  const waitingForEvents = new Set(events.map(([e]) => e));
+  return Promise.race([
+    sleep(2000).then(() => {
+      expect(
+        false,
+        "Timed out waiting for events:\n" +
+          Array.from(waitingForEvents.values()).join("\n")
+      ).toBe(true);
+    }),
+    Promise.all(
+      events.map(([eventName, ...callbacks]) =>
+        onDocumentEvent(page, eventName, selectors).then(
+          ([event, textContents]) => {
+            waitingForEvents.delete(eventName);
+            callbacks.forEach((cb, i) =>
+              cb(
+                expect.soft(
+                  textContents[i],
+                  `${eventName} failed on ${selectors[i]}`
+                )
               )
-            )
-          )
+            );
+          }
+        )
       )
-    )
-  );
+    ),
+  ]);
 }

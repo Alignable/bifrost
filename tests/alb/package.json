@@ -4,7 +4,7 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "start": "node index.mjs",
+    "start": "NODE_ENV=production node index.mjs",
     "dev": "node index.mjs"
   },
   "author": "",

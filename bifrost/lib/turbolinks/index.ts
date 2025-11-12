@@ -28,10 +28,12 @@ export const Turbolinks = {
   },
 
   start() {
+    if (window.Turbolinks?.controller?.started) return;
+
     // because this runs after ios hooks, we have to recover. See onRenderHtml
     if (
       window.Turbolinks !== Turbolinks &&
-      window.Turbolinks.controller.adapter
+      window.Turbolinks?.controller?.adapter
     ) {
       (window.Turbolinks.controller.adapter as any).controller = controller;
       controller.adapter = window.Turbolinks.controller.adapter;
@@ -46,40 +48,44 @@ export const Turbolinks = {
     controller.pageContext = pageContext;
   },
 
-  _vpsOnRenderClient(
-    newHead: HTMLHeadElement,
-    trackScripts: boolean,
-    executeBodyScripts: boolean,
-    renderBody: () => void
-  ) {
+  // Returns promise for turbolinks to be ready to render (runs requestAnimationFrame internally)
+  async _vikeBeforeRender(beforeRenderFn?: () => void): Promise<void> {
     if (controller.currentVisit) {
       const { currentVisit } = controller;
-      // TODO: move to controller?
-      currentVisit.renderFn = async () => {
-        const scriptsLoaded = mergeHead(newHead, trackScripts, () =>
-          controller.viewInvalidated()
-        );
 
-        controller.viewWillRender();
-        renderBody();
-        await scriptsLoaded;
+      return new Promise((resolve) => {
+        currentVisit.renderFn = () => {
+          beforeRenderFn?.();
+          controller.viewWillRender(); // turbolinks:before-render
+          resolve();
+        };
 
-        if (executeBodyScripts) {
-          activateNewBodyScriptElements(
-            Array.from(document.body.querySelectorAll("script"))
-          );
-        }
-        focusFirstAutofocusableElement();
-
-        controller.viewRendered();
-        controller.adapter.visitRendered(currentVisit);
-      };
-
-      controller.adapter.visitRequestCompleted(controller.currentVisit);
-      controller.adapter.visitRequestFinished(controller.currentVisit);
+        controller.adapter.visitRequestCompleted(currentVisit);
+        controller.adapter.visitRequestFinished(currentVisit);
+      });
     } else {
       console.error(
         "controller.currentVisit should exist when onRenderClient fires"
+      );
+    }
+  },
+
+  async _vikeAfterRender(activateBody: boolean) {
+    if (controller.currentVisit) {
+      if (activateBody) {
+        activateNewBodyScriptElements(
+          Array.from(document.body.querySelectorAll("script"))
+        );
+      }
+
+      focusFirstAutofocusableElement();
+
+      controller.viewRendered(); // turbolinks:render
+      controller.adapter.visitRendered(controller.currentVisit);
+      controller.currentVisit.complete(); // turbolinks:load
+    } else {
+      console.error(
+        "controller.currentVisit should exist when onAfterRenderClient fires"
       );
     }
   },

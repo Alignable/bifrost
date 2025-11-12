@@ -80,23 +80,32 @@ export class CustomProxyPage {
     {
       browserReload = false,
       waitFor = "turbolinks",
-    }: { browserReload?: boolean; waitFor?: "turbolinks" | number } = {}
+    }: {
+      browserReload?: boolean;
+      waitFor?: "turbolinks" | string | number;
+    } = {}
   ) {
     this.consoleLog = storeConsoleLog(this.page);
 
     await (browserReload ? ensureBrowserNavigation : ensureNoBrowserNavigation)(
       this.page,
       async () => {
-        await this.page.getByRole("link").filter({ hasText: title }).click();
+        const clickPromise = this.page
+          .getByRole("link")
+          .filter({ hasText: title })
+          .click();
 
         if (waitFor == "turbolinks") {
           await waitForConsoleLog(
             this.page,
             (msg) => msg.text() === "turbolinks:load"
           );
-        } else {
-          await sleep(waitFor); // TODO: wait on something smarter.
+        } else if (typeof waitFor === "string") {
+          await waitForConsoleLog(this.page, (msg) => msg.text() === waitFor);
+        } else if (typeof waitFor === "number") {
+          await sleep(waitFor);
         }
+        await clickPromise;
 
         if (title === "vite page") {
           this.pageData = undefined;
