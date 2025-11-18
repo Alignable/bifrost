@@ -5,16 +5,15 @@ import { Location, Locatable } from "./location";
 import { Action, isAction } from "./types";
 import { closest, defer, dispatch, uuid } from "./util";
 import { Visit } from "./visit";
-import { setNavigation } from "../../renderer/useNavigation";
-import { PageContextProxyClientHydration } from "../../types/internal";
+import { PageContextClient } from "vike/types";
 
 export type TimingData = {};
 export type VisitOptions = { action: Action };
 
 export interface Snapshot {
-  bodyEl: Element;
+  bodyEl: HTMLElement;
   headEl: HTMLHeadElement;
-  pageContext: PageContextProxyClientHydration;
+  pageContext: PageContextClient;
 }
 
 export class Controller {
@@ -78,6 +77,15 @@ export class Controller {
 
   setProgressBarDelay(delay: number) {
     this.progressBarDelay = delay;
+  }
+
+  // For after redirect, on page load we update this info for ios adapter
+  updateLocationAndRestorationIdentifier(
+    locatable: Locatable,
+    restorationIdentifier: string
+  ) {
+    this.location = Location.wrap(locatable);
+    this.restorationIdentifier = restorationIdentifier;
   }
 
   // History delegate
@@ -189,7 +197,6 @@ export class Controller {
   }
 
   notifyApplicationBeforeVisitingLocation(location: Location) {
-    setNavigation({ state: "loading" });
     return dispatch("turbolinks:before-visit", {
       data: { url: location.absoluteURL },
       cancelable: true,
@@ -207,7 +214,6 @@ export class Controller {
   }
 
   notifyApplicationBeforeRender() {
-    setNavigation({ state: "idle" });
     return dispatch("turbolinks:before-render");
   }
 

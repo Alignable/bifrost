@@ -1,10 +1,7 @@
-import { BifrostConfig } from "@alignable/bifrost";
+import { Config } from "vike/types";
 import { MainNavLayout } from "../../layouts/MainNavLayout";
 
 export default {
-  proxyMode: false,
   Layout: MainNavLayout,
-  documentProps: {
-    title: "Error",
-  },
-} satisfies BifrostConfig;
+  title: "Error",
+} satisfies Config;

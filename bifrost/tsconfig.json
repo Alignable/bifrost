@@ -2,14 +2,16 @@
   "compilerOptions": {
     "strict": true,
     "target": "ES2020",
+    "module": "ES2020",
     "declaration": true,
     "declarationMap": true,
     "moduleResolution": "node",
     "lib": ["DOM", "DOM.Iterable", "ESNext"],
     "jsx": "react",
     "skipLibCheck": true,
+    "types": ["vike-react", "vite/client"],
     "esModuleInterop": true,
     "noEmit": true
   },
-  "include": ["renderer", "proxy", "lib", "index.ts"]
+  "include": ["renderer", "lib", "index.ts"]
 }
