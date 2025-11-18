@@ -1,4 +1,4 @@
-## 0.2.0
+## 1.0.0
 
 Bifrost is now an extension of [vike-react](https://vike.dev/vike-react)!
 This means pages can be built using all vike-react features.
