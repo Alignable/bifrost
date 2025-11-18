@@ -1,8 +1,5 @@
-import { BifrostConfig } from "@alignable/bifrost";
+import { Config } from "vike/types";
 
 export default {
-  documentProps: {
-    title: "nested vite page",
-  },
-  scripts: ["<script>console.log('hello from vite-page/nested')</script>"],
-} satisfies BifrostConfig;
+  title: "nested vite page",
+} satisfies Config;

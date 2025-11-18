@@ -3,6 +3,7 @@ import compress from "@fastify/compress";
 import middie from "@fastify/middie";
 import fastifyStatic from "@fastify/static";
 import fastify from "fastify";
+import fs from "fs/promises";
 import path from "path";
 import { fileURLToPath } from "url";
 import { viteProxyPlugin } from "@alignable/bifrost-fastify";
@@ -30,9 +31,10 @@ async function startServer() {
       prefix: "/bifrost-assets/assets/",
     });
   } else {
+    await fs.rm("node_modules/.vite", { recursive: true, force: true });
     const { createDevMiddleware } = await import("vike/server");
     const { devMiddleware } = await createDevMiddleware({ root });
-    app.use(devMiddleware);
+    await app.use(devMiddleware);
   }
 
   app.addHook("onSend", async (req, reply) => {
@@ -54,6 +56,7 @@ async function startServer() {
         pageContext.httpResponse.headers.push(["X-TEST-ONERROR", "true"]);
       }
     },
+    logLevel: (process.env.LOG_LEVEL as any) || "info",
   });
 
   const port: number = process.env.PORT ? +process.env.PORT : 5555;

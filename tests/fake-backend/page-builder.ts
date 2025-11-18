@@ -24,6 +24,9 @@ export function followRedirects(data: PageData): PageDataOk {
 }
 
 export function toPath(data: PageData) {
+  if ("endpoint" in data && data?.endpoint?.includes("?")) {
+    return "/" + data.endpoint;
+  }
   return (
     `/${"endpoint" in data ? data!.endpoint : "custom"}?page=` +
     encodeURI(JSON.stringify(data))

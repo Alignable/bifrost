@@ -23,7 +23,7 @@ test.describe("requests", () => {
     test("returns headers for proxied page", async ({ request }) => {
       const req = await request.head("./custom-incorrect");
       expect(req.headers()).toMatchObject({
-        "x-test-pageid": "/proxy/pages/passthru",
+        "x-test-pageid": "/pages/proxy/passthru",
         // hits old backend
         "x-test-fake-backend": "1",
       });
@@ -52,12 +52,12 @@ test.describe("requests", () => {
 
     test("returns wrapped proxy route when hit", async ({ request }) => {
       const req = await request.get("./json-route");
-      expect(req.headers()["x-test-pageid"]).toBe("/proxy/pages/wrapped");
+      expect(req.headers()["x-test-pageid"]).toBe("/pages/proxy/wrapped");
     });
 
     test("returns passthru proxy route when hit", async ({ request }) => {
       const req = await request.get("./custom-incorrect");
-      expect(req.headers()["x-test-pageid"]).toBe("/proxy/pages/passthru");
+      expect(req.headers()["x-test-pageid"]).toBe("/pages/proxy/passthru");
     });
 
     test.skip("returns original page id on error pages", async ({

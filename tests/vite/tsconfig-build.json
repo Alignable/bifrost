@@ -4,6 +4,6 @@
     "outDir": "dist",
     "allowJs": true
   },
-  "include": ["server", "vite.config.ts"],
+  "include": ["server", "vite.config.ts", "bifrost.d.ts"],
   "extends": ["./tsconfig.json"]
 }
