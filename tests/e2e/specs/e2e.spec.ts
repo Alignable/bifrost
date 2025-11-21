@@ -85,6 +85,20 @@ test.describe("pages", () => {
     await expect(page.getByText("Vite is here")).toHaveCount(1);
   });
 
+  test("it serves ssr pages", async ({ page }) => {
+    await page.goto("./ssr-page");
+
+    await expect(page).toHaveTitle("ssr page");
+    await expect(page.getByText("ssr page (no streaming)")).toHaveCount(1);
+  });
+
+  test("it serves stream pages", async ({ page }) => {
+    await page.goto("./stream-page");
+
+    await expect(page).toHaveTitle("stream page");
+    await expect(page.getByText("streamed page")).toHaveCount(1);
+  });
+
   test("it handles react inserting body scripts", async ({ page }) => {
     const logs = storeConsoleLog(page);
     await page.goto("./react-body-script-injection");
