@@ -5,7 +5,7 @@ import proxy from "@fastify/http-proxy";
 import accepts from "@fastify/accepts";
 import forwarded from "@fastify/forwarded";
 import type { GetLayout, WrappedServerOnly } from "@alignable/bifrost/config";
-import { Writable } from "stream";
+import { PassThrough, Writable } from "stream";
 import { IncomingMessage } from "http";
 import { renderPage } from "vike/server";
 import { PageContextServer } from "vike/types";
@@ -77,11 +77,13 @@ export const viteProxyPlugin: FastifyPluginAsync<
       return reply.code(404).type("text/html").send("Not Found");
     }
 
-    const { body, statusCode, headers } = httpResponse;
+    const { pipe, statusCode, headers } = httpResponse;
+    const stream = new PassThrough();
+    pipe(stream);
     return reply
       .status(statusCode)
       .headers(Object.fromEntries(headers))
-      .send(body);
+      .send(stream);
   }
   await fastify.register(accepts);
   fastify.decorateRequest("bifrostPageId", null);
@@ -96,6 +98,7 @@ export const viteProxyPlugin: FastifyPluginAsync<
       ) {
         const pageContextInit = {
           urlOriginal: req.url,
+          headersOriginal: req.headers,
           ...(buildPageContextInit ? await buildPageContextInit(req) : {}),
         };
 
@@ -203,6 +206,7 @@ export const viteProxyPlugin: FastifyPluginAsync<
 
         const pageContextInit = {
           urlOriginal: req.url,
+          headersOriginal: req.headers,
           // Critical that we don't set any passToClient values in pageContextInit
           // If we do, Vike re-requests pageContext on client navigation. This breaks wrapped proxy.
           _wrappedServerOnly: {

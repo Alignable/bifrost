@@ -1,7 +1,7 @@
 {
   "name": "@alignable/bifrost-fastify",
   "repository": "https://github.com/Alignable/bifrost.git",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "type": "module",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
@@ -21,15 +21,15 @@
     "vite": "^6.3.5"
   },
   "peerDependencies": {
-    "@alignable/bifrost": "1.0.0",
+    "@alignable/bifrost": "1.0.1",
     "fastify": "^4.9.2",
     "vike": "0.4.247"
   },
   "devDependencies": {
     "@types/connect": "^3.4.35",
     "@types/node": "^18.11.9",
-    "@types/react": "^18.0.8",
-    "@types/react-dom": "^18.0.3",
+    "@types/react": "^19.0.0",
+    "@types/react-dom": "^19.0.0",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
     "tsup": "^6.7.0",

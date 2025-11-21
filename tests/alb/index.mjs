@@ -5,6 +5,8 @@ const BIFROST_URL = `http://localhost:${process.env.BIFROST_PORT || 5555}`;
 const BIFROST_PATHS = [
   "/bifrost-assets",
   "/vite-page",
+  "/ssr-page",
+  "/stream-page",
   "/custom",
   "/custom-incorrect",
   "/react-body-script-injection",
