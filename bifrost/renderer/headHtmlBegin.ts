@@ -1,4 +1,4 @@
-import React from "react";
+// We use headHtmlStart instead of +Head.tsx to avoid issues with userland usage of `+Head.clear.tsx` overwriting our handling
 
 // Register turbolinks global for ios to hook into
 const turbolinksIOSCompat = `window.Turbolinks = {controller:{restorationIdentifier: ''}};`;
@@ -22,14 +22,6 @@ const turbolinksBackButton = `addEventListener("popstate", (e) => {
   if(e.state && e.state.turbolinks) window.location.reload();
 });`;
 
-export default function Head() {
-  return (
-    <>
-      <script
-        dangerouslySetInnerHTML={{
-          __html: turbolinksIOSCompat + turbolinksLoadEvent + turbolinksBackButton
-        }}
-      />
-    </>
-  );
-}
+export default `<script>${
+  turbolinksIOSCompat + turbolinksLoadEvent + turbolinksBackButton
+}</script>`;
