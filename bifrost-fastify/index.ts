@@ -25,6 +25,7 @@ type RenderedPageContext = Awaited<
 declare module "fastify" {
   interface FastifyRequest {
     bifrostPageId?: string | null;
+    vikePageContext?: Partial<PageContextServer> | null;
     getLayout: GetLayout;
   }
 }
@@ -87,6 +88,7 @@ export const viteProxyPlugin: FastifyPluginAsync<
   }
   await fastify.register(accepts);
   fastify.decorateRequest("bifrostPageId", null);
+  fastify.decorateRequest("vikePageContext", null);
   fastify.decorateRequest("getLayout", null);
   await fastify.register(proxy, {
     upstream: upstream.href,
@@ -106,6 +108,7 @@ export const viteProxyPlugin: FastifyPluginAsync<
 
         // this does not handle getting the original pageId when errors are thrown: https://github.com/vikejs/vike/issues/1112
         req.bifrostPageId = pageContext.pageId;
+        req.vikePageContext = pageContext;
 
         const proxyMode = pageContext.config?.proxyMode;
 
