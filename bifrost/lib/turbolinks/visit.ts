@@ -139,7 +139,6 @@ export class Visit {
   updateIfRedirect(url: string) {
     const newLocation = Location.wrap(url);
     if (this.location.isEqualTo(newLocation)) return;
-    console.log("redirected", this.location, newLocation);
     this.redirectedToLocation = newLocation;
   }
 

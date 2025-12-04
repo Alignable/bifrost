@@ -33,14 +33,14 @@ export default async function wrappedOnBeforeRenderClient(
       body: proxyBodyEl,
     };
 
-    await Turbolinks._vikeBeforeRender(() => {
+    await Turbolinks._vikeBeforeRender(pageContext._turbolinksVisit, () => {
       pageContext._waitForHeadScripts = mergeHead(headEl);
     });
     copyBody(bodyEl);
   } else {
     const { head, body } = pageContext._turbolinksProxy!;
 
-    await Turbolinks._vikeBeforeRender(() => {
+    await Turbolinks._vikeBeforeRender(pageContext._turbolinksVisit, () => {
       pageContext._waitForHeadScripts = mergeHead(head!);
     });
     copyBody(body);

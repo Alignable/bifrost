@@ -8,6 +8,7 @@ import {
   StringMatcher,
   sleep,
   ensureBrowserNavigation,
+  getTurbolinksLocation,
   waitForTurbolinksInit,
 } from "../helpers/test-helpers";
 import { CustomProxyPage } from "../helpers/custom-proxy-page";
@@ -348,6 +349,7 @@ test.describe("redirects", () => {
       await customProxy.goto();
       // verify we're still on main domain and didn't follow redirect to proxied server's domain
       expect(page.url()).toContain(`${baseURL}/custom`);
+      expect(await getTurbolinksLocation(page)).toContain(customProxy.path);
     });
 
     test("on client navigation, follows redirect", async ({
@@ -361,7 +363,8 @@ test.describe("redirects", () => {
       });
       await customProxy.goto();
       await customProxy.clickLink("redirect destination");
-      expect(page.url()).toContain(`${baseURL}/custom`);
+      expect(page.url()).toContain(`${baseURL}${customProxy.path}`);
+      expect(await getTurbolinksLocation(page)).toContain(customProxy.path);
       // back button works as expected
       await customProxy.goBack();
     });
@@ -382,7 +385,7 @@ test.describe("redirects", () => {
       expect(await context.cookies()).toMatchObject([
         { name: "cookie1", value: "value1" },
       ]);
-      expect(page.url()).toContain(`${baseURL}/custom`);
+      expect(page.url()).toContain(`${baseURL}${customProxy.path}`);
     });
 
     test("redirects to vite page", async ({ page, baseURL }) => {
@@ -401,6 +404,7 @@ test.describe("redirects", () => {
       await customProxy.goto();
       await customProxy.clickLink("head test");
       expect(page.url()).toContain(`${baseURL}/head-test`);
+      expect(await getTurbolinksLocation(page)).toContain(customProxy.path);
     });
   });
 
@@ -459,7 +463,7 @@ test.describe("redirects", () => {
     await customProxy.goto();
     await customProxy.clickLink("b");
     // Verify turbolinks location follows redirect
-    const expectedUrl = "custom?page={%22title%22:%22b%22}";
+    const expectedUrl = `${baseURL}/custom?page={%22title%22:%22b%22}`;
     await page.waitForFunction(
       `(expectedUrl) =>
         window.Turbolinks.controller.location.absoluteURL.endsWith(expectedUrl) && window.Turbolinks.controller.currentVisit.location.absoluteURL.endsWith(expectedUrl)`,
@@ -820,9 +824,24 @@ test.describe("turbolinks: events", () => {
           waitUntil: "networkidle",
         });
         await page.getByText("banned programmatic navigate").click();
+        await page.waitForURL("./head-test");
+
         await expect(page.getByText("500 Internal Server Error")).toHaveCount(
           1
         );
+      });
+
+      test("it allows calling navigate inside useEffect", async ({ page }) => {
+        await page.goto("./auto-navigate");
+        await page.waitForURL("./auto-navigate/destination");
+
+        await page.click("a");
+        await page.waitForURL("./auto-navigate/destination");
+
+        await page.goto("./auto-navigate");
+        await page.waitForURL("./auto-navigate/destination");
+        await page.goBack();
+        await page.waitForURL("./auto-navigate/destination");
       });
     });
   });

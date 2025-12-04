@@ -18,7 +18,7 @@ jobs:
       - name: Build Bifrost
         run: npm run build
       - name: Run Playwright tests
-        uses: docker://mcr.microsoft.com/playwright:v1.55.1-noble
+        uses: docker://mcr.microsoft.com/playwright:v1.57.0-noble
         with:
           args: env HOME=/root PLAYWRIGHT_JUNIT_OUTPUT_NAME=results.xml npm run -w=tests-playwright test -- --reporter=junit
           retention-days: 30

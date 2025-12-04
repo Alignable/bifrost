@@ -5,6 +5,7 @@ import {
   activateNewBodyScriptElements,
   focusFirstAutofocusableElement,
 } from "./util";
+import { Visit } from "./visit";
 
 const controller = new Controller();
 
@@ -49,29 +50,28 @@ export const Turbolinks = {
   },
 
   // Returns promise for turbolinks to be ready to render (runs requestAnimationFrame internally)
-  async _vikeBeforeRender(beforeRenderFn?: () => void): Promise<void> {
-    if (controller.currentVisit) {
-      const { currentVisit } = controller;
-
+  async _vikeBeforeRender(
+    visit: Visit | undefined,
+    beforeRenderFn?: () => void
+  ): Promise<void> {
+    if (visit) {
       return new Promise((resolve) => {
-        currentVisit.renderFn = () => {
+        visit.renderFn = () => {
           beforeRenderFn?.();
           controller.viewWillRender(); // turbolinks:before-render
           resolve();
         };
 
-        controller.adapter.visitRequestCompleted(currentVisit);
-        controller.adapter.visitRequestFinished(currentVisit);
+        controller.adapter.visitRequestCompleted(visit);
+        controller.adapter.visitRequestFinished(visit);
       });
     } else {
-      console.error(
-        "controller.currentVisit should exist when onRenderClient fires"
-      );
+      console.error("visit should exist when onBeforeRenderClient fires");
     }
   },
 
-  async _vikeAfterRender(activateBody: boolean) {
-    if (controller.currentVisit) {
+  async _vikeAfterRender(visit: Visit | undefined, activateBody: boolean) {
+    if (visit) {
       if (activateBody) {
         activateNewBodyScriptElements(
           Array.from(document.body.querySelectorAll("script"))
@@ -81,12 +81,10 @@ export const Turbolinks = {
       focusFirstAutofocusableElement();
 
       controller.viewRendered(); // turbolinks:render
-      controller.adapter.visitRendered(controller.currentVisit);
-      controller.currentVisit.complete(); // turbolinks:load
+      controller.adapter.visitRendered(visit);
+      visit.complete(); // turbolinks:load
     } else {
-      console.error(
-        "controller.currentVisit should exist when onAfterRenderClient fires"
-      );
+      console.error("visit should exist when onAfterRenderClient fires");
     }
   },
 };

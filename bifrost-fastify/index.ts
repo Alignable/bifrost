@@ -180,7 +180,6 @@ export const viteProxyPlugin: FastifyPluginAsync<
       async onResponse(req, reply: FastifyReply<RawServerBase>, res) {
         if ([301, 302, 303, 307, 308].includes(reply.statusCode)) {
           const location = reply.getHeader("location") as string;
-          console.log(location);
           if (location) {
             const url = new URL(location, host.href);
             if (url.host === upstream.host || url.host === host.host) {
