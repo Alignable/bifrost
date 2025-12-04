@@ -47,7 +47,11 @@ export default {
             };
           case "passthru":
             // tell Vike to hit the server for all passthru pages (which will get load balanced to legacy backend)
-            return { clientRouting: false };
+            return {
+              onRenderHtml:
+                "import:@alignable/bifrost/__internal/renderer/passthru/onRenderHtml:default",
+              clientRouting: false,
+            };
           default:
             throw new Error(
               `${configDefinedAt} should be one of: false, "wrapped", "passthru"`
