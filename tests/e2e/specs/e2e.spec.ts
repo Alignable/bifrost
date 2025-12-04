@@ -838,6 +838,8 @@ test.describe("turbolinks: events", () => {
         await page.click("a");
         await page.waitForURL("./auto-navigate/destination");
 
+        await page.goto("./auto-navigate");
+        await page.waitForURL("./auto-navigate/destination");
         await page.goBack();
         await page.waitForURL("./auto-navigate/destination");
       });
