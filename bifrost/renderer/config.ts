@@ -7,7 +7,8 @@ export default {
     "vike-react": ">=0.6.11",
   },
 
-  Head: "import:@alignable/bifrost/__internal/renderer/Head:default",
+  headHtmlBegin:
+    "import:@alignable/bifrost/__internal/renderer/headHtmlBegin:default",
   headHtmlEnd:
     "import:@alignable/bifrost/__internal/renderer/headHtmlEnd:default",
   onBeforeRoute:
