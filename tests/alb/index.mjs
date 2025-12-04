@@ -16,6 +16,7 @@ const BIFROST_PATHS = [
   "/broken-page",
   "/json-route",
   "/redirect-page",
+  "/auto-navigate",
   "/",
 ];
 

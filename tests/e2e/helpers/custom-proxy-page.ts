@@ -75,6 +75,10 @@ export class CustomProxyPage {
     );
   }
 
+  get path() {
+    return this.pageData && toPath(this.pageData);
+  }
+
   async clickLink(
     title: string,
     {

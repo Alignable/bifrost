@@ -1,4 +1,5 @@
 import { type Snapshot } from "../lib/turbolinks/controller";
+import { type Visit } from "./turbolinks/visit";
 // Internal types used only within bifrost. Public types go in renderer/config.ts
 
 export interface WrappedServerOnly {
@@ -25,6 +26,7 @@ declare global {
     interface PageContextClient {
       _snapshot?: Snapshot;
       _waitForHeadScripts?: () => Promise<void>;
+      _turbolinksVisit?: Visit;
     }
   }
 }

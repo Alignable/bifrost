@@ -151,3 +151,7 @@ export async function validateDOMOnTurbolinks<T>(
     ),
   ]);
 }
+
+export async function getTurbolinksLocation(page: Page) {
+  return page.evaluate("window.Turbolinks.controller.location.absoluteURL");
+}
