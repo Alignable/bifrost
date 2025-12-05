@@ -883,7 +883,7 @@ test.describe("turbolinks: events", () => {
 
 test("prefetch()", async ({ page }) => {
   const headTestAssetPromise = page.waitForRequest(
-    "**/bifrost-assets/pages/head-test/+Page.tsx"
+    "**/pages/head-test/+Page.tsx"
   );
   await page.goto("./vite-page");
   // Preload loads this automatically
