@@ -7,7 +7,6 @@ const onBeforeRoute = (pageContext: PageContext) => {
     const Turbolinks = window.Turbolinks;
 
     let currentVisit = Turbolinks.controller.currentVisit;
-    console.log("onBeforeRoute", pageContext);
 
     if (pageContext.isHistoryNavigation) {
       // See Head.tsx
@@ -29,14 +28,6 @@ const onBeforeRoute = (pageContext: PageContext) => {
           },
         };
       }
-    } else if (
-      Turbolinks.controller.started &&
-      (!currentVisit || currentVisit.state === "completed") &&
-      !pageContext.errorWhileRendering
-    ) {
-      throw new Error(
-        `Bifrost does not support calling navigate() directly. Use navigate from "@alignable/bifrost" or Turbolinks.visit() instead.`
-      );
     } else if (currentVisit?.state === "started") {
       // It would be great if Vike exposed some isRedirecting flag, but we can infer it
       currentVisit.updateIfRedirect(pageContext.urlOriginal);

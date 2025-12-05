@@ -1,5 +1,5 @@
-import React from "react";
-import { navigate as vikeNavigate } from "vike/client/router";
+import React, { useEffect } from "react";
+import { prefetch, navigate as vikeNavigate } from "vike/client/router";
 import { navigate as bifrostNavigate } from "@alignable/bifrost";
 
 const CUSTOM_HREF = {
@@ -10,6 +10,9 @@ const CUSTOM_HREF = {
 };
 
 export default function Page() {
+  useEffect(() => {
+    prefetch("/head-test");
+  }, []);
   return (
     <>
       <h1>vite is here</h1>
