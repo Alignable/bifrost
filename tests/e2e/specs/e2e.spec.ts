@@ -832,13 +832,13 @@ test.describe("turbolinks: events", () => {
       });
 
       test("it allows calling navigate inside useEffect", async ({ page }) => {
-        await page.goto("./auto-navigate");
+        await page.goto("./auto-navigate", { waitUntil: "networkidle" });
         await page.waitForURL("./auto-navigate/destination");
 
         await page.click("a");
         await page.waitForURL("./auto-navigate/destination");
 
-        await page.goto("./auto-navigate");
+        await page.goto("./auto-navigate", { waitUntil: "networkidle" });
         await page.waitForURL("./auto-navigate/destination");
         await page.goBack();
         await page.waitForURL("./auto-navigate/destination");
