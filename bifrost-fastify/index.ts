@@ -27,6 +27,7 @@ declare module "fastify" {
     bifrostPageId?: string | null;
     vikePageContext?: Partial<PageContextServer> | null;
     getLayout: GetLayout;
+    customPageContextInit: Partial<Omit<PageContextServer, "headers">>;
   }
 }
 
@@ -90,6 +91,7 @@ export const viteProxyPlugin: FastifyPluginAsync<
   fastify.decorateRequest("bifrostPageId", null);
   fastify.decorateRequest("vikePageContext", null);
   fastify.decorateRequest("getLayout", null);
+  fastify.decorateRequest("customPageContextInit", {});
   await fastify.register(proxy, {
     upstream: upstream.href,
     websocket: true,
@@ -98,10 +100,14 @@ export const viteProxyPlugin: FastifyPluginAsync<
         (req.method === "GET" || req.method === "HEAD") &&
         req.accepts().type(["html"]) === "html"
       ) {
+        if (buildPageContextInit) {
+          req.customPageContextInit = await buildPageContextInit(req);
+        }
+
         const pageContextInit = {
           urlOriginal: req.url,
           headersOriginal: req.headers,
-          ...(buildPageContextInit ? await buildPageContextInit(req) : {}),
+          ...req.customPageContextInit,
         };
 
         const pageContext = await renderPage(pageContextInit);
@@ -217,6 +223,7 @@ export const viteProxyPlugin: FastifyPluginAsync<
             headInnerHtml,
             proxyLayoutInfo,
           } satisfies WrappedServerOnly,
+          ...req.customPageContextInit,
         };
         const pageContext = await renderPage(pageContextInit);
         return replyWithPage(reply, pageContext);
