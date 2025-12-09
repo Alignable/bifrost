@@ -30,12 +30,16 @@ export class CustomProxyPage {
   }
 
   async goto({
+    loggedIn = false,
     waitFor = "turbolinks",
-  }: { waitFor?: "turbolinks" | number } = {}) {
+  }: { loggedIn?: boolean; waitFor?: "turbolinks" | number } = {}) {
     this.consoleLog = storeConsoleLog(this.page);
-    await this.page.goto(toPath(this.initialPageData), {
-      waitUntil: "networkidle",
-    });
+    await this.page.goto(
+      toPath(this.initialPageData) + (loggedIn ? "&loggedIn=1" : ""),
+      {
+        waitUntil: "networkidle",
+      }
+    );
     if (waitFor === "turbolinks") {
       await waitForTurbolinksInit(this.page);
     } else {
