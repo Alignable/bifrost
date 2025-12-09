@@ -12,6 +12,7 @@ const CUSTOM_HREF = {
 export default function Page() {
   useEffect(() => {
     prefetch("/head-test");
+    prefetch("/vite-page/nested");
   }, []);
   return (
     <>
@@ -30,6 +31,15 @@ export default function Page() {
         }
       >
         bifrost programmatic navigate
+      </div>
+      <div
+        onClick={() => {
+          bifrostNavigate("/vite-page/nested");
+          // Second navigate cancels first navigation after rendering starts
+          requestAnimationFrame(() => bifrostNavigate("/vite-page/nested"));
+        }}
+      >
+        race condition navigate
       </div>
       <a href="/redirect-page/redirect-to">redirect page</a>
       <a href="#anchor">anchor link</a>

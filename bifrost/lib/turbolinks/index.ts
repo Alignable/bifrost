@@ -62,6 +62,7 @@ export const Turbolinks = {
     }
     if (visit) {
       return new Promise((resolve) => {
+        visit.cancelFn = () => resolve();
         visit.renderFn = () => {
           beforeRenderFn?.();
           controller.viewWillRender(); // turbolinks:before-render
