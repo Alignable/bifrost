@@ -843,6 +843,13 @@ test.describe("turbolinks: events", () => {
         await page.goBack();
         await page.waitForURL("./auto-navigate/destination");
       });
+
+      test("it handles navigation cancellation", async ({ page }) => {
+        await page.goto("./vite-page", { waitUntil: "networkidle" });
+        await page.getByText("race condition navigate").click();
+        await page.waitForURL("./vite-page/nested");
+        await expect(page.locator("body")).toContainText("nested page");
+      });
     });
   });
 
