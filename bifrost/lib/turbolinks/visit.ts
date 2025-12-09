@@ -40,6 +40,7 @@ export class Visit {
 
   requestInFlight = false;
   renderFn?: () => void;
+  cancelFn?: () => void;
 
   constructor(
     controller: Controller,
@@ -65,6 +66,7 @@ export class Visit {
   cancel() {
     if (this.state == VisitState.started) {
       this.requestInFlight = false;
+      this.cancelFn?.();
       this.cancelRender();
       this.state = VisitState.canceled;
     }
