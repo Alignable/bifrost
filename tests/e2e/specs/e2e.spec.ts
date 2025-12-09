@@ -61,6 +61,20 @@ test.describe("pages", () => {
     ).toHaveCount(0);
   });
 
+  test("it proxies with pageContextInit data", async ({ page }) => {
+    const customProxy = new CustomProxyPage(page, {
+      title: "visitor page",
+      layout: "visitor",
+      content: "lorem ipsum",
+    });
+    await customProxy.goto({ loggedIn: true });
+    await expect(page).toHaveTitle("visitor page");
+    await expect(page.getByText("lorem ipsum")).toHaveCount(1);
+    expect((await page.consoleMessages()).map((msg) => msg.text())).toContain(
+      "logged in"
+    );
+  });
+
   test("it serves vite pages", async ({ page }) => {
     await page.goto("./vite-page");
 
