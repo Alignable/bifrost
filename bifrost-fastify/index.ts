@@ -1,7 +1,7 @@
 // Note that this file isn't processed by Vite, see https://github.com/brillout/vike/issues/562
 import { FastifyReply, RawServerBase, FastifyPluginAsync } from "fastify";
 import { FastifyRequest, RequestGenericInterface } from "fastify/types/request";
-import proxy from "@fastify/http-proxy";
+import proxy, { type FastifyHttpProxyOptions } from "@fastify/http-proxy";
 import accepts from "@fastify/accepts";
 import forwarded from "@fastify/forwarded";
 import type { GetLayout, WrappedServerOnly } from "@alignable/bifrost/config";
@@ -47,7 +47,11 @@ function streamToString(stream: Writable): Promise<string> {
   });
 }
 
-interface ViteProxyPluginOptions {
+interface ViteProxyPluginOptions
+  extends Omit<
+    FastifyHttpProxyOptions,
+    "upstream" | "preHandler" | "replyOptions"
+  > {
   upstream: URL;
   host: URL;
   onError?: (error: any, pageContext: RenderedPageContext) => void;
@@ -60,7 +64,8 @@ interface ViteProxyPluginOptions {
  */
 export const viteProxyPlugin: FastifyPluginAsync<
   ViteProxyPluginOptions
-> = async (fastify, { upstream, host, onError, buildPageContextInit }) => {
+> = async (fastify, opts) => {
+  const { upstream, host, onError, buildPageContextInit } = opts;
   async function replyWithPage(
     reply: FastifyReply<RawServerBase>,
     pageContext: RenderedPageContext
@@ -93,6 +98,7 @@ export const viteProxyPlugin: FastifyPluginAsync<
   fastify.decorateRequest("getLayout", null);
   fastify.decorateRequest("customPageContextInit", {});
   await fastify.register(proxy, {
+    ...opts,
     upstream: upstream.href,
     websocket: true,
     async preHandler(req, reply) {
@@ -194,13 +200,13 @@ export const viteProxyPlugin: FastifyPluginAsync<
               url.protocol = host.protocol;
             }
             reply.header("location", url);
-            return reply.send(res);
+            return reply.send("stream" in res ? res.stream : res);
           }
         }
 
         const proxyLayoutInfo = req.getLayout?.(reply.getHeaders());
         if (!proxyLayoutInfo) {
-          return reply.send(res);
+          return reply.send("stream" in res ? res.stream : res);
         }
 
         const html = await streamToString(res);
