@@ -15,6 +15,7 @@ import { renderPage } from "vike/server";
 import { PageContextServer } from "vike/types";
 import { extractDomElements } from "./lib/extractDomElements";
 import { Http2ServerRequest } from "http2";
+import { IncomingMessage } from "http";
 
 type RenderedPageContext = Awaited<
   ReturnType<
@@ -43,7 +44,7 @@ type RawRequestExtendedWithProxy = FastifyRequest<
   _bfproxy?: boolean;
 };
 
-function streamToString(stream: Writable): Promise<string> {
+function streamToString(stream: IncomingMessage): Promise<string> {
   const chunks: Buffer[] = [];
   return new Promise((resolve, reject) => {
     stream.on("data", (chunk) => chunks.push(Buffer.from(chunk)));
@@ -215,7 +216,7 @@ export const viteProxyPlugin: FastifyPluginAsync<
           return reply.send("stream" in res ? res.stream : res);
         }
 
-        const html = await streamToString(res);
+        const html = await streamToString(res.stream);
 
         const { bodyAttributes, bodyInnerHtml, headInnerHtml } =
           extractDomElements(html);
