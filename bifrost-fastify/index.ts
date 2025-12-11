@@ -1,15 +1,22 @@
 // Note that this file isn't processed by Vite, see https://github.com/brillout/vike/issues/562
-import { FastifyReply, RawServerBase, FastifyPluginAsync } from "fastify";
+import {
+  FastifyReply,
+  RawServerBase,
+  FastifyPluginAsync,
+  RouteGenericInterface,
+} from "fastify";
 import { FastifyRequest, RequestGenericInterface } from "fastify/types/request";
-import proxy from "@fastify/http-proxy";
+import proxy, { type FastifyHttpProxyOptions } from "@fastify/http-proxy";
 import accepts from "@fastify/accepts";
 import forwarded from "@fastify/forwarded";
 import type { GetLayout, WrappedServerOnly } from "@alignable/bifrost/config";
 import { PassThrough, Writable } from "stream";
-import { IncomingMessage } from "http";
 import { renderPage } from "vike/server";
 import { PageContextServer } from "vike/types";
 import { extractDomElements } from "./lib/extractDomElements";
+import { Http2ServerRequest } from "http2";
+import { IncomingMessage } from "http";
+import { text } from "node:stream/consumers";
 
 type RenderedPageContext = Awaited<
   ReturnType<
@@ -26,8 +33,8 @@ declare module "fastify" {
   interface FastifyRequest {
     bifrostPageId?: string | null;
     vikePageContext?: Partial<PageContextServer> | null;
-    getLayout: GetLayout;
-    customPageContextInit: Partial<Omit<PageContextServer, "headers">>;
+    getLayout: GetLayout | null;
+    customPageContextInit: Partial<Omit<PageContextServer, "headers">> | null;
   }
 }
 
@@ -38,16 +45,11 @@ type RawRequestExtendedWithProxy = FastifyRequest<
   _bfproxy?: boolean;
 };
 
-function streamToString(stream: Writable): Promise<string> {
-  const chunks: Buffer[] = [];
-  return new Promise((resolve, reject) => {
-    stream.on("data", (chunk) => chunks.push(Buffer.from(chunk)));
-    stream.on("error", (err) => reject(err));
-    stream.on("end", () => resolve(Buffer.concat(chunks).toString("utf8")));
-  });
-}
-
-interface ViteProxyPluginOptions {
+interface ViteProxyPluginOptions
+  extends Omit<
+    FastifyHttpProxyOptions,
+    "upstream" | "preHandler" | "replyOptions"
+  > {
   upstream: URL;
   host: URL;
   onError?: (error: any, pageContext: RenderedPageContext) => void;
@@ -60,9 +62,10 @@ interface ViteProxyPluginOptions {
  */
 export const viteProxyPlugin: FastifyPluginAsync<
   ViteProxyPluginOptions
-> = async (fastify, { upstream, host, onError, buildPageContextInit }) => {
+> = async (fastify, opts) => {
+  const { upstream, host, onError, buildPageContextInit } = opts;
   async function replyWithPage(
-    reply: FastifyReply<RawServerBase>,
+    reply: FastifyReply<RouteGenericInterface, RawServerBase>,
     pageContext: RenderedPageContext
   ): Promise<FastifyReply> {
     const { httpResponse } = pageContext;
@@ -91,8 +94,9 @@ export const viteProxyPlugin: FastifyPluginAsync<
   fastify.decorateRequest("bifrostPageId", null);
   fastify.decorateRequest("vikePageContext", null);
   fastify.decorateRequest("getLayout", null);
-  fastify.decorateRequest("customPageContextInit", {});
+  fastify.decorateRequest("customPageContextInit", null);
   await fastify.register(proxy, {
+    ...opts,
     upstream: upstream.href,
     websocket: true,
     async preHandler(req, reply) {
@@ -100,9 +104,9 @@ export const viteProxyPlugin: FastifyPluginAsync<
         (req.method === "GET" || req.method === "HEAD") &&
         req.accepts().type(["html"]) === "html"
       ) {
-        if (buildPageContextInit) {
-          req.customPageContextInit = await buildPageContextInit(req);
-        }
+        req.customPageContextInit = buildPageContextInit
+          ? await buildPageContextInit(req)
+          : {};
 
         const pageContextInit = {
           urlOriginal: req.url,
@@ -165,13 +169,14 @@ export const viteProxyPlugin: FastifyPluginAsync<
     },
     replyOptions: {
       rewriteRequestHeaders(request, headers) {
-        const fwd = forwarded(request as IncomingMessage).reverse();
-        // fwd.push(request.ip); TODO: not sure if this is needed
-        headers["X-Forwarded-For"] = fwd.join(", ");
-        headers["X-Forwarded-Host"] = host.host;
-        headers["X-Forwarded-Proto"] = host.protocol;
+        if (!(request.raw instanceof Http2ServerRequest)) {
+          const fwd = forwarded(request.raw).reverse();
+          headers["X-Forwarded-For"] = fwd.join(", ");
+          headers["X-Forwarded-Host"] = host.host;
+          headers["X-Forwarded-Proto"] = host.protocol;
+        }
 
-        if ((request as RawRequestExtendedWithProxy)._bfproxy) {
+        if ((request.raw as RawRequestExtendedWithProxy)._bfproxy) {
           // Proxying and wrapping
 
           // Delete cache headers
@@ -183,7 +188,7 @@ export const viteProxyPlugin: FastifyPluginAsync<
         }
         return headers;
       },
-      async onResponse(req, reply: FastifyReply<RawServerBase>, res) {
+      async onResponse(req, reply, res) {
         if ([301, 302, 303, 307, 308].includes(reply.statusCode)) {
           const location = reply.getHeader("location") as string;
           if (location) {
@@ -194,16 +199,16 @@ export const viteProxyPlugin: FastifyPluginAsync<
               url.protocol = host.protocol;
             }
             reply.header("location", url);
-            return reply.send(res);
+            return reply.send("stream" in res ? res.stream : res);
           }
         }
 
         const proxyLayoutInfo = req.getLayout?.(reply.getHeaders());
         if (!proxyLayoutInfo) {
-          return reply.send(res);
+          return reply.send("stream" in res ? res.stream : res);
         }
 
-        const html = await streamToString(res);
+        const html = await text(res.stream);
 
         const { bodyAttributes, bodyInnerHtml, headInnerHtml } =
           extractDomElements(html);
