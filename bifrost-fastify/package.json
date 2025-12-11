@@ -6,34 +6,32 @@
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
   "dependencies": {
-    "@fastify/accepts": "^4.1.0",
-    "@fastify/forwarded": "^2.2.0",
-    "@fastify/http-proxy": "^8.4.0",
-    "@fastify/reply-from": "^9.0.1",
-    "compression": "^1.7.4",
-    "cross-env": "^7.0.3",
+    "@fastify/accepts": "^5.0.4",
+    "@fastify/forwarded": "^3.0.1",
+    "@fastify/http-proxy": "^11.4.1",
+    "@fastify/reply-from": "^12.5.0",
     "dom-serializer": "^2.0.0",
     "domhandler": "^5.0.3",
     "domutils": "^3.2.2",
-    "fastify": "^4.9.2",
-    "htmlparser2": "^10.0.0",
-    "sirv": "^2.0.2",
-    "vite": "^6.3.5"
+    "htmlparser2": "^10.0.0"
   },
   "peerDependencies": {
     "@alignable/bifrost": "1.0.4",
-    "fastify": "^4.9.2",
+    "fastify": "^5.0.0",
+    "vite": ">=6",
     "vike": "0.4.247"
   },
   "devDependencies": {
     "@types/connect": "^3.4.35",
-    "@types/node": "^18.11.9",
+    "@types/node": "^20.0.0",
     "@types/react": "^19.0.0",
     "@types/react-dom": "^19.0.0",
+    "fastify": "^5.0.0",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
     "tsup": "^6.7.0",
-    "typescript": "^5.0.4"
+    "typescript": "^5.0.4",
+    "vite": "^6.3.5"
   },
   "scripts": {
     "build": "tsup",
