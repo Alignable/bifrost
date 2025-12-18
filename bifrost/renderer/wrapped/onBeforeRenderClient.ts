@@ -4,8 +4,6 @@ import { Turbolinks } from "../../lib/turbolinks";
 import { copyElementAttributes } from "../../lib/turbolinks/util";
 import { mergeHead } from "../../lib/turbolinks/mergeHead";
 
-Turbolinks.start();
-
 export default async function wrappedOnBeforeRenderClient(
   pageContext: PageContextClient
 ) {

@@ -1,6 +1,8 @@
-// do NOT import turbolinks in this file. It is used on server side.
-
 import type { PageContext } from "vike/types";
+
+if (!import.meta.env.SSR) {
+  import("./turbolinksStart");
+}
 
 const onBeforeRoute = (pageContext: PageContext) => {
   if (typeof window !== "undefined" && pageContext.isClientSide) {

@@ -12,7 +12,7 @@ import {
   waitForTurbolinksInit,
 } from "../helpers/test-helpers";
 import { CustomProxyPage } from "../helpers/custom-proxy-page";
-import { Turbolinks as T } from "../../fake-backend/page-builder";
+import { Turbolinks as T, toPath } from "../../fake-backend/page-builder";
 
 test.describe("pages", () => {
   test.beforeEach(async ({ page }) => {
@@ -267,6 +267,19 @@ test("on SSR of proxied page, proxy content is only sent once", async ({
   await customProxy.goto();
   // bob ross ipsum only shows in html once.
   expect((await page.content()).split(content).length - 1).toEqual(1);
+});
+
+test.describe("window.Turbolinks", () => {
+  test("calling Turbolinks.visit works on wrapped blocking script", async ({
+    page,
+  }) => {
+    const pageData = {
+      title: "a",
+      content: "<script>Turbolinks.visit('/vite-page')</script>",
+    };
+    await page.goto(toPath(pageData));
+    await expect(page).toHaveTitle("vite page");
+  });
 });
 
 test.describe("client navigation", () => {
