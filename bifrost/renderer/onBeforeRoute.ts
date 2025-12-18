@@ -1,6 +1,6 @@
 import type { PageContext } from "vike/types";
 
-if (!import.meta.env.SSR) {
+if (import.meta.env?.SSR === false) {
   import("./turbolinksStart");
 }
 
