@@ -1,7 +1,8 @@
 // We use headHtmlStart instead of +Head.tsx to avoid issues with userland usage of `+Head.clear.tsx` overwriting our handling
 
 // Register turbolinks global for ios to hook into
-const turbolinksIOSCompat = `window.Turbolinks = {controller:{restorationIdentifier: ''}};`;
+// Also allows Turbolinks.visit to be called before Turbolinks is started (Vike loads async)
+const turbolinksIOSCompat = `window.Turbolinks = {controller:{restorationIdentifier: '',started:false},visit:(...a)=>{addEventListener("turbolinks:start", () => {window.Turbolinks.visit(...a)})}};`;
 
 /// emit turbolinks:load on DOMContentLoaded
 const turbolinksLoadEvent = `addEventListener("DOMContentLoaded", () => {

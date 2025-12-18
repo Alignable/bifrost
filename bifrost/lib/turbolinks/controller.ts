@@ -37,6 +37,7 @@ export class Controller {
       this.lastRenderedLocation = this.location;
       this.started = true;
       this.enabled = true;
+      this.notifyApplicationStarted();
     }
   }
 
@@ -201,6 +202,11 @@ export class Controller {
       data: { url: location.absoluteURL },
       cancelable: true,
     });
+  }
+
+  notifyApplicationStarted() {
+    // non-standard event added by bifrost
+    return dispatch("turbolinks:start");
   }
 
   notifyApplicationAfterVisitingLocation(location: Location) {
