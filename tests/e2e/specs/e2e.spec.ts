@@ -280,6 +280,22 @@ test.describe("window.Turbolinks", () => {
     await page.goto(toPath(pageData));
     await expect(page).toHaveTitle("vite page");
   });
+
+  // Used by ios for history nav
+  test("Turbolinks.controller.startVisitToLocationWithAction", async ({
+    page,
+  }) => {
+    await page.goto("./vite-page");
+    await expect(page).toHaveTitle("vite page");
+    await page.evaluate(
+      "Turbolinks.controller.startVisitToLocationWithAction('/head-test', 'restore')"
+    );
+    await expect(page).toHaveTitle("head test");
+    await page.evaluate(
+      "Turbolinks.controller.startVisitToLocationWithAction('/vite-page', 'restore')"
+    );
+    await expect(page).toHaveTitle("vite page");
+  });
 });
 
 test.describe("client navigation", () => {
