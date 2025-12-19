@@ -104,23 +104,19 @@ export class Visit {
     }
   }
 
-  // Removed snapshot handling as it is handled by vike
-
   getCachedSnapshot() {
-    return null;
-    // const snapshot = this.controller.getCachedSnapshotForLocation(
-    //   this.location
-    // );
-    // if (snapshot) {
-    //   if (this.action == "restore") {
-    //     return snapshot;
-    //   }
-    // }
+    const snapshot = this.controller.getCachedSnapshotForLocation(
+      this.location
+    );
+    if (snapshot) {
+      if (this.action == "restore") {
+        return snapshot;
+      }
+    }
   }
 
   hasCachedSnapshot() {
-    return false;
-    // return this.getCachedSnapshot() != null;
+    return this.getCachedSnapshot() != null;
   }
 
   loadCachedSnapshot() {
