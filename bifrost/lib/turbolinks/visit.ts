@@ -106,20 +106,22 @@ export class Visit {
 
   // Removed snapshot handling as it is handled by vike
 
-  // getCachedSnapshot() {
-  //   const snapshot = this.controller.getCachedSnapshotForLocation(
-  //     this.location
-  //   );
-  //   if (snapshot) {
-  //     if (this.action == "restore") {
-  //       return snapshot;
-  //     }
-  //   }
-  // }
+  getCachedSnapshot() {
+    return null;
+    // const snapshot = this.controller.getCachedSnapshotForLocation(
+    //   this.location
+    // );
+    // if (snapshot) {
+    //   if (this.action == "restore") {
+    //     return snapshot;
+    //   }
+    // }
+  }
 
-  // hasCachedSnapshot() {
-  //   return this.getCachedSnapshot() != null;
-  // }
+  hasCachedSnapshot() {
+    return false;
+    // return this.getCachedSnapshot() != null;
+  }
 
   loadCachedSnapshot() {
     // no-op since issueRequest calls navigate which handles all of this already
