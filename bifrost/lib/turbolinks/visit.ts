@@ -95,34 +95,31 @@ export class Visit {
 
   issueRequest() {
     if (!this.requestInFlight) {
-      if (this.shouldIssueRequest()) {
-        const url = new URL(
-          this.location.toString(),
-          this.location.getOrigin()
-        );
-        navigate(url.pathname + url.hash + url.search, {
-          overwriteLastHistoryEntry: this.action === "replace",
-        }).catch(console.error);
-        this.progress = 0;
-        this.requestInFlight = true;
-      }
+      const url = new URL(this.location.toString(), this.location.getOrigin());
+      navigate(url.pathname + url.hash + url.search, {
+        overwriteLastHistoryEntry: this.action === "replace",
+      }).catch(console.error);
+      this.progress = 0;
+      this.requestInFlight = true;
     }
   }
 
-  getCachedSnapshot() {
-    const snapshot = this.controller.getCachedSnapshotForLocation(
-      this.location
-    );
-    if (snapshot) {
-      if (this.action == "restore") {
-        return snapshot;
-      }
-    }
-  }
+  // Removed snapshot handling as it is handled by vike
 
-  hasCachedSnapshot() {
-    return this.getCachedSnapshot() != null;
-  }
+  // getCachedSnapshot() {
+  //   const snapshot = this.controller.getCachedSnapshotForLocation(
+  //     this.location
+  //   );
+  //   if (snapshot) {
+  //     if (this.action == "restore") {
+  //       return snapshot;
+  //     }
+  //   }
+  // }
+
+  // hasCachedSnapshot() {
+  //   return this.getCachedSnapshot() != null;
+  // }
 
   loadCachedSnapshot() {
     // no-op since issueRequest calls navigate which handles all of this already
@@ -191,10 +188,6 @@ export class Visit {
   }
 
   // Private
-
-  shouldIssueRequest() {
-    return this.action == "restore" ? !this.hasCachedSnapshot() : true;
-  }
 
   cacheSnapshot() {
     if (!this.snapshotCached) {
