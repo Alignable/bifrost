@@ -52,8 +52,7 @@ export const Turbolinks = {
   // Returns promise for turbolinks to be ready to render (runs requestAnimationFrame internally)
   async _vikeBeforeRender(
     visit: Visit | undefined,
-    errorWhileRendering: unknown,
-    beforeRenderFn?: () => void
+    errorWhileRendering: unknown
   ): Promise<void> {
     if ((!visit || visit.state === "completed") && !errorWhileRendering) {
       throw new Error(
@@ -64,8 +63,6 @@ export const Turbolinks = {
       return new Promise((resolve) => {
         visit.cancelFn = () => resolve();
         visit.renderFn = () => {
-          beforeRenderFn?.();
-          controller.viewWillRender(); // turbolinks:before-render
           resolve();
         };
 

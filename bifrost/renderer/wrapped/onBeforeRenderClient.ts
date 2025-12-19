@@ -30,20 +30,27 @@ export default async function wrappedOnBeforeRenderClient(
     pageContext._turbolinksProxy = {
       body: proxyBodyEl,
     };
+    pageContext._beforeRender = () => {
+      pageContext._waitForHeadScripts = mergeHead(headEl);
+      Turbolinks.controller.viewWillRender(); // turbolinks:before-render
+    };
 
     await Turbolinks._vikeBeforeRender(
       pageContext._turbolinksVisit,
-      pageContext.errorWhileRendering,
-      () => (pageContext._waitForHeadScripts = mergeHead(headEl))
+      pageContext.errorWhileRendering
     );
     copyBody(bodyEl);
   } else {
     const { head, body } = pageContext._turbolinksProxy!;
 
+    pageContext._beforeRender = () => {
+      pageContext._waitForHeadScripts = mergeHead(head!);
+      Turbolinks.controller.viewWillRender(); // turbolinks:before-render
+    };
+
     await Turbolinks._vikeBeforeRender(
       pageContext._turbolinksVisit,
-      pageContext.errorWhileRendering,
-      () => (pageContext._waitForHeadScripts = mergeHead(head!))
+      pageContext.errorWhileRendering
     );
     copyBody(body);
   }

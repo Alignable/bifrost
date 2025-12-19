@@ -13,6 +13,7 @@ export default {
     "import:@alignable/bifrost/__internal/renderer/headHtmlEnd:default",
   onBeforeRoute:
     "import:@alignable/bifrost/__internal/renderer/onBeforeRoute:default",
+  Wrapper: "import:@alignable/bifrost/__internal/renderer/Wrapper:default",
 
   passToClient: ["proxyLayoutInfo"],
 

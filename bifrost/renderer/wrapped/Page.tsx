@@ -1,6 +1,5 @@
 import React from "react";
 import { usePageContext } from "vike-react/usePageContext";
-import { type PageContext } from "vike/types";
 import "../config";
 import "../../lib/type";
 
