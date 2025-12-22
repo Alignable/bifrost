@@ -98,7 +98,7 @@ export class Controller {
     if (this.enabled) {
       this.location = Location.wrap(location);
       this.restorationIdentifier = restorationIdentifier;
-      this.startVisit(this.location, "restore");
+      this.startVisit(this.location, "restore", true);
     } else {
       this.adapter.pageInvalidated();
     }
@@ -235,22 +235,27 @@ export class Controller {
 
   // Private
 
-  startVisit(location: Location, action: Action) {
+  startVisit(
+    location: Location,
+    action: Action,
+    requestInFlight: boolean = false
+  ) {
     if (this.currentVisit) {
       this.currentVisit.cancel();
     }
-    this.currentVisit = this.createVisit(location, action);
+    this.currentVisit = this.createVisit(location, action, requestInFlight);
     this.currentVisit.start();
     this.notifyApplicationAfterVisitingLocation(location);
   }
 
-  createVisit(location: Location, action: Action): Visit {
+  createVisit(
+    location: Location,
+    action: Action,
+    requestInFlight: boolean = false
+  ): Visit {
     const visit = new Visit(this, location, action);
     visit.referrer = this.location;
-    if (action === "restore") {
-      // dont issue navigate() because VPS already did.
-      visit.requestInFlight = true;
-    }
+    visit.requestInFlight = requestInFlight;
     return visit;
   }
 
