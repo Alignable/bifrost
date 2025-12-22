@@ -18,6 +18,12 @@ export default {
   passToClient: ["proxyLayoutInfo"],
 
   meta: {
+    bodyAttributes: {
+      // vike-react bodyAttributes are server-only, but legacy backend may change bodyAttributes and we need to reset on return to bifrost pages
+      env: { server: true, client: true },
+      global: true,
+      cumulative: true,
+    },
     getLayout: { env: { server: true, client: true } },
     proxyHeaders: { env: { server: true, client: true } },
     proxyMode: {

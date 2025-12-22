@@ -17,6 +17,7 @@ declare global {
     interface PageContext {
       _turbolinksProxy?: {
         body: HTMLElement;
+        bodyAttrs?: Record<string, string>;
         head?: HTMLHeadElement;
       };
     }

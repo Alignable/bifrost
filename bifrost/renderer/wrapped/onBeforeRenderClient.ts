@@ -3,6 +3,10 @@ import type { PageContextClient } from "vike/types";
 import { Turbolinks } from "../../lib/turbolinks";
 import { copyElementAttributes } from "../../lib/turbolinks/util";
 import { mergeHead } from "../../lib/turbolinks/mergeHead";
+import {
+  setBodyAttributes,
+  getElementAttributes,
+} from "../../lib/elementUtils";
 
 export default async function wrappedOnBeforeRenderClient(
   pageContext: PageContextClient
@@ -28,38 +32,21 @@ export default async function wrappedOnBeforeRenderClient(
     }
     pageContext.proxyLayoutInfo = proxyLayoutInfo;
     pageContext._turbolinksProxy = {
+      bodyAttrs: getElementAttributes(bodyEl),
       body: proxyBodyEl,
+      head: headEl,
     };
-    pageContext._beforeRender = () => {
-      pageContext._waitForHeadScripts = mergeHead(headEl);
-      Turbolinks.controller.viewWillRender(); // turbolinks:before-render
-    };
-
-    await Turbolinks._vikeBeforeRender(
-      pageContext._turbolinksVisit,
-      pageContext.errorWhileRendering
-    );
-    copyBody(bodyEl);
-  } else {
-    const { head, body } = pageContext._turbolinksProxy!;
-
-    pageContext._beforeRender = () => {
-      pageContext._waitForHeadScripts = mergeHead(head!);
-      Turbolinks.controller.viewWillRender(); // turbolinks:before-render
-    };
-
-    await Turbolinks._vikeBeforeRender(
-      pageContext._turbolinksVisit,
-      pageContext.errorWhileRendering
-    );
-    copyBody(body);
   }
-}
+  const { head, bodyAttrs } = pageContext._turbolinksProxy!;
+  pageContext._beforeRender = () => {
+    pageContext._waitForHeadScripts = mergeHead(head!);
+    Turbolinks.controller.viewWillRender(); // turbolinks:before-render
+  };
 
-// Copy over body attributes because vike-react only handles body on initial render
-function copyBody(bodyEl: HTMLElement) {
-  document.body
-    .getAttributeNames()
-    .forEach((n) => document.body.removeAttribute(n));
-  copyElementAttributes(document.body, bodyEl);
+  await Turbolinks._vikeBeforeRender(
+    pageContext._turbolinksVisit,
+    pageContext.errorWhileRendering
+  );
+
+  if (bodyAttrs) setBodyAttributes(bodyAttrs);
 }

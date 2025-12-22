@@ -1,6 +1,7 @@
 import "../../lib/type";
 import type { PageContextClient } from "vike/types";
 import { redirect } from "vike/abort";
+import { getElementAttributes } from "../../lib/elementUtils";
 
 // onBeforeRender runs before changing the browser location, so `throw redirect` works
 // we wait for onBeforeRenderClient to call mergeHead, which runs after browser location change
@@ -86,6 +87,7 @@ export default async function wrappedOnBeforeRender(
     pageContext._turbolinksProxy = {
       body: bodyEl,
       head: headEl,
+      bodyAttrs: getElementAttributes(bodyEl),
     };
   }
 }
