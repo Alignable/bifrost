@@ -74,6 +74,22 @@ app.get("/json-only", async (req, res) => {
   }
 });
 
+app.get("/script-wrapped", async (req, res) => {
+  // simulate layout always being set
+  if (req.header("X-VITE-PROXY")) {
+    res.setHeader("X-REACT-LAYOUT", "no_layout");
+  }
+  res.status(200).type("text/html").send("<script>console.log('script-only')</script>");
+});
+
+app.get("/json-wrapped", async (req, res) => {
+  // simulate layout always being set
+  if (req.header("X-VITE-PROXY")) {
+    res.setHeader("X-REACT-LAYOUT", "no_layout");
+  }
+  res.status(200).json({ data: true });
+});
+
 app.get("/:file.js", async (req, res) => {
   res.status(200);
   res.setHeader("Content-Type", "application/javascript");
