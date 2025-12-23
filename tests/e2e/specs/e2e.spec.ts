@@ -229,6 +229,19 @@ test("body attributes are copied over", async ({ page }) => {
   expect(await body.getAttribute("class")).toBeNull();
   expect(await body.getAttribute("data-thing")).toBeNull();
   expect(await body.getAttribute("data-other")).toEqual("false");
+
+  // restores on back navigation
+  await customProxy.goBack();
+  expect(await body.getAttribute("id")).toEqual("mainstuff");
+  expect(await body.getAttribute("data-thing")).toEqual("true");
+  await customProxy.goForward();
+  expect(await body.getAttribute("id")).toEqual("other");
+  expect(await body.getAttribute("data-thing")).toBeNull();
+
+  await customProxy.clickLink("vite page");
+  expect(await body.getAttribute("id")).toEqual("test-id");
+  expect(await body.getAttribute("data-thing")).toBeNull();
+  expect(await body.getAttribute("class")).toEqual("test-classname");
 });
 
 test.describe("script configs", () => {
