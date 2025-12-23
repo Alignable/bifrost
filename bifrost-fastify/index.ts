@@ -214,7 +214,7 @@ export const viteProxyPlugin: FastifyPluginAsync<
           extractDomElements(html);
 
         if (!bodyInnerHtml || !headInnerHtml) {
-          throw new Error("Proxy failed");
+          return reply.send(html);
         }
 
         const pageContextInit = {
