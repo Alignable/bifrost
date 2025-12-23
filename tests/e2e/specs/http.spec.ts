@@ -1,32 +1,5 @@
 import { test, expect } from "@playwright/test";
 
-test.describe("non-HTML proxy responses", () => {
-  // Tests the fix for responses without body/head tags being passed through
-  // instead of throwing "Proxy failed" error
-  test("passes through script response without body/head tags", async ({
-    request,
-  }) => {
-    // Must send Accept: text/html to go through the wrapped proxy code path
-    const req = await request.get("/script-wrapped", {
-      headers: { Accept: "text/html" },
-    });
-    expect(req.status()).toBe(200);
-    expect(await req.text()).toEqual(
-      "<script>console.log('script-only')</script>"
-    );
-  });
-
-  test("passes through JSON response from wrapped proxy route", async ({
-    request,
-  }) => {
-    const req = await request.get("/json-wrapped", {
-      headers: { Accept: "application/json */*" },
-    });
-    expect(req.status()).toBe(200);
-    expect(await req.json()).toEqual({ data: true });
-  });
-});
-
 test.describe("requests", () => {
   test("it proxies non-html requests", async ({ request }) => {
     const req = await request.get("/hello.js");
@@ -96,7 +69,7 @@ test.describe("requests", () => {
   });
 
   test.describe("wrapped xhr", () => {
-    test("passes through script response without body/head tags", async ({
+    test("passes through script response", async ({
       request,
     }) => {
       const req = await request.get("/script-wrapped", {
@@ -108,7 +81,7 @@ test.describe("requests", () => {
       );
     });
 
-    test("passes through JSON response from wrapped proxy route", async ({
+    test("passes through JSON response", async ({
       request,
     }) => {
       // important to set accept */* to allow the wrapped proxy
