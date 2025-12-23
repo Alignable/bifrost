@@ -12,6 +12,13 @@ export default async function wrappedOnBeforeRenderClient(
   pageContext: PageContextClient
 ) {
   if (pageContext.isHydration) {
+    // Vike scripts load async so can run before document.body exists. we need to delay rendering.
+    // This is only an issue if user sets `injectScriptsAt: "HTML_BEGIN"` in +config.ts
+    if (document.readyState === "loading") {
+      await new Promise((resolve) =>
+        document.addEventListener("DOMContentLoaded", () => resolve(null))
+      );
+    }
     pageContext._turbolinksProxy = {
       body: document.getElementById("proxied-body")!,
     };
