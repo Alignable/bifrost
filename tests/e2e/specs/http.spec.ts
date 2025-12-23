@@ -67,4 +67,29 @@ test.describe("requests", () => {
       expect(req.headers()["x-test-pageid"]).toBe("/pages/broken-page");
     });
   });
+
+  test.describe("wrapped xhr", () => {
+    test("passes through script response", async ({
+      request,
+    }) => {
+      const req = await request.get("/script-wrapped", {
+        headers: { Accept: "text/html" },
+      });
+      expect(req.status()).toBe(200);
+      expect(await req.text()).toEqual(
+        "<script>console.log('script-only')</script>"
+      );
+    });
+
+    test("passes through JSON response", async ({
+      request,
+    }) => {
+      // important to set accept */* to allow the wrapped proxy
+      const req = await request.get("/json-wrapped", {
+        headers: { Accept: "application/json */*" },
+      });
+      expect(req.status()).toBe(200);
+      expect(await req.json()).toEqual({ data: true });
+    });
+  })
 });

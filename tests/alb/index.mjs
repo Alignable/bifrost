@@ -15,6 +15,8 @@ const BIFROST_PATHS = [
   "/this-is-a-custom-route",
   "/broken-page",
   "/json-route",
+  "/json-wrapped",
+  "/script-wrapped",
   "/redirect-page",
   "/auto-navigate",
   "/",

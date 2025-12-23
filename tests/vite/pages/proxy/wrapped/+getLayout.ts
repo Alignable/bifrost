@@ -1,7 +1,7 @@
 import { GetLayout } from "@alignable/bifrost/config";
 
 // Could use zod for validation
-const VALID_LAYOUTS = ["main_nav", "biz_layout", "visitor"];
+const VALID_LAYOUTS = ["main_nav", "biz_layout", "visitor", "no_layout"];
 
 const getLayout: GetLayout = function (headers) {
   const layoutName = headers["x-react-layout"] as string;
