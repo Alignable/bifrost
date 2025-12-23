@@ -12,6 +12,11 @@ export default async function wrappedOnBeforeRenderClient(
   pageContext: PageContextClient
 ) {
   if (pageContext.isHydration) {
+    if (document.readyState === "loading") {
+      await new Promise((resolve) =>
+        document.addEventListener("DOMContentLoaded", () => resolve(null))
+      );
+    }
     pageContext._turbolinksProxy = {
       body: document.getElementById("proxied-body")!,
     };
