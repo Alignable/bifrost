@@ -17,6 +17,7 @@ import { extractDomElements } from "./lib/extractDomElements";
 import { Http2ServerRequest } from "http2";
 import { IncomingMessage } from "http";
 import { text } from "node:stream/consumers";
+import { parse as parseContentType } from 'fast-content-type-parse';
 
 type RenderedPageContext = Awaited<
   ReturnType<
@@ -205,6 +206,12 @@ export const viteProxyPlugin: FastifyPluginAsync<
 
         const proxyLayoutInfo = req.getLayout?.(reply.getHeaders());
         if (!proxyLayoutInfo) {
+          return reply.send("stream" in res ? res.stream : res);
+        }
+
+        const contentType = reply.getHeader("content-type") as string | undefined;
+        
+        if (!contentType || parseContentType(contentType).type !== 'text/html') {
           return reply.send("stream" in res ? res.stream : res);
         }
 
