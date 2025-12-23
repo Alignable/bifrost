@@ -79,6 +79,7 @@ app.get("/script-wrapped", async (req, res) => {
   if (req.header("X-VITE-PROXY")) {
     res.setHeader("X-REACT-LAYOUT", "no_layout");
   }
+  res.setHeader("Content-Type", "text/html");
   res.status(200).type("text/html").send("<script>console.log('script-only')</script>");
 });
 
@@ -87,6 +88,7 @@ app.get("/json-wrapped", async (req, res) => {
   if (req.header("X-VITE-PROXY")) {
     res.setHeader("X-REACT-LAYOUT", "no_layout");
   }
+  res.setHeader("Content-Type", "application/json");
   res.status(200).json({ data: true });
 });
 
