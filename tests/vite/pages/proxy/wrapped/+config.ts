@@ -5,5 +5,4 @@ export default {
   proxyHeaders: {
     "X-VITE-PROXY": "1",
   },
-  injectScriptsAt: "HTML_BEGIN",
 } satisfies Config;
