@@ -576,6 +576,7 @@ test.describe("turbolinks: events", () => {
           [T.visit, head1, body1],
           [T.beforeCache, head1, body1],
           [T.beforeRender, head2, body1],
+          ["bifrost-testing:frame-after-before-render", head2, body2],
           [T.render, head2, body2],
           [T.load, head2, body2],
         ]
