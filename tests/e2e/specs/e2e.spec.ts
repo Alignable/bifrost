@@ -928,19 +928,27 @@ test.describe("turbolinks: events", () => {
     });
     await customProxy.goto();
     await customProxy.clickLink("second page", { waitFor: 500 });
-    expect(customProxy.scriptAndTurbolinksLog).toEqual([
+
+    expect(customProxy.scriptAndTurbolinksLog.slice(0, 5)).toEqual([
       T.click,
       T.beforeVisit,
       T.visit,
       T.beforeCache,
       "head script: inline 1",
-      T.beforeRender,
-      "head script: blocking",
+    ]);
+
+    // we don't guarantee order of blocking scripts vs beforeRender
+    expect(customProxy.scriptAndTurbolinksLog.slice(5, 7)).toEqual(
+      expect.arrayContaining([T.beforeRender, "head script: blocking"])
+    );
+
+    expect(customProxy.scriptAndTurbolinksLog.slice(7)).toEqual([
       "body script: inline 1",
       T.render,
       T.load,
       "body script: blocking",
     ]);
+
     await expectNoMoreScripts(page);
   });
 });
@@ -1138,14 +1146,20 @@ test.describe("script loading order", () => {
 
     await customProxy.clickLink("with scripts", { waitFor: 500 });
 
-    expect(customProxy.scriptAndTurbolinksLog).toEqual([
+    expect(customProxy.scriptAndTurbolinksLog.slice(0, 5)).toEqual([
       T.click,
       T.beforeVisit,
       T.visit,
       T.beforeCache,
       "head script: inline 1",
-      T.beforeRender,
-      "head script: blocking",
+    ]);
+
+    // we don't guarantee order of blocking scripts vs beforeRender
+    expect(customProxy.scriptAndTurbolinksLog.slice(5, 7)).toEqual(
+      expect.arrayContaining([T.beforeRender, "head script: blocking"])
+    );
+
+    expect(customProxy.scriptAndTurbolinksLog.slice(7)).toEqual([
       "body script: inline 1", // order of inlines is respected
       "body script: inline 2",
       T.render,
@@ -1275,6 +1289,10 @@ test.describe("script loading order", () => {
         browserReload: true,
         waitFor: "onClientInit",
       });
+
+      // Should not client side render since full reload
+      expect(customProxy.turbolinksLog).not.toContain(T.beforeRender);
+      expect(customProxy.turbolinksLog).not.toContain(T.render);
     });
 
     test("adding tracked scripts triggers full reload", async ({ page }) => {
@@ -1294,6 +1312,10 @@ test.describe("script loading order", () => {
       await customProxy.goto();
 
       await customProxy.clickLink("tracked", { browserReload: true });
+
+      // Should not client side render since full reload
+      expect(customProxy.turbolinksLog).not.toContain(T.beforeRender);
+      expect(customProxy.turbolinksLog).not.toContain(T.render);
     });
 
     test("changing tracked scripts triggers full reload", async ({ page }) => {
@@ -1313,6 +1335,10 @@ test.describe("script loading order", () => {
       await customProxy.goto();
 
       await customProxy.clickLink("trackedA", { browserReload: true });
+
+      // Should not client side render since full reload
+      expect(customProxy.turbolinksLog).not.toContain(T.beforeRender);
+      expect(customProxy.turbolinksLog).not.toContain(T.render);
     });
 
     test("moving from tracked page to unproxied page", async ({ page }) => {
@@ -1326,6 +1352,9 @@ test.describe("script loading order", () => {
       await customProxy.goto();
 
       await customProxy.clickLink("vite page", { browserReload: false });
+
+      expect(customProxy.turbolinksLog).toContain(T.beforeRender);
+      expect(customProxy.turbolinksLog).toContain(T.render);
     });
   });
 

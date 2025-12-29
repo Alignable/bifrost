@@ -45,15 +45,17 @@ export default async function wrappedOnBeforeRenderClient(
     };
   }
   const { head, bodyAttrs } = pageContext._turbolinksProxy!;
-  pageContext._beforeRender = () => {
-    pageContext._waitForHeadScripts = mergeHead(head!);
-    Turbolinks.controller.viewWillRender(); // turbolinks:before-render
-  };
+  pageContext._shouldEmitBeforeRender = true;
 
   await Turbolinks._vikeBeforeRender(
     pageContext._turbolinksVisit,
     pageContext.errorWhileRendering
   );
+  const { waitForReload, waitForHeadScripts } = mergeHead(head!);
+
+  // If a full reload is required, wait for it here
+  await waitForReload();
+  pageContext._waitForHeadScripts = waitForHeadScripts;
 
   if (bodyAttrs) setBodyAttributes(bodyAttrs);
 }

@@ -26,9 +26,9 @@ declare global {
     }
     interface PageContextClient {
       _snapshot?: Snapshot;
-      _beforeRender?: () => void;
       _waitForHeadScripts?: () => Promise<void>;
       _turbolinksVisit?: Visit;
+      _shouldEmitBeforeRender?: boolean;
     }
   }
 }
