@@ -6,6 +6,7 @@ export default async function bifrostOnBeforeRenderClient(
   pageContext: PageContextClient
 ) {
   if (!pageContext.isHydration) {
+    pageContext._shouldEmitBeforeRender = true;
     await Turbolinks._vikeBeforeRender(
       pageContext._turbolinksVisit,
       pageContext.errorWhileRendering

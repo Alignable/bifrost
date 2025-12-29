@@ -28,7 +28,7 @@ declare global {
       _snapshot?: Snapshot;
       _waitForHeadScripts?: () => Promise<void>;
       _turbolinksVisit?: Visit;
-      _turbolinksBeforeRenderEmitted?: boolean;
+      _shouldEmitBeforeRender?: boolean;
     }
   }
 }

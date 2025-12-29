@@ -11,14 +11,20 @@ let lastTrackedScriptSignature: string;
 export function mergeHead(head: HTMLHeadElement) {
   const newHead = categorizeHead(head);
   const oldHead = categorizeHead(document.head);
-  const reload = () => window.Turbolinks.controller.viewInvalidated();
+  const reload = () => {
+    window.Turbolinks.controller.viewInvalidated()
+    return {
+      waitForReload: () => new Promise<void>(() => {}),
+      waitForHeadScripts: () => new Promise<void>(() => {}),
+    }
+  };
 
   if (
     head
       .querySelector('meta[name="turbolinks-visit-control"]')
       ?.getAttribute("content") === "reload"
   ) {
-    reload();
+    return reload();
   }
 
   lastTrackedScriptSignature =
@@ -28,7 +34,7 @@ export function mergeHead(head: HTMLHeadElement) {
     lastTrackedScriptSignature !==
     trackedElementSignature([...newHead.scripts, ...newHead.stylesheets])
   ) {
-    reload();
+    return reload();
   }
 
   if (firstLoad) {
@@ -45,7 +51,10 @@ export function mergeHead(head: HTMLHeadElement) {
   removeCurrentHeadProvisionalElements(oldHead.provisional);
   copyNewHeadProvisionalElements(newHead.provisional);
 
-  return copyNewHeadScriptElements(newHead.scripts);
+  return {
+    waitForReload: () => Promise.resolve(),
+    waitForHeadScripts: copyNewHeadScriptElements(newHead.scripts),
+  };
 }
 
 function trackedElementSignature(scripts: Element[]) {

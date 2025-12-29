@@ -45,12 +45,17 @@ export default async function wrappedOnBeforeRenderClient(
     };
   }
   const { head, bodyAttrs } = pageContext._turbolinksProxy!;
+  pageContext._shouldEmitBeforeRender = true;
 
   await Turbolinks._vikeBeforeRender(
     pageContext._turbolinksVisit,
     pageContext.errorWhileRendering
   );
-  pageContext._waitForHeadScripts = mergeHead(head!);
+  const { waitForReload, waitForHeadScripts } = mergeHead(head!);
+
+  // If a full reload is required, wait for it here
+  await waitForReload();
+  pageContext._waitForHeadScripts = waitForHeadScripts;
 
   if (bodyAttrs) setBodyAttributes(bodyAttrs);
 }
