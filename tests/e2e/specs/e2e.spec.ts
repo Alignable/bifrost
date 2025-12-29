@@ -927,19 +927,27 @@ test.describe("turbolinks: events", () => {
     });
     await customProxy.goto();
     await customProxy.clickLink("second page", { waitFor: 500 });
-    expect(customProxy.scriptAndTurbolinksLog).toEqual([
+
+    expect(customProxy.scriptAndTurbolinksLog.slice(0, 5)).toEqual([
       T.click,
       T.beforeVisit,
       T.visit,
       T.beforeCache,
       "head script: inline 1",
-      T.beforeRender,
-      "head script: blocking",
+    ]);
+
+    // we don't guarantee order of blocking scripts vs beforeRender
+    expect(customProxy.scriptAndTurbolinksLog.slice(5, 7)).toEqual(
+      expect.arrayContaining([T.beforeRender, "head script: blocking"])
+    );
+
+    expect(customProxy.scriptAndTurbolinksLog.slice(7)).toEqual([
       "body script: inline 1",
       T.render,
       T.load,
       "body script: blocking",
     ]);
+
     await expectNoMoreScripts(page);
   });
 });
@@ -1137,14 +1145,20 @@ test.describe("script loading order", () => {
 
     await customProxy.clickLink("with scripts", { waitFor: 500 });
 
-    expect(customProxy.scriptAndTurbolinksLog).toEqual([
+    expect(customProxy.scriptAndTurbolinksLog.slice(0, 5)).toEqual([
       T.click,
       T.beforeVisit,
       T.visit,
       T.beforeCache,
       "head script: inline 1",
-      T.beforeRender,
-      "head script: blocking",
+    ]);
+
+    // we don't guarantee order of blocking scripts vs beforeRender
+    expect(customProxy.scriptAndTurbolinksLog.slice(5, 7)).toEqual(
+      expect.arrayContaining([T.beforeRender, "head script: blocking"])
+    );
+
+    expect(customProxy.scriptAndTurbolinksLog.slice(7)).toEqual([
       "body script: inline 1", // order of inlines is respected
       "body script: inline 2",
       T.render,
