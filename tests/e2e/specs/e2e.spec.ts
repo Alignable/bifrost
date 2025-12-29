@@ -1276,8 +1276,8 @@ test.describe("script loading order", () => {
       });
 
       // Should not client side render since full reload
-      expect(customProxy.turbolinksLog).not.toContain("turbolinks:before-render");
-      expect(customProxy.turbolinksLog).not.toContain("turbolinks:render");
+      expect(customProxy.turbolinksLog).not.toContain(T.beforeRender);
+      expect(customProxy.turbolinksLog).not.toContain(T.render);
     });
 
     test("adding tracked scripts triggers full reload", async ({ page }) => {
@@ -1299,8 +1299,8 @@ test.describe("script loading order", () => {
       await customProxy.clickLink("tracked", { browserReload: true });
 
       // Should not client side render since full reload
-      expect(customProxy.turbolinksLog).not.toContain("turbolinks:before-render");
-      expect(customProxy.turbolinksLog).not.toContain("turbolinks:render");
+      expect(customProxy.turbolinksLog).not.toContain(T.beforeRender);
+      expect(customProxy.turbolinksLog).not.toContain(T.render);
     });
 
     test("changing tracked scripts triggers full reload", async ({ page }) => {
@@ -1322,8 +1322,8 @@ test.describe("script loading order", () => {
       await customProxy.clickLink("trackedA", { browserReload: true });
 
       // Should not client side render since full reload
-      expect(customProxy.turbolinksLog).not.toContain("turbolinks:before-render");
-      expect(customProxy.turbolinksLog).not.toContain("turbolinks:render");
+      expect(customProxy.turbolinksLog).not.toContain(T.beforeRender);
+      expect(customProxy.turbolinksLog).not.toContain(T.render);
     });
 
     test("moving from tracked page to unproxied page", async ({ page }) => {
@@ -1338,8 +1338,8 @@ test.describe("script loading order", () => {
 
       await customProxy.clickLink("vite page", { browserReload: false });
 
-      expect(customProxy.turbolinksLog).toContain("turbolinks:before-render");
-      expect(customProxy.turbolinksLog).toContain("turbolinks:render");
+      expect(customProxy.turbolinksLog).toContain(T.beforeRender);
+      expect(customProxy.turbolinksLog).toContain(T.render);
     });
   });
 
