@@ -22,6 +22,9 @@ export default async function wrappedOnBeforeRenderClient(
     pageContext._turbolinksProxy = {
       body: document.getElementById("proxied-body")!,
     };
+    Turbolinks._vpsCachePageContext({
+      proxyLayoutInfo: pageContext.proxyLayoutInfo,
+    });
     return;
   }
 
@@ -49,7 +52,10 @@ export default async function wrappedOnBeforeRenderClient(
 
   await Turbolinks._vikeBeforeRender(
     pageContext._turbolinksVisit,
-    pageContext.errorWhileRendering
+    pageContext.errorWhileRendering,
+    {
+      proxyLayoutInfo: pageContext.proxyLayoutInfo,
+    }
   );
   const { waitForReload, waitForHeadScripts } = mergeHead(head!);
 

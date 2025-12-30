@@ -11,6 +11,9 @@ const turbolinksLoadEvent = `addEventListener("DOMContentLoaded", () => {
   document.dispatchEvent(event);  
 });`;
 
+// Tells vike not to do link interception
+const disableVikeLinkInterception = `window._disableAutomaticLinkInterception = true;`;
+
 /**
  * Hard reload when user navigates to a passthru turbolinks page.
  * Turbolinks navigates with history.pushState. When navigating passthru => bifrost (tracked scripts change), it reloads page.
@@ -24,5 +27,8 @@ const turbolinksBackButton = `addEventListener("popstate", (e) => {
 });`;
 
 export default `<script>${
-  turbolinksIOSCompat + turbolinksLoadEvent + turbolinksBackButton
+  turbolinksIOSCompat +
+  turbolinksLoadEvent +
+  disableVikeLinkInterception +
+  turbolinksBackButton
 }</script>`;

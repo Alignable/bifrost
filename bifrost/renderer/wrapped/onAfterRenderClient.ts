@@ -5,10 +5,6 @@ import { Turbolinks } from "../../lib/turbolinks";
 export default async function wrappedOnAfterRenderClient(
   pageContext: PageContextClient
 ) {
-  const { proxyLayoutInfo } = pageContext;
-  Turbolinks._vpsCachePageContext({
-    proxyLayoutInfo,
-  });
   if (!pageContext.isHydration) {
     // On client navigation, tell turbolinks to run scripts and fire events
     await pageContext._waitForHeadScripts?.();

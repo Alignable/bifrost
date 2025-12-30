@@ -39,8 +39,6 @@ export const Turbolinks = {
       (window.Turbolinks.controller.adapter as any).controller = controller;
       controller.adapter = window.Turbolinks.controller.adapter;
     }
-    // Tells vike not to do link interception
-    (window as any)._disableAutomaticLinkInterception = true;
     window.Turbolinks = Turbolinks;
     controller.start();
   },
@@ -52,7 +50,8 @@ export const Turbolinks = {
   // Returns promise for turbolinks to be ready to render (runs requestAnimationFrame internally)
   async _vikeBeforeRender(
     visit: Visit | undefined,
-    errorWhileRendering: unknown
+    errorWhileRendering: unknown,
+    pageContextToCache?: any
   ): Promise<void> {
     if ((!visit || visit.state === "completed") && !errorWhileRendering) {
       throw new Error(
@@ -63,6 +62,8 @@ export const Turbolinks = {
       return new Promise((resolve) => {
         visit.cancelFn = () => resolve();
         visit.renderFn = () => {
+          // store pageContext for restoration visits
+          controller.pageContext = pageContextToCache;
           resolve();
         };
 
