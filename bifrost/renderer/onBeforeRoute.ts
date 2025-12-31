@@ -11,12 +11,11 @@ const onBeforeRoute = (pageContext: PageContext) => {
     let currentVisit = Turbolinks.controller.currentVisit;
 
     if (pageContext.isHistoryNavigation) {
-      // See Head.tsx
       const snapshot = Turbolinks.controller.getCachedSnapshotForLocation(
-        window.location.href
+        pageContext.urlOriginal
       );
       Turbolinks.controller.historyPoppedToLocationWithRestorationIdentifier(
-        window.location.href,
+        pageContext.urlOriginal,
         ""
       );
 
@@ -30,8 +29,7 @@ const onBeforeRoute = (pageContext: PageContext) => {
           },
         };
       }
-    } else if (currentVisit?.state === "started") {
-      // It would be great if Vike exposed some isRedirecting flag, but we can infer it
+    } else if (pageContext.pageContextsAborted && currentVisit) {
       currentVisit.updateIfRedirect(pageContext.urlOriginal);
     }
     return { pageContext: { _turbolinksVisit: currentVisit } };
