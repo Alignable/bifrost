@@ -115,7 +115,8 @@ export class Controller {
       document.querySelector("#proxied-body") &&
       document.head
         .querySelector("meta[name='turbolinks-no-cache']")
-        ?.getAttribute("content") != "no-cache"
+        ?.getAttribute("content") != "no-cache" &&
+      this.pageContext
     );
   }
 
