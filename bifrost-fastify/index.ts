@@ -17,7 +17,7 @@ import { extractDomElements } from "./lib/extractDomElements";
 import { Http2ServerRequest } from "http2";
 import { IncomingMessage } from "http";
 import { text } from "node:stream/consumers";
-import { parse as parseContentType } from 'fast-content-type-parse';
+import { parse as parseContentType } from "fast-content-type-parse";
 
 type RenderedPageContext = Awaited<
   ReturnType<
@@ -126,7 +126,7 @@ export const viteProxyPlugin: FastifyPluginAsync<
         switch (proxyMode) {
           case "passthru": {
             req.log.info(`bifrost: passthru proxy to backend`);
-            return;
+            break;
           }
           case "wrapped": {
             req.log.info(`bifrost: proxy route matched, proxying to backend`);
@@ -139,32 +139,38 @@ export const viteProxyPlugin: FastifyPluginAsync<
                 req.url.replace("/index.pageContext.json", "")
               );
             }
-            if (!pageContext.config?.getLayout) {
+            if (pageContext.config?.getLayout) {
+              let proxyHeadersAlreadySet = true;
+              for (const [key, val] of Object.entries(
+                pageContext.config?.proxyHeaders || {}
+              )) {
+                proxyHeadersAlreadySet &&=
+                  req.headers[key.toLowerCase()] == val;
+                req.headers[key.toLowerCase()] = val;
+              }
+              // If proxy headers set, this is a client navigation meant to go direct to legacy backend.
+              // ALB CANNOT be used for this. see `onBeforeRenderClient` for details
+              // Only set getLayout and _bfproxy if we didn't already set proxy headers
+              if (!proxyHeadersAlreadySet) {
+                // setting _bfproxy tells onResponse we're in wrapped mode
+                (req.raw as RawRequestExtendedWithProxy)._bfproxy = true;
+                req.getLayout = pageContext.config.getLayout;
+              }
+            } else {
               req.log.error(
                 "Config missing getLayout on wrapped route! Falling back to passthru proxy"
               );
-              return;
             }
-
-            let proxyHeadersAlreadySet = true;
-            for (const [key, val] of Object.entries(
-              pageContext.config?.proxyHeaders || {}
-            )) {
-              proxyHeadersAlreadySet &&= req.headers[key.toLowerCase()] == val;
-              req.headers[key.toLowerCase()] = val;
-            }
-            // If proxy headers set, this is a client navigation meant to go direct to legacy backend.
-            // Use passthru proxy in this case.
-            // ALB CANNOT be used for this. see `onBeforeRenderClient` for details
-            if (proxyHeadersAlreadySet) return;
-
-            (req.raw as RawRequestExtendedWithProxy)._bfproxy = true;
-            req.getLayout = pageContext.config.getLayout;
-            return;
+            break;
           }
           default:
             req.log.info(`bifrost: rendering page ${pageContext.pageId}`);
             return replyWithPage(reply, pageContext);
+        }
+
+        if (pageContext.urlParsed) {
+          const { options } = reply.fromParameters(pageContext.urlParsed.href);
+          return reply.from(pageContext.urlParsed.href, options as any);
         }
       }
     },
@@ -209,9 +215,14 @@ export const viteProxyPlugin: FastifyPluginAsync<
           return reply.send("stream" in res ? res.stream : res);
         }
 
-        const contentType = reply.getHeader("content-type") as string | undefined;
-        
-        if (!contentType || parseContentType(contentType).type !== 'text/html') {
+        const contentType = reply.getHeader("content-type") as
+          | string
+          | undefined;
+
+        if (
+          !contentType ||
+          parseContentType(contentType).type !== "text/html"
+        ) {
           return reply.send("stream" in res ? res.stream : res);
         }
 
@@ -225,7 +236,7 @@ export const viteProxyPlugin: FastifyPluginAsync<
         }
 
         const pageContextInit = {
-          urlOriginal: req.url,
+          urlOriginal: reply.request.url,
           headersOriginal: req.headers,
           // Critical that we don't set any passToClient values in pageContextInit
           // If we do, Vike re-requests pageContext on client navigation. This breaks wrapped proxy.

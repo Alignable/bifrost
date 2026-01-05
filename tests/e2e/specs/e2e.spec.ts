@@ -75,6 +75,14 @@ test.describe("pages", () => {
     );
   });
 
+  test("it proxies to page given by render()", async ({ page }) => {
+    await page.goto("./proxy-to");
+    await expect(page).toHaveTitle("b");
+    await expect(
+      page.locator("nav", { hasText: "Main Nav Layout" })
+    ).toHaveCount(1);
+  });
+
   test("it serves vite pages", async ({ page }) => {
     await page.goto("./vite-page");
 

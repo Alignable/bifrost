@@ -19,6 +19,7 @@ const BIFROST_PATHS = [
   "/script-wrapped",
   "/redirect-page",
   "/auto-navigate",
+  "/proxy-to",
   "/",
 ];
 
