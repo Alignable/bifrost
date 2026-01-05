@@ -1,0 +1,1 @@
+export default "/proxy-to";
