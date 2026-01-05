@@ -49,7 +49,7 @@ export default async function wrappedOnBeforeRender(
     It would be more performant to run the Vike router on the client, but the browser does not expose redirect info.
     Optimization: use serviceworker to intercept redirects.
     */
-    const resp = await fetch(pageContext.urlOriginal, {
+    const resp = await fetch(pageContext.urlParsed.href, {
       headers: { ...pageContext.config.proxyHeaders, accept: "text/html" },
     });
 
