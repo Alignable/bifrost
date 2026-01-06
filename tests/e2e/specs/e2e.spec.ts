@@ -1442,12 +1442,13 @@ test.describe("script loading order", () => {
       await customProxy.goto();
 
       await customProxy.clickLink("custom legacy", { browserReload: false });
-
       expect(customProxy.turbolinksLog).toContain(T.beforeRender);
       expect(customProxy.turbolinksLog).toContain(T.render);
+      expect(customProxy.scriptLog).toEqual(["head script: trackedA"]);
 
       // navigating to different tracked script causes reload
       await customProxy.clickLink("custom legacy B", { browserReload: true });
+      expect(customProxy.scriptLog).toEqual(["head script: trackedB"]);
     });
   });
 

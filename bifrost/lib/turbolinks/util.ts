@@ -121,6 +121,7 @@ export function createScriptElement(element: Element, cb?: () => void) {
     copyElementAttributes(createdScriptElement, element);
     if (cb) {
       createdScriptElement.addEventListener("load", cb);
+      createdScriptElement.addEventListener("error", cb);
     }
     return createdScriptElement;
   }
