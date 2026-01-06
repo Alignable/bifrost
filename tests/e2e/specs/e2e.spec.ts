@@ -308,6 +308,9 @@ test.describe("window.Turbolinks", () => {
   }) => {
     await page.goto("./vite-page");
     await expect(page).toHaveTitle("vite page");
+    await page.waitForFunction(
+      "Turbolinks.controller.startVisitToLocationWithAction"
+    );
     await page.evaluate(
       "Turbolinks.controller.startVisitToLocationWithAction('/head-test', 'restore')"
     );
@@ -1233,6 +1236,59 @@ test.describe("script loading order", () => {
     await expectNoMoreScripts(page);
   });
 
+  test("script => vite => script doesn't rerun head scripts", async ({
+    page,
+  }) => {
+    ensureAllNetworkSucceeds(page);
+
+    const customProxy = new CustomProxyPage(page, {
+      title: "with scripts 1",
+      headScripts: ["inline1", "blocking", "defer"],
+      bodyScripts: ["blocking", "inline1", "inline2", "blocking"],
+      links: [
+        {
+          endpoint: "custom-vite",
+          title: "custom vite",
+          links: [
+            {
+              title: "with scripts 2",
+              headScripts: ["inline1", "blocking", "defer"],
+              bodyScripts: ["blocking", "inline1", "inline2", "blocking"],
+            },
+          ],
+        },
+      ],
+    });
+
+    await customProxy.goto();
+
+    expect(customProxy.scriptLog).toEqual([
+      "head script: inline 1",
+      "head script: blocking",
+      "body script: blocking",
+      "body script: inline 1",
+      "body script: inline 2",
+      "body script: blocking",
+      "head script: deferred",
+    ]);
+
+    await customProxy.clickLink("custom vite");
+    expect(customProxy.scriptLog).toEqual([]);
+
+    // come back to scripts page
+    await customProxy.clickLink("with scripts 2", { waitFor: 500 });
+
+    // runs body scripts but no hea scripts
+    expect(customProxy.scriptLog).toEqual([
+      "body script: inline 1",
+      "body script: inline 2",
+      "body script: blocking",
+      "body script: blocking",
+    ]);
+
+    await expectNoMoreScripts(page);
+  });
+
   test("loading more scripts runs all body scripts but only new head scripts", async ({
     page,
   }) => {
@@ -1363,6 +1419,36 @@ test.describe("script loading order", () => {
 
       expect(customProxy.turbolinksLog).toContain(T.beforeRender);
       expect(customProxy.turbolinksLog).toContain(T.render);
+    });
+
+    // allows the first tracked wrapped page to load without reload
+    test("moving from vite page to tracked wrapped page does not reload", async ({
+      page,
+    }) => {
+      ensureAllNetworkSucceeds(page);
+
+      const customProxy = new CustomProxyPage(page, {
+        endpoint: "custom-vite",
+        title: "custom vite",
+        links: [
+          {
+            title: "custom legacy",
+            headScripts: ["trackedA"],
+            links: [{ title: "custom legacy B", headScripts: ["trackedB"] }],
+          },
+        ],
+      });
+
+      await customProxy.goto();
+
+      await customProxy.clickLink("custom legacy", { browserReload: false });
+      expect(customProxy.turbolinksLog).toContain(T.beforeRender);
+      expect(customProxy.turbolinksLog).toContain(T.render);
+      expect(customProxy.scriptLog).toEqual(["head script: trackedA"]);
+
+      // navigating to different tracked script causes reload
+      await customProxy.clickLink("custom legacy B", { browserReload: true });
+      expect(customProxy.scriptLog).toEqual(["head script: trackedB"]);
     });
   });
 

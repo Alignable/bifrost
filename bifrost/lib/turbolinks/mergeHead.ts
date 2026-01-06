@@ -4,19 +4,32 @@ interface ElementDetails {
   tracked: boolean;
 }
 const allHeadScriptsEverRun: { [outerHTML: string]: ElementDetails } = {};
-let firstLoad = true;
+let firstMerge = true;
 let lastTrackedScriptSignature: string;
+
+export function recordExistingHeadScripts(
+  categorizedHead?: ReturnType<typeof categorizeHead>
+) {
+  categorizedHead ||= categorizeHead(document.head);
+  // record all existing head scripts as having been run, because they were run by browser, not mergeHead
+  for (const element of categorizedHead.scripts) {
+    allHeadScriptsEverRun[element.outerHTML] = {
+      tracked: elementIsTracked(element),
+    };
+  }
+  firstMerge = false;
+}
 
 // Returns function which resolves when all new blocking head scripts have loaded
 export function mergeHead(head: HTMLHeadElement) {
   const newHead = categorizeHead(head);
   const oldHead = categorizeHead(document.head);
   const reload = () => {
-    window.Turbolinks.controller.viewInvalidated()
+    window.Turbolinks.controller.viewInvalidated();
     return {
       waitForReload: () => new Promise<void>(() => {}),
       waitForHeadScripts: () => new Promise<void>(() => {}),
-    }
+    };
   };
 
   if (
@@ -27,25 +40,19 @@ export function mergeHead(head: HTMLHeadElement) {
     return reload();
   }
 
-  lastTrackedScriptSignature =
-    lastTrackedScriptSignature ||
-    trackedElementSignature([...oldHead.scripts, ...oldHead.stylesheets]);
-  if (
-    lastTrackedScriptSignature !==
-    trackedElementSignature([...newHead.scripts, ...newHead.stylesheets])
-  ) {
-    return reload();
-  }
-
-  if (firstLoad) {
-    // TODO: messy code
-    for (const element of oldHead.scripts) {
-      allHeadScriptsEverRun[element.outerHTML] = {
-        tracked: elementIsTracked(element),
-      };
+  if (!firstMerge) {
+    // IMPORTANT: we allow first merge to always proceed without reload
+    lastTrackedScriptSignature =
+      lastTrackedScriptSignature ||
+      trackedElementSignature([...oldHead.scripts, ...oldHead.stylesheets]);
+    if (
+      lastTrackedScriptSignature !==
+      trackedElementSignature([...newHead.scripts, ...newHead.stylesheets])
+    ) {
+      return reload();
     }
-    firstLoad = false;
   }
+  recordExistingHeadScripts(oldHead);
 
   copyNewHeadStylesheetElements(newHead.stylesheets, oldHead.stylesheets);
   removeCurrentHeadProvisionalElements(oldHead.provisional);
