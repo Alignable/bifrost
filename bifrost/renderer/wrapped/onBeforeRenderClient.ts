@@ -1,8 +1,7 @@
 import "../../lib/type";
 import type { PageContextClient } from "vike/types";
 import { Turbolinks } from "../../lib/turbolinks";
-import { copyElementAttributes } from "../../lib/turbolinks/util";
-import { mergeHead } from "../../lib/turbolinks/mergeHead";
+import { mergeHead, registerHead } from "../../lib/turbolinks/mergeHead";
 import {
   setBodyAttributes,
   getElementAttributes,
@@ -25,6 +24,7 @@ export default async function wrappedOnBeforeRenderClient(
     Turbolinks._vpsCachePageContext({
       proxyLayoutInfo: pageContext.proxyLayoutInfo,
     });
+    registerHead();
     return;
   }
 

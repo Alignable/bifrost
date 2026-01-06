@@ -9,6 +9,7 @@ const BIFROST_PATHS = [
   "/stream-page",
   "/custom",
   "/custom-incorrect",
+  "/custom-vite",
   "/react-body-script-injection",
   "/head-test",
   "/slow-page",
