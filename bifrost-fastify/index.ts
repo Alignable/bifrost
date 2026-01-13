@@ -83,13 +83,11 @@ export const viteProxyPlugin: FastifyPluginAsync<
       return reply.code(404).type("text/html").send("Not Found");
     }
 
-    const { pipe, statusCode, headers } = httpResponse;
-    const stream = new PassThrough();
-    pipe(stream);
+    const { statusCode, headers, getBody } = httpResponse;
     return reply
       .status(statusCode)
       .headers(Object.fromEntries(headers))
-      .send(stream);
+      .send(await getBody());
   }
   await fastify.register(accepts);
   fastify.decorateRequest("bifrostPageId", null);
@@ -122,6 +120,10 @@ export const viteProxyPlugin: FastifyPluginAsync<
         req.vikePageContext = pageContext;
 
         const proxyMode = pageContext.config?.proxyMode;
+        if (!proxyMode) {
+          req.log.info(`bifrost: rendering page ${pageContext.pageId}`);
+          return replyWithPage(reply, pageContext);
+        }
 
         switch (proxyMode) {
           case "passthru": {
@@ -163,9 +165,6 @@ export const viteProxyPlugin: FastifyPluginAsync<
             }
             break;
           }
-          default:
-            req.log.info(`bifrost: rendering page ${pageContext.pageId}`);
-            return replyWithPage(reply, pageContext);
         }
 
         if (pageContext.urlParsed) {
