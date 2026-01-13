@@ -84,10 +84,16 @@ export const viteProxyPlugin: FastifyPluginAsync<
     }
 
     const { statusCode, headers, getBody } = httpResponse;
-    return reply
-      .status(statusCode)
-      .headers(Object.fromEntries(headers))
-      .send(await getBody());
+    return (
+      reply
+        .status(statusCode)
+        .headers(Object.fromEntries(headers))
+        // This disables any possibility of real streaming. To re-enable streaming we should adopt vike-photon and rewrite wrapped proxy as a Vike middleware.
+        // Why not pipe? Because Vike gives us `pipe` which sends data into a Writable, but Fastify's reply.send only accepts a ReadableStream. Passthrough can convert but causes race conditions
+        // We would have to pipe into reply.raw, but that skips Fastify's reply handling (like onSend hooks)
+        // Photon/universal-middleware solves this with some hacks around reply.body
+        .send(await getBody())
+    );
   }
   await fastify.register(accepts);
   fastify.decorateRequest("bifrostPageId", null);
