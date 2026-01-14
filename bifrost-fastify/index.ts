@@ -83,13 +83,17 @@ export const viteProxyPlugin: FastifyPluginAsync<
       return reply.code(404).type("text/html").send("Not Found");
     }
 
-    const { pipe, statusCode, headers } = httpResponse;
-    const stream = new PassThrough();
-    pipe(stream);
-    return reply
-      .status(statusCode)
-      .headers(Object.fromEntries(headers))
-      .send(stream);
+    const { statusCode, headers, getBody } = httpResponse;
+    return (
+      reply
+        .status(statusCode)
+        .headers(Object.fromEntries(headers))
+        // This disables any possibility of real streaming. To re-enable streaming we should adopt vike-photon and rewrite wrapped proxy as a Vike middleware.
+        // Why not pipe? Because Vike gives us `pipe` which sends data into a Writable, but Fastify's reply.send only accepts a ReadableStream. Passthrough can convert but causes race conditions
+        // We would have to pipe into reply.raw, but that skips Fastify's reply handling (like onSend hooks)
+        // Photon/universal-middleware solves this with some hacks around reply.body
+        .send(await getBody())
+    );
   }
   await fastify.register(accepts);
   fastify.decorateRequest("bifrostPageId", null);
@@ -122,6 +126,10 @@ export const viteProxyPlugin: FastifyPluginAsync<
         req.vikePageContext = pageContext;
 
         const proxyMode = pageContext.config?.proxyMode;
+        if (!proxyMode) {
+          req.log.info(`bifrost: rendering page ${pageContext.pageId}`);
+          return replyWithPage(reply, pageContext);
+        }
 
         switch (proxyMode) {
           case "passthru": {
@@ -163,9 +171,6 @@ export const viteProxyPlugin: FastifyPluginAsync<
             }
             break;
           }
-          default:
-            req.log.info(`bifrost: rendering page ${pageContext.pageId}`);
-            return replyWithPage(reply, pageContext);
         }
 
         if (pageContext.urlParsed) {
