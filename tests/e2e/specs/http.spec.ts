@@ -10,27 +10,6 @@ test.describe("requests", () => {
     );
   });
 
-  test.describe("HEAD request", () => {
-    test("returns headers for vite page", async ({ request }) => {
-      const req = await request.head("./vite-page");
-      expect(req.headers()).toMatchObject({
-        "x-test-pageid": "/pages/vite-page",
-      });
-      expect(req.headers()).not.toMatchObject({
-        "x-test-fake-backend": "1",
-      });
-    });
-
-    test("returns headers for proxied page", async ({ request }) => {
-      const req = await request.head("./custom-incorrect");
-      expect(req.headers()).toMatchObject({
-        "x-test-pageid": "/pages/proxy/passthru",
-        // hits old backend
-        "x-test-fake-backend": "1",
-      });
-    });
-  });
-
   test.describe("onError", () => {
     test("returns header that we set in onError", async ({ request }) => {
       const req = await request.get("./broken-page");
@@ -107,6 +86,35 @@ test.describe("requests", () => {
         proxyMode: "passthru",
         sentProxyHeaders: true,
       });
+    });
+
+    test("HEAD request on vite-page", async ({ request }) => {
+      const req = await request.head("./vite-page");
+      expect(diagnostics(req)).toEqual({
+        status: 200,
+        pageId: "/pages/vite-page",
+        layout: [],
+        proxyMode: false,
+        sentProxyHeaders: false,
+      });
+      expect(req.headers()).not.toMatchObject({
+        "x-test-fake-backend": "1",
+      });
+    });
+
+    test("HEAD request on proxied page", async ({ request }) => {
+      const req = await request.head(
+        toPath({ endpoint: "custom-incorrect", title: "a" })
+      );
+      expect(diagnostics(req)).toEqual({
+        status: 200,
+        pageId: undefined,
+        layout: [],
+        proxyMode: "passthru",
+        sentProxyHeaders: false,
+      });
+      // hits old backend
+      expect(req.headers()["x-test-fake-backend"]).toBe("1");
     });
 
     test.skip("returns original page id on error pages", async ({
