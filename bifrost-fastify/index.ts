@@ -10,12 +10,10 @@ import proxy, { type FastifyHttpProxyOptions } from "@fastify/http-proxy";
 import accepts from "@fastify/accepts";
 import forwarded from "@fastify/forwarded";
 import type { GetLayout, WrappedServerOnly } from "@alignable/bifrost/config";
-import { PassThrough, Writable } from "stream";
 import { renderPage } from "vike/server";
 import { PageContextServer } from "vike/types";
 import { extractDomElements } from "./lib/extractDomElements";
 import { Http2ServerRequest } from "http2";
-import { IncomingMessage } from "http";
 import { text } from "node:stream/consumers";
 import { parse as parseContentType } from "fast-content-type-parse";
 
@@ -32,7 +30,12 @@ type RenderedPageContext = Awaited<
 
 declare module "fastify" {
   interface FastifyRequest {
-    bifrostPageId?: string | null;
+    /// Actual ProxyMode after processing  backend server results, which can tell us to fallback to passthru or redirect
+    bifrostProxyMode?: Vike.Config["proxyMode"];
+    /// whether we sent proxy headers to legacy backend
+    bifrostSentProxyHeaders?: boolean;
+    bifrostProxyLayout?: Vike.ProxyLayoutInfo | null;
+    /// Only set when proxy mode is false or wrapped
     vikePageContext?: Partial<PageContextServer> | null;
     getLayout: GetLayout | null;
     customPageContextInit: Partial<Omit<PageContextServer, "headers">> | null;
@@ -96,7 +99,9 @@ export const viteProxyPlugin: FastifyPluginAsync<
     );
   }
   await fastify.register(accepts);
-  fastify.decorateRequest("bifrostPageId", null);
+  fastify.decorateRequest("bifrostProxyMode", false);
+  fastify.decorateRequest("bifrostProxyLayout", null);
+  fastify.decorateRequest("bifrostSentProxyHeaders", false);
   fastify.decorateRequest("vikePageContext", null);
   fastify.decorateRequest("getLayout", null);
   fastify.decorateRequest("customPageContextInit", null);
@@ -121,16 +126,14 @@ export const viteProxyPlugin: FastifyPluginAsync<
 
         const pageContext = await renderPage(pageContextInit);
 
-        // this does not handle getting the original pageId when errors are thrown: https://github.com/vikejs/vike/issues/1112
-        req.bifrostPageId = pageContext.pageId;
-        req.vikePageContext = pageContext;
-
-        const proxyMode = pageContext.config?.proxyMode;
+        let proxyMode = pageContext.config?.proxyMode;
         if (!proxyMode) {
+          req.vikePageContext = pageContext;
           req.log.info(`bifrost: rendering page ${pageContext.pageId}`);
           return replyWithPage(reply, pageContext);
         }
 
+        req.bifrostProxyMode = "passthru";
         switch (proxyMode) {
           case "passthru": {
             req.log.info(`bifrost: passthru proxy to backend`);
@@ -163,6 +166,7 @@ export const viteProxyPlugin: FastifyPluginAsync<
                 // setting _bfproxy tells onResponse we're in wrapped mode
                 (req.raw as RawRequestExtendedWithProxy)._bfproxy = true;
                 req.getLayout = pageContext.config.getLayout;
+                req.bifrostSentProxyHeaders = true;
               }
             } else {
               req.log.error(
@@ -216,6 +220,7 @@ export const viteProxyPlugin: FastifyPluginAsync<
         }
 
         const proxyLayoutInfo = req.getLayout?.(reply.getHeaders());
+        req.bifrostProxyLayout = proxyLayoutInfo;
         if (!proxyLayoutInfo) {
           return reply.send("stream" in res ? res.stream : res);
         }
@@ -254,6 +259,8 @@ export const viteProxyPlugin: FastifyPluginAsync<
           ...req.customPageContextInit,
         };
         const pageContext = await renderPage(pageContextInit);
+        req.vikePageContext = pageContext;
+        req.bifrostProxyMode = "wrapped";
         return replyWithPage(reply, pageContext);
       },
     },

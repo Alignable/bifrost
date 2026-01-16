@@ -38,10 +38,21 @@ async function startServer() {
   }
 
   app.addHook("onSend", async (req, reply) => {
-    if (req.bifrostPageId) {
-      // set header for testing
-      reply.header("X-TEST-PAGEID", req.bifrostPageId);
+    // set header for testing
+    if (req.vikePageContext?.pageId) {
+      reply.header("X-TEST-PAGEID", req.vikePageContext.pageId);
     }
+
+    const layoutInfo = Object.keys(req.bifrostProxyLayout || {}).join(",");
+    if (layoutInfo) reply.header("X-TEST-LAYOUT", layoutInfo);
+
+    if (req.bifrostProxyMode !== undefined)
+      reply.header("X-TEST-PROXYMODE", JSON.stringify(req.bifrostProxyMode));
+
+    reply.header(
+      "X-TEST-SENT-PROXY-HEADERS",
+      req.bifrostSentProxyHeaders ? "1" : "0"
+    );
   });
 
   app.register(viteProxyPlugin, {
