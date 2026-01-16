@@ -1,4 +1,5 @@
-import { test, expect } from "@playwright/test";
+import { test, expect, APIResponse } from "@playwright/test";
+import { toPath } from "../../fake-backend/page-builder";
 
 test.describe("requests", () => {
   test("it proxies non-html requests", async ({ request }) => {
@@ -9,27 +10,6 @@ test.describe("requests", () => {
     );
   });
 
-  test.describe("HEAD request", () => {
-    test("returns headers for vite page", async ({ request }) => {
-      const req = await request.head("./vite-page");
-      expect(req.headers()).toMatchObject({
-        "x-test-pageid": "/pages/vite-page",
-      });
-      expect(req.headers()).not.toMatchObject({
-        "x-test-fake-backend": "1",
-      });
-    });
-
-    test("returns headers for proxied page", async ({ request }) => {
-      const req = await request.head("./custom-incorrect");
-      expect(req.headers()).toMatchObject({
-        "x-test-pageid": "/pages/proxy/passthru",
-        // hits old backend
-        "x-test-fake-backend": "1",
-      });
-    });
-  });
-
   test.describe("onError", () => {
     test("returns header that we set in onError", async ({ request }) => {
       const req = await request.get("./broken-page");
@@ -37,27 +17,104 @@ test.describe("requests", () => {
     });
   });
 
-  test.describe("req.bifrostPageId", () => {
-    test("returns page id", async ({ request }) => {
+  test.describe("diagnostics attached to req", () => {
+    function diagnostics(req: APIResponse) {
+      return {
+        status: req.status(),
+        pageId: req.headers()["x-test-pageid"],
+        layout:
+          req.headers()["x-test-layout"]?.split(",").filter(Boolean) || [],
+        proxyMode:
+          req.headers()["x-test-proxymode"] &&
+          JSON.parse(req.headers()["x-test-proxymode"]),
+        sentProxyHeaders: req.headers()["x-test-sent-proxy-headers"] === "1",
+      };
+    }
+
+    test("vite page sets pageId", async ({ request }) => {
       const req = await request.get("./vite-page");
-      expect(req.headers()["x-test-pageid"]).toBe("/pages/vite-page");
+      expect(diagnostics(req)).toEqual({
+        status: 200,
+        pageId: "/pages/vite-page",
+        layout: [],
+        proxyMode: false,
+        sentProxyHeaders: false,
+      });
     });
 
-    test("returns undefined when no route matches at all", async ({
-      request,
-    }) => {
+    test("when no route matches at all", async ({ request }) => {
       const req = await request.get("./jsaidofjasidofjasoidf");
-      expect(req.headers()["x-test-pageid"]).toBe(undefined);
+      expect(diagnostics(req)).toEqual({
+        status: 404,
+        pageId: undefined,
+        layout: [],
+        proxyMode: undefined,
+        sentProxyHeaders: false,
+      });
     });
 
-    test("returns wrapped proxy route when hit", async ({ request }) => {
-      const req = await request.get("./json-route");
-      expect(req.headers()["x-test-pageid"]).toBe("/pages/proxy/wrapped");
+    test("on passthru, undefined pageId and layout", async ({ request }) => {
+      const req = await request.get(
+        toPath({ endpoint: "custom-incorrect", title: "a" })
+      );
+      expect(diagnostics(req)).toEqual({
+        status: 200,
+        pageId: undefined,
+        layout: [],
+        proxyMode: "passthru",
+        sentProxyHeaders: false,
+      });
     });
 
-    test("returns passthru proxy route when hit", async ({ request }) => {
-      const req = await request.get("./custom-incorrect");
-      expect(req.headers()["x-test-pageid"]).toBe("/pages/proxy/passthru");
+    test("wrapped with layout", async ({ request }) => {
+      const req = await request.get(toPath({ title: "a" }));
+      expect(diagnostics(req)).toEqual({
+        status: 200,
+        pageId: "/pages/proxy/wrapped",
+        layout: ["main_nav"],
+        proxyMode: "wrapped",
+        sentProxyHeaders: true,
+      });
+    });
+
+    test("wrapped with no layout", async ({ request }) => {
+      const req = await request.get(toPath({ title: "a", layout: "" }));
+      expect(diagnostics(req)).toEqual({
+        status: 200,
+        pageId: undefined,
+        layout: [],
+        proxyMode: "passthru",
+        sentProxyHeaders: true,
+      });
+    });
+
+    test("HEAD request on vite-page", async ({ request }) => {
+      const req = await request.head("./vite-page");
+      expect(diagnostics(req)).toEqual({
+        status: 200,
+        pageId: "/pages/vite-page",
+        layout: [],
+        proxyMode: false,
+        sentProxyHeaders: false,
+      });
+      expect(req.headers()).not.toMatchObject({
+        "x-test-fake-backend": "1",
+      });
+    });
+
+    test("HEAD request on proxied page", async ({ request }) => {
+      const req = await request.head(
+        toPath({ endpoint: "custom-incorrect", title: "a" })
+      );
+      expect(diagnostics(req)).toEqual({
+        status: 200,
+        pageId: undefined,
+        layout: [],
+        proxyMode: "passthru",
+        sentProxyHeaders: false,
+      });
+      // hits old backend
+      expect(req.headers()["x-test-fake-backend"]).toBe("1");
     });
 
     test.skip("returns original page id on error pages", async ({
@@ -69,9 +126,7 @@ test.describe("requests", () => {
   });
 
   test.describe("wrapped xhr", () => {
-    test("passes through script response", async ({
-      request,
-    }) => {
+    test("passes through script response", async ({ request }) => {
       const req = await request.get("/script-wrapped", {
         headers: { Accept: "text/html" },
       });
@@ -81,9 +136,7 @@ test.describe("requests", () => {
       );
     });
 
-    test("passes through JSON response", async ({
-      request,
-    }) => {
+    test("passes through JSON response", async ({ request }) => {
       // important to set accept */* to allow the wrapped proxy
       const req = await request.get("/json-wrapped", {
         headers: { Accept: "application/json */*" },
@@ -91,5 +144,5 @@ test.describe("requests", () => {
       expect(req.status()).toBe(200);
       expect(await req.json()).toEqual({ data: true });
     });
-  })
+  });
 });
