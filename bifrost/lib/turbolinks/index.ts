@@ -50,10 +50,9 @@ export const Turbolinks = {
   // Returns promise for turbolinks to be ready to render (runs requestAnimationFrame internally)
   async _vikeBeforeRender(
     visit: Visit | undefined,
-    errorWhileRendering: unknown,
     pageContextToCache?: any
   ): Promise<void> {
-    if ((!visit || visit.state === "completed") && !errorWhileRendering) {
+    if (!visit || visit.state === "completed") {
       throw new Error(
         `Bifrost does not support calling navigate() directly. Use navigate from "@alignable/bifrost" or Turbolinks.visit() instead.`
       );

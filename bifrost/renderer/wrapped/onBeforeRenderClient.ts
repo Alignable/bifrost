@@ -53,13 +53,9 @@ export default async function wrappedOnBeforeRenderClient(
   const { head, bodyAttrs } = pageContext._turbolinksProxy!;
   pageContext._shouldEmitBeforeRender = true;
 
-  await Turbolinks._vikeBeforeRender(
-    pageContext._turbolinksVisit,
-    pageContext.errorWhileRendering,
-    {
-      proxyLayoutInfo: pageContext.proxyLayoutInfo,
-    }
-  );
+  await Turbolinks._vikeBeforeRender(pageContext._turbolinksVisit, {
+    proxyLayoutInfo: pageContext.proxyLayoutInfo,
+  });
   const { waitForReload, waitForHeadScripts } = mergeHead(head!);
 
   // If a full reload is required, wait for it here
