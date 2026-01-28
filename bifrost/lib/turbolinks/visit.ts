@@ -98,6 +98,7 @@ export class Visit {
       const url = new URL(this.location.toString(), this.location.getOrigin());
       navigate(url.pathname + url.hash + url.search, {
         overwriteLastHistoryEntry: this.action === "replace",
+        pageContext: { _turbolinksVisit: this },
       }).catch(console.error);
       this.progress = 0;
       this.requestInFlight = true;
