@@ -16,6 +16,7 @@ import { extractDomElements } from "./lib/extractDomElements";
 import { Http2ServerRequest } from "http2";
 import { text } from "node:stream/consumers";
 import { parse as parseContentType } from "fast-content-type-parse";
+import { RawServerResponse } from "@fastify/reply-from";
 
 type RenderedPageContext = Awaited<
   ReturnType<
@@ -38,7 +39,6 @@ declare module "fastify" {
     /// Only set when proxy mode is false or wrapped
     vikePageContext?: Partial<PageContextServer> | null;
     getLayout: GetLayout | null;
-    customPageContextInit: Partial<Omit<PageContextServer, "headers">> | null;
   }
 }
 
@@ -49,16 +49,16 @@ type RawRequestExtendedWithProxy = FastifyRequest<
   _bfproxy?: boolean;
 };
 
-interface ViteProxyPluginOptions
-  extends Omit<
-    FastifyHttpProxyOptions,
-    "upstream" | "preHandler" | "replyOptions"
-  > {
+interface ViteProxyPluginOptions extends Omit<
+  FastifyHttpProxyOptions,
+  "upstream" | "preHandler" | "replyOptions"
+> {
   upstream: URL;
   host: URL;
   onError?: (error: any, pageContext: RenderedPageContext) => void;
   buildPageContextInit?: (
-    req: FastifyRequest
+    req: FastifyRequest<RequestGenericInterface, RawServerBase>,
+    res?: RawServerResponse<RawServerBase>
   ) => Promise<Partial<Omit<PageContextServer, "headers">>>;
 }
 /**
@@ -104,7 +104,6 @@ export const viteProxyPlugin: FastifyPluginAsync<
   fastify.decorateRequest("bifrostSentProxyHeaders", false);
   fastify.decorateRequest("vikePageContext", null);
   fastify.decorateRequest("getLayout", null);
-  fastify.decorateRequest("customPageContextInit", null);
   await fastify.register(proxy, {
     ...opts,
     upstream: upstream.href,
@@ -114,14 +113,14 @@ export const viteProxyPlugin: FastifyPluginAsync<
         (req.method === "GET" || req.method === "HEAD") &&
         req.accepts().type(["html"]) === "html"
       ) {
-        req.customPageContextInit = buildPageContextInit
+        const customPageContextInit = buildPageContextInit
           ? await buildPageContextInit(req)
           : {};
 
         const pageContextInit = {
           urlOriginal: req.url,
           headersOriginal: req.headers,
-          ...req.customPageContextInit,
+          ...customPageContextInit,
         };
 
         const pageContext = await renderPage(pageContextInit);
@@ -256,7 +255,7 @@ export const viteProxyPlugin: FastifyPluginAsync<
             headInnerHtml,
             proxyLayoutInfo,
           } satisfies WrappedServerOnly,
-          ...req.customPageContextInit,
+          ...(buildPageContextInit ? await buildPageContextInit(req, res) : {}),
         };
         const pageContext = await renderPage(pageContextInit);
         req.vikePageContext = pageContext;
