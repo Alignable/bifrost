@@ -5,7 +5,7 @@ import { Turbolinks } from "../../lib/turbolinks";
 export default async function bifrostOnAfterRenderClient(
   pageContext: PageContextClient
 ) {
-  if (!pageContext.isHydration) {
+  if (!pageContext.isHydration && !pageContext.errorWhileRendering) {
     await Turbolinks._vikeAfterRender(pageContext._turbolinksVisit, false);
   }
 }

@@ -5,12 +5,9 @@ import { setBodyAttributes } from "../../lib/elementUtils";
 export default async function bifrostOnBeforeRenderClient(
   pageContext: PageContextClient
 ) {
-  if (!pageContext.isHydration) {
+  if (!pageContext.isHydration && !pageContext.errorWhileRendering) {
     pageContext._shouldEmitBeforeRender = true;
-    await Turbolinks._vikeBeforeRender(
-      pageContext._turbolinksVisit,
-      pageContext.errorWhileRendering
-    );
+    await Turbolinks._vikeBeforeRender(pageContext._turbolinksVisit);
 
     // Copy over body attributes because vike-react only handles body on initial render, and we need to reset when coming from wrapped
     if (pageContext.config.bodyAttributes)
