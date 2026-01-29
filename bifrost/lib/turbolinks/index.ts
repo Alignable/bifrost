@@ -58,6 +58,8 @@ export const Turbolinks = {
       );
     }
     if (visit) {
+      // if visit already has a cancelFn, it means another navigation is happening, so cancel it
+      visit.cancelFn?.();
       return new Promise((resolve) => {
         visit.cancelFn = () => resolve();
         visit.renderFn = () => {
@@ -74,7 +76,7 @@ export const Turbolinks = {
     }
   },
 
-  async _vikeAfterRender(visit: Visit | undefined, activateBody: boolean) {
+  _vikeAfterRender(visit: Visit | undefined, activateBody: boolean) {
     if (visit) {
       if (activateBody) {
         activateNewBodyScriptElements(
