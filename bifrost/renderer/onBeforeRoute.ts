@@ -8,7 +8,7 @@ const onBeforeRoute = (pageContext: PageContext) => {
   if (typeof window !== "undefined" && pageContext.isClientSide) {
     const Turbolinks = window.Turbolinks;
 
-    let currentVisit = Turbolinks.controller.currentVisit;
+    let currentVisit = pageContext._turbolinksVisit;
 
     if (pageContext.isHistoryNavigation) {
       const snapshot = Turbolinks.controller.getCachedSnapshotForLocation(
