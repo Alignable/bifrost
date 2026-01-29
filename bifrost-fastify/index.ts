@@ -4,6 +4,7 @@ import {
   RawServerBase,
   FastifyPluginAsync,
   RouteGenericInterface,
+  RawReplyDefaultExpression,
 } from "fastify";
 import { FastifyRequest, RequestGenericInterface } from "fastify/types/request";
 import proxy, { type FastifyHttpProxyOptions } from "@fastify/http-proxy";
@@ -16,7 +17,6 @@ import { extractDomElements } from "./lib/extractDomElements";
 import { Http2ServerRequest } from "http2";
 import { text } from "node:stream/consumers";
 import { parse as parseContentType } from "fast-content-type-parse";
-import { RawServerResponse } from "@fastify/reply-from";
 
 type RenderedPageContext = Awaited<
   ReturnType<
@@ -62,7 +62,7 @@ interface ViteProxyPluginOptions extends Omit<
   ) => Promise<Partial<Omit<PageContextServer, "headers">>>;
   beforeWrappedRender?: (
     req: FastifyRequest<RequestGenericInterface, RawServerBase>,
-    res: RawServerResponse<RawServerBase>
+    res: RawReplyDefaultExpression<RawServerBase>
   ) => void;
 }
 /**
