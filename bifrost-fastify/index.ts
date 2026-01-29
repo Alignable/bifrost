@@ -16,6 +16,7 @@ import { extractDomElements } from "./lib/extractDomElements";
 import { Http2ServerRequest } from "http2";
 import { text } from "node:stream/consumers";
 import { parse as parseContentType } from "fast-content-type-parse";
+import { RawServerResponse } from "@fastify/reply-from";
 
 type RenderedPageContext = Awaited<
   ReturnType<
@@ -49,17 +50,20 @@ type RawRequestExtendedWithProxy = FastifyRequest<
   _bfproxy?: boolean;
 };
 
-interface ViteProxyPluginOptions
-  extends Omit<
-    FastifyHttpProxyOptions,
-    "upstream" | "preHandler" | "replyOptions"
-  > {
+interface ViteProxyPluginOptions extends Omit<
+  FastifyHttpProxyOptions,
+  "upstream" | "preHandler" | "replyOptions"
+> {
   upstream: URL;
   host: URL;
   onError?: (error: any, pageContext: RenderedPageContext) => void;
   buildPageContextInit?: (
     req: FastifyRequest
   ) => Promise<Partial<Omit<PageContextServer, "headers">>>;
+  beforeWrappedRender?: (
+    req: FastifyRequest<RequestGenericInterface, RawServerBase>,
+    res: RawServerResponse<RawServerBase>
+  ) => void;
 }
 /**
  * Fastify plugin that wraps @fasitfy/http-proxy to proxy Rails/Turbolinks server into a vike site.
@@ -67,7 +71,8 @@ interface ViteProxyPluginOptions
 export const viteProxyPlugin: FastifyPluginAsync<
   ViteProxyPluginOptions
 > = async (fastify, opts) => {
-  const { upstream, host, onError, buildPageContextInit } = opts;
+  const { upstream, host, onError, buildPageContextInit, beforeWrappedRender } =
+    opts;
   async function replyWithPage(
     reply: FastifyReply<RouteGenericInterface, RawServerBase>,
     pageContext: RenderedPageContext
@@ -244,6 +249,8 @@ export const viteProxyPlugin: FastifyPluginAsync<
         if (!bodyInnerHtml || !headInnerHtml) {
           return reply.send(html);
         }
+
+        beforeWrappedRender?.(req, res);
 
         const pageContextInit = {
           urlOriginal: reply.request.url,
