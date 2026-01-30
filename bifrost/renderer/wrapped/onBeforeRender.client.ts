@@ -51,7 +51,15 @@ export default async function wrappedOnBeforeRender(
     */
     const resp = await fetch(pageContext.urlParsed.href, {
       headers: { ...pageContext.config.proxyHeaders, accept: "text/html" },
-    });
+    }).catch(() => {});
+
+    if (!resp) {
+      // hard reload. can happen on cors errors when redirected to external page
+      window.location.href = pageContext.urlParsed.href;
+      // stop vike rendering to let navigation happen
+      await new Promise(() => {});
+      return;
+    }
 
     if (resp.redirected) {
       const parsedUrl = new URL(resp.url);

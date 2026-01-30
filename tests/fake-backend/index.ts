@@ -27,7 +27,12 @@ app.get(["/custom", "/custom-:id"], async (req, res) => {
   }
   if ("redirectTo" in data) {
     res.status(302);
-    res.setHeader("location", `${publicUrl}${toPath(data.redirectTo)}`);
+
+    res.setHeader(
+      "location",
+      ("url" in data.redirectTo && data.redirectTo.url) ||
+        `${publicUrl}${toPath(data.redirectTo)}`
+    );
     if (data.cookies) {
       for (const [key, val] of Object.entries(data.cookies)) {
         res.setHeader("set-cookie", key + "=" + val);
@@ -80,7 +85,10 @@ app.get("/script-wrapped", async (req, res) => {
     res.setHeader("X-REACT-LAYOUT", "no_layout");
   }
   res.setHeader("Content-Type", "text/html");
-  res.status(200).type("text/html").send("<script>console.log('script-only')</script>");
+  res
+    .status(200)
+    .type("text/html")
+    .send("<script>console.log('script-only')</script>");
 });
 
 app.get("/json-wrapped", async (req, res) => {

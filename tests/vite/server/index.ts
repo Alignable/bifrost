@@ -55,6 +55,17 @@ async function startServer() {
     );
   });
 
+  app.get("/cors-test", async (req, res) => {
+    res.header("Access-Control-Allow-Origin", "http://localhost:5555");
+    res.header("Access-Control-Allow-Credentials", "true");
+    res
+      .status(200)
+      .type("text/html")
+      .send(
+        "<html><head><title>external</title></head><body>CORS test page from Vite server</body></html>"
+      );
+  });
+
   app.register(viteProxyPlugin, {
     upstream: UPSTREAM,
     host: HOST,
