@@ -21,6 +21,7 @@ const BIFROST_PATHS = [
   "/redirect-page",
   "/auto-navigate",
   "/proxy-to",
+  "/cors-test",
   "/",
 ];
 

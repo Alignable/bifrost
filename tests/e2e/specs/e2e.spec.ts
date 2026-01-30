@@ -436,6 +436,30 @@ test.describe("redirects", () => {
       await customProxy.goBack();
     });
 
+    test("on client navigation, redirect to external url", async ({ page }) => {
+      const externalUrl = "http://localhost:5555/cors-test";
+      ensureAllNetworkSucceeds(page);
+      const customProxy = new CustomProxyPage(page, {
+        title: "first page",
+        links: [
+          {
+            redirectTo: {
+              url: externalUrl,
+              title: "external",
+            },
+          },
+        ],
+      });
+      await customProxy.goto();
+      await customProxy.clickLink("external", {
+        browserReload: true,
+        waitFor: 0,
+      });
+
+      // back button works as expected
+      await customProxy.goBack();
+    });
+
     test("sets cookies along the way", async ({ page, context, baseURL }) => {
       ensureAllNetworkSucceeds(page);
       const customProxy = new CustomProxyPage(page, {
@@ -1042,12 +1066,15 @@ test.describe("back button restoration", () => {
     await customProxy.goto();
     const edit = page.getByRole("link").first();
 
-    await page.evaluate((rRoot: any) => {
-      rRoot.appendChild(document.createTextNode("edit1"));
-      document.addEventListener("turbolinks:before-cache", () => {
-        rRoot.appendChild(document.createTextNode("edit2"));
-      });
-    }, await edit.elementHandle());
+    await page.evaluate(
+      (rRoot: any) => {
+        rRoot.appendChild(document.createTextNode("edit1"));
+        document.addEventListener("turbolinks:before-cache", () => {
+          rRoot.appendChild(document.createTextNode("edit2"));
+        });
+      },
+      await edit.elementHandle()
+    );
     await expect(edit).toContainText("edit1");
     await expect(edit).not.toContainText("edit2");
 
@@ -1065,12 +1092,15 @@ test.describe("back button restoration", () => {
     await page.goto("./vite-page");
     await waitForTurbolinksInit(page);
     const edit = page.getByRole("link").first();
-    await page.evaluate((rRoot: any) => {
-      rRoot.appendChild(document.createTextNode("edit1"));
-      document.addEventListener("turbolinks:before-cache", () => {
-        rRoot.appendChild(document.createTextNode("edit2"));
-      });
-    }, await edit.elementHandle());
+    await page.evaluate(
+      (rRoot: any) => {
+        rRoot.appendChild(document.createTextNode("edit1"));
+        document.addEventListener("turbolinks:before-cache", () => {
+          rRoot.appendChild(document.createTextNode("edit2"));
+        });
+      },
+      await edit.elementHandle()
+    );
 
     await expect(edit).toContainText("edit1");
     await expect(edit).not.toContainText("edit2");

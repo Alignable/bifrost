@@ -5,6 +5,7 @@ type LinkOptions = {
 };
 export type PageDataOk = {
   endpoint?: string;
+  url?: string;
   title: string;
   bodyAttrs?: string;
   layout?: string;
@@ -29,7 +30,7 @@ export function toPath(data: PageData) {
   }
   return (
     `/${"endpoint" in data ? data!.endpoint : "custom"}?page=` +
-    encodeURI(JSON.stringify(data))
+    encodeURIComponent(JSON.stringify(data))
   );
 }
 export enum Turbolinks {
