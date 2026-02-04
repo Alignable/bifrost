@@ -30,7 +30,6 @@ export class Visit {
   readonly restorationIdentifier: string;
   readonly timingMetrics: TimingMetrics = {};
 
-  frame?: number;
   location: Location;
   progress = 0;
   referrer?: Location;
@@ -67,7 +66,6 @@ export class Visit {
     if (this.state == VisitState.started) {
       this.requestInFlight = false;
       this.cancelFn?.();
-      this.cancelRender();
       this.state = VisitState.canceled;
     }
   }
@@ -196,17 +194,6 @@ export class Visit {
   }
 
   render(callback: () => void) {
-    this.cancelRender();
-    this.frame = requestAnimationFrame(() => {
-      delete this.frame;
-      callback.call(this);
-    });
-  }
-
-  cancelRender() {
-    if (this.frame) {
-      cancelAnimationFrame(this.frame);
-      delete this.frame;
-    }
+    callback.call(this);
   }
 }
