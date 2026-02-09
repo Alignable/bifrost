@@ -320,6 +320,19 @@ test.describe("window.Turbolinks", () => {
     );
     await expect(page).toHaveTitle("vite page");
   });
+
+  test("calling Turbolinks.controller.viewWillRender works on wrapped blocking script", async ({
+    page,
+  }) => {
+    const logs = storeConsoleLog(page);
+    const pageData = {
+      title: "a",
+      content: "<script>Turbolinks.controller.viewWillRender()</script>",
+    };
+    await page.goto(toPath(pageData));
+    await expect(page).toHaveTitle("a");
+    await expect.poll(() => logs).toContain(T.beforeRender);
+  });
 });
 
 test.describe("client navigation", () => {
