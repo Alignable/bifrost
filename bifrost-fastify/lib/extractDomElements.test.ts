@@ -174,4 +174,142 @@ describe("extractDomElements", () => {
     assert.strictEqual(result.bodyInnerHtml, null);
     assert.deepStrictEqual(result.bodyAttributes, {});
   });
+
+  describe("malformed HTML", () => {
+    it("handles unclosed tags in body", () => {
+      const html = `<html><head></head><body><div><p>unclosed</body></html>`;
+
+      const result = extractDomElements(html);
+
+      assert.strictEqual(result.bodyInnerHtml, "<div><p>unclosed");
+    });
+
+    it("handles unclosed tags in head", () => {
+      const html = `<html><head><title>unclosed</head><body>content</body></html>`;
+
+      const result = extractDomElements(html);
+
+      // htmlparser2 treats title as a text container - it consumes everything until </title>
+      // Since there's no </title>, the title swallows the rest of the document
+      assert.ok(result.headInnerHtml?.startsWith("<title>unclosed"));
+      // Body never properly opens because it's inside the unclosed title
+      assert.strictEqual(result.bodyInnerHtml, null);
+    });
+
+    it("handles missing closing body tag", () => {
+      const html = `<html><head></head><body><p>content</p></html>`;
+
+      const result = extractDomElements(html);
+
+      // htmlparser2 auto-closes body when it sees </html>
+      assert.strictEqual(result.bodyInnerHtml, "<p>content</p>");
+    });
+
+    it("handles missing closing head tag", () => {
+      const html = `<html><head><title>Test</title><body>content</body></html>`;
+
+      const result = extractDomElements(html);
+
+      // htmlparser2 auto-closes head when it sees body
+      assert.strictEqual(result.headInnerHtml, "<title>Test</title>");
+      assert.strictEqual(result.bodyInnerHtml, "content");
+    });
+
+    it("handles mismatched/interleaved tags", () => {
+      const html = `<html><head></head><body><div><span></div></span></body></html>`;
+
+      const result = extractDomElements(html);
+
+      // Parser is lenient, extracts what it can
+      assert.ok(result.bodyInnerHtml !== null);
+    });
+
+    it("handles extra closing tags", () => {
+      const html = `<html><head></head></head><body>content</body></body></html>`;
+
+      const result = extractDomElements(html);
+
+      assert.strictEqual(result.headInnerHtml, "");
+      assert.strictEqual(result.bodyInnerHtml, "content");
+    });
+
+    it("handles broken attribute syntax", () => {
+      const html = `<html><head></head><body class="broken data-x=>content</body></html>`;
+
+      const result = extractDomElements(html);
+
+      // Parser handles this gracefully
+      assert.ok(result.bodyAttributes !== null);
+    });
+
+    it("handles tags with missing closing bracket", () => {
+      const html = `<html><head></head><body<p>content</p></body></html>`;
+
+      const result = extractDomElements(html);
+
+      // Parser may interpret this differently, but shouldn't crash
+      assert.ok(result !== null);
+    });
+
+    it("handles random text before doctype", () => {
+      const html = `garbage text <!DOCTYPE html><html><head></head><body>content</body></html>`;
+
+      const result = extractDomElements(html);
+
+      assert.strictEqual(result.headInnerHtml, "");
+      assert.strictEqual(result.bodyInnerHtml, "content");
+    });
+
+    it("handles comments in unusual places", () => {
+      const html = `<html><!--comment--><head><!--in head--></head><body><!--in body-->content</body></html>`;
+
+      const result = extractDomElements(html);
+
+      assert.strictEqual(result.headInnerHtml, "<!--in head-->");
+      assert.strictEqual(result.bodyInnerHtml, "<!--in body-->content");
+    });
+
+    it("handles CDATA sections", () => {
+      const html = `<html><head></head><body><![CDATA[some data]]>content</body></html>`;
+
+      const result = extractDomElements(html);
+
+      assert.ok(result.bodyInnerHtml?.includes("content"));
+    });
+
+    it("handles null bytes and control characters", () => {
+      const html = `<html><head></head><body>con\x00tent\x01</body></html>`;
+
+      const result = extractDomElements(html);
+
+      assert.ok(result.bodyInnerHtml !== null);
+    });
+
+    it("handles extremely deeply nested tags", () => {
+      const nested = "<div>".repeat(100) + "content" + "</div>".repeat(100);
+      const html = `<html><head></head><body>${nested}</body></html>`;
+
+      const result = extractDomElements(html);
+
+      assert.ok(result.bodyInnerHtml?.includes("content"));
+    });
+
+    it("handles body inside head (invalid nesting)", () => {
+      const html = `<html><head><body>weird</body></head><body>normal</body></html>`;
+
+      const result = extractDomElements(html);
+
+      // First body tag wins
+      assert.strictEqual(result.bodyInnerHtml, "weird");
+    });
+
+    it("handles head inside body (invalid nesting)", () => {
+      const html = `<html><body><head>weird</head>content</body></html>`;
+
+      const result = extractDomElements(html);
+
+      // First head tag wins even though it's inside body
+      assert.strictEqual(result.headInnerHtml, "weird");
+    });
+  });
 });
