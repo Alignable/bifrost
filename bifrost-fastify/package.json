@@ -10,9 +10,6 @@
     "@fastify/forwarded": "^3.0.1",
     "@fastify/http-proxy": "^11.4.1",
     "@fastify/reply-from": "^12.5.0",
-    "dom-serializer": "^2.0.0",
-    "domhandler": "^5.0.3",
-    "domutils": "^3.2.2",
     "fast-content-type-parse": "^3.0.0",
     "htmlparser2": "^10.0.0"
   },

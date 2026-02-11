@@ -7,7 +7,8 @@
     "skipLibCheck": true,
     "esModuleInterop": true,
     "noEmit": true,
-    "types": ["@alignable/bifrost/config"]
+    "types": ["@alignable/bifrost/config"],
+    "allowImportingTsExtensions": true
   },
   "include": ["./index.ts", "lib"]
 }
