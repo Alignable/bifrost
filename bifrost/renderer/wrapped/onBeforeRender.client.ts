@@ -1,6 +1,7 @@
 import "../../lib/type";
 import type { PageContextClient } from "vike/types";
 import { redirect } from "vike/abort";
+import { hardRedirect } from "../../lib/hardRedirect";
 import { getElementAttributes } from "../../lib/elementUtils";
 
 // onBeforeRender runs before changing the browser location, so `throw redirect` works
@@ -55,9 +56,7 @@ export default async function wrappedOnBeforeRender(
 
     if (!resp) {
       // hard reload. can happen on cors errors when redirected to external page
-      window.location.href = pageContext.urlParsed.href;
-      // stop vike rendering to let navigation happen
-      await new Promise(() => {});
+      await hardRedirect(pageContext.urlParsed.href);
       return;
     }
 
@@ -71,12 +70,16 @@ export default async function wrappedOnBeforeRender(
         throw redirect(parsedUrl.pathname + parsedUrl.search + parsedUrl.hash);
       } else {
         // external redirect
-        throw redirect(resp.url);
+        await hardRedirect(resp.url);
+        return;
       }
     }
+    
     if (!resp.ok) {
-      throw redirect(resp.url);
+      await hardRedirect(resp.url);
+      return;
     }
+
     const html = await resp.text();
     const layoutInfo = pageContext.config.getLayout!(
       Object.fromEntries(resp.headers.entries())
@@ -84,8 +87,9 @@ export default async function wrappedOnBeforeRender(
     if (!layoutInfo) {
       // Fallback to full reload if layout not found
       // window.location.href = resp.url;
-      throw redirect(resp.url);
-    }
+      await hardRedirect(resp.url);
+      return;
+    } 
 
     const parsed = document.createElement("html");
     parsed.innerHTML = html;
