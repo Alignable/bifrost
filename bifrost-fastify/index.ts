@@ -8,7 +8,6 @@ import {
 import { FastifyRequest, RequestGenericInterface } from "fastify/types/request";
 import proxy, { type FastifyHttpProxyOptions } from "@fastify/http-proxy";
 import accepts from "@fastify/accepts";
-import forwarded from "@fastify/forwarded";
 import type { GetLayout, WrappedServerOnly } from "@alignable/bifrost/config";
 import { renderPage } from "vike/server";
 import { PageContextServer } from "vike/types";
@@ -192,12 +191,18 @@ export const viteProxyPlugin: FastifyPluginAsync<
     },
     replyOptions: {
       rewriteRequestHeaders(request, headers) {
-        if (!(request.raw instanceof Http2ServerRequest)) {
-          const fwd = forwarded(request.raw).reverse();
-          headers["X-Forwarded-For"] = fwd.join(", ");
-          headers["X-Forwarded-Host"] = host.host;
-          headers["X-Forwarded-Proto"] = host.protocol;
+        // Build X-Forwarded-For from existing header + socket address
+        const existingFor = request.headers["x-forwarded-for"];
+        const clientIp = request.raw.socket?.remoteAddress;
+        if (existingFor && clientIp) {
+          headers["X-Forwarded-For"] = `${clientIp}, ${existingFor}`;
+        } else if (existingFor) {
+          headers["X-Forwarded-For"] = existingFor;
+        } else if (clientIp) {
+          headers["X-Forwarded-For"] = clientIp;
         }
+        headers["X-Forwarded-Host"] = host.host;
+        headers["X-Forwarded-Proto"] = host.protocol.replace(":", "");
 
         if ((request.raw as RawRequestExtendedWithProxy)._bfproxy) {
           // Proxying and wrapping
