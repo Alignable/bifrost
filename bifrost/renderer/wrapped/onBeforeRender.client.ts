@@ -75,7 +75,12 @@ export default async function wrappedOnBeforeRender(
       }
     }
     if (!resp.ok) {
-      throw redirect(resp.url);
+      // A little hacky here but we cannot navigate with window.location.href = 
+      // since the mobile apps will open that in a browser tab
+      history.pushState(null, "", resp.url);
+      window.Turbolinks.controller.viewInvalidated();
+      // stop vike rendering to let navigation happen
+      await new Promise(() => {}); 
     }
     const html = await resp.text();
     const layoutInfo = pageContext.config.getLayout!(
@@ -83,8 +88,13 @@ export default async function wrappedOnBeforeRender(
     );
     if (!layoutInfo) {
       // Fallback to full reload if layout not found
-      // window.location.href = resp.url;
-      throw redirect(resp.url);
+      // A little hacky here but we cannot navigate with window.location.href = 
+      // since the mobile apps will open that in a browser tab
+      history.pushState(null, "", resp.url);
+      window.Turbolinks.controller.viewInvalidated();
+      // stop vike rendering to let navigation happen
+      await new Promise(() => {}); 
+      return;
     }
 
     const parsed = document.createElement("html");
