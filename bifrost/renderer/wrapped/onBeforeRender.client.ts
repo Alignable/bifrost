@@ -2,6 +2,7 @@ import "../../lib/type";
 import type { PageContextClient } from "vike/types";
 import { redirect } from "vike/abort";
 import { getElementAttributes } from "../../lib/elementUtils";
+import { hardNavigate } from "../../lib/hardNavigate";
 
 // onBeforeRender runs before changing the browser location, so `throw redirect` works
 // we wait for onBeforeRenderClient to call mergeHead, which runs after browser location change
@@ -75,12 +76,7 @@ export default async function wrappedOnBeforeRender(
       }
     }
     if (!resp.ok) {
-      // A little hacky here but we cannot navigate with window.location.href = 
-      // since the mobile apps will open that in a browser tab
-      history.pushState(null, "", resp.url);
-      window.Turbolinks.controller.viewInvalidated();
-      // stop vike rendering to let navigation happen
-      await new Promise(() => {}); 
+      await hardNavigate(resp.url);
     }
     const html = await resp.text();
     const layoutInfo = pageContext.config.getLayout!(
@@ -88,12 +84,7 @@ export default async function wrappedOnBeforeRender(
     );
     if (!layoutInfo) {
       // Fallback to full reload if layout not found
-      // A little hacky here but we cannot navigate with window.location.href = 
-      // since the mobile apps will open that in a browser tab
-      history.pushState(null, "", resp.url);
-      window.Turbolinks.controller.viewInvalidated();
-      // stop vike rendering to let navigation happen
-      await new Promise(() => {}); 
+      await hardNavigate(resp.url);
       return;
     }
 
