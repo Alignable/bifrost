@@ -7,7 +7,7 @@ const allHeadScriptsEverRun: { [outerHTML: string]: ElementDetails } = {};
 let firstMerge = true;
 let lastTrackedScriptSignature: string;
 
-export function recordExistingHeadScripts(
+export function recordExistingHead(
   categorizedHead?: ReturnType<typeof categorizeHead>
 ) {
   categorizedHead ||= categorizeHead(document.head);
@@ -17,6 +17,12 @@ export function recordExistingHeadScripts(
       tracked: elementIsTracked(element),
     };
   }
+  lastTrackedScriptSignature =
+    lastTrackedScriptSignature ||
+    trackedElementSignature([
+      ...categorizedHead.scripts,
+      ...categorizedHead.stylesheets,
+    ]);
   firstMerge = false;
 }
 
@@ -42,17 +48,15 @@ export function mergeHead(head: HTMLHeadElement) {
 
   if (!firstMerge) {
     // IMPORTANT: we allow first merge to always proceed without reload
-    lastTrackedScriptSignature =
-      lastTrackedScriptSignature ||
-      trackedElementSignature([...oldHead.scripts, ...oldHead.stylesheets]);
-    if (
-      lastTrackedScriptSignature !==
-      trackedElementSignature([...newHead.scripts, ...newHead.stylesheets])
-    ) {
+    const newTrackedScriptSignature = trackedElementSignature([
+      ...newHead.scripts,
+      ...newHead.stylesheets,
+    ]);
+    if (lastTrackedScriptSignature !== newTrackedScriptSignature) {
       return reload();
     }
   }
-  recordExistingHeadScripts(oldHead);
+  recordExistingHead(oldHead);
 
   copyNewHeadStylesheetElements(newHead.stylesheets, oldHead.stylesheets);
   removeCurrentHeadProvisionalElements(oldHead.provisional);
