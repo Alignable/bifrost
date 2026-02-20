@@ -7,9 +7,7 @@ const allHeadScriptsEverRun: { [outerHTML: string]: ElementDetails } = {};
 let firstMerge = true;
 let lastTrackedScriptSignature: string;
 
-export function recordExistingHead(
-  categorizedHead?: ReturnType<typeof categorizeHead>
-) {
+export function recordExistingHeadScripts(categorizedHead?: CategorizedHead) {
   categorizedHead ||= categorizeHead(document.head);
   // record all existing head scripts as having been run, because they were run by browser, not mergeHead
   for (const element of categorizedHead.scripts) {
@@ -18,11 +16,7 @@ export function recordExistingHead(
     };
   }
   lastTrackedScriptSignature =
-    lastTrackedScriptSignature ||
-    trackedElementSignature([
-      ...categorizedHead.scripts,
-      ...categorizedHead.stylesheets,
-    ]);
+    lastTrackedScriptSignature || trackedElementSignature(categorizedHead);
   firstMerge = false;
 }
 
@@ -48,15 +42,14 @@ export function mergeHead(head: HTMLHeadElement) {
 
   if (!firstMerge) {
     // IMPORTANT: we allow first merge to always proceed without reload
-    const newTrackedScriptSignature = trackedElementSignature([
-      ...newHead.scripts,
-      ...newHead.stylesheets,
-    ]);
+    const newTrackedScriptSignature = trackedElementSignature(newHead);
     if (lastTrackedScriptSignature !== newTrackedScriptSignature) {
       return reload();
     }
   }
-  recordExistingHead(oldHead);
+  firstMerge = false;
+  lastTrackedScriptSignature =
+    lastTrackedScriptSignature || trackedElementSignature(newHead);
 
   copyNewHeadStylesheetElements(newHead.stylesheets, oldHead.stylesheets);
   removeCurrentHeadProvisionalElements(oldHead.provisional);
@@ -68,8 +61,8 @@ export function mergeHead(head: HTMLHeadElement) {
   };
 }
 
-function trackedElementSignature(scripts: Element[]) {
-  return scripts
+function trackedElementSignature(head: CategorizedHead) {
+  return [...head.scripts, ...head.stylesheets]
     .filter(elementIsTracked)
     .map((s) => s.outerHTML)
     .join();
@@ -179,3 +172,4 @@ function categorizeHead(head: ParentNode) {
   }
   return { scripts, stylesheets, provisional };
 }
+type CategorizedHead = ReturnType<typeof categorizeHead>;
