@@ -52,6 +52,8 @@ const HEAD_SCRIPTS = {
   inline2: `<script>console.log('head script: inline 2')</script>`,
   trackedA: `<script src='head-script%3A-trackedA.js' data-turbolinks-track="reload"></script>`,
   trackedB: `<script src='head-script%3A-trackedB.js' data-turbolinks-track="reload"></script>`,
+  trackedStyleA: `<link rel="stylesheet" href="head-style%3A-1.css" data-turbolinks-track="reload"/>`,
+  trackedStyleB: `<link rel="stylesheet" href="head-style%3B-1.css" data-turbolinks-track="reload"/>`,
 };
 const BODY_SCRIPTS = {
   blocking: `<script src='body-script%3A-blocking.js'></script>`,

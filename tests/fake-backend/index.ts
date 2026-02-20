@@ -106,6 +106,12 @@ app.get("/:file.js", async (req, res) => {
   res.send(`console.log('${req.params.file.replaceAll("-", " ")}')`);
 });
 
+app.get("/:file.css", async (req, res) => {
+  res.status(200);
+  res.setHeader("Content-Type", "style/css");
+  res.send("body { background-color: lightblue; }");
+});
+
 app.listen(port, () => {
   console.log(`Example app listening on port ${port}`);
 });
