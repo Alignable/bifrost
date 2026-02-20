@@ -1493,6 +1493,46 @@ test.describe("script loading order", () => {
       await customProxy.clickLink("custom legacy B", { browserReload: true });
       expect(customProxy.scriptLog).toEqual(["head script: trackedB"]);
     });
+
+    test("moving from vite page to tracked stylesheets wrapped page does not reload", async ({
+      page,
+    }) => {
+      ensureAllNetworkSucceeds(page);
+
+      const customProxy = new CustomProxyPage(page, {
+        endpoint: "custom-vite",
+        title: "custom vite",
+        links: [
+          {
+            // First nav is OK
+            title: "custom legacy",
+            headScripts: ["trackedStyleA"],
+            links: [
+              {
+                // same scripts is OK
+                title: "custom legacy A",
+                headScripts: ["trackedStyleA"],
+                links: [
+                  // style change, reload
+                  { title: "custom legacy B", headScripts: ["trackedStyleB"] },
+                ],
+              },
+            ],
+          },
+        ],
+      });
+
+      await customProxy.goto();
+
+      await customProxy.clickLink("custom legacy", { browserReload: false });
+      expect(customProxy.turbolinksLog).toContain(T.beforeRender);
+      expect(customProxy.turbolinksLog).toContain(T.render);
+
+      // same scripts no reload
+      await customProxy.clickLink("custom legacy A", { browserReload: false });
+      // navigating to different tracked script causes reload
+      await customProxy.clickLink("custom legacy B", { browserReload: true });
+    });
   });
 
   test("moving from new to legacy loads scripts in correct order", async ({
