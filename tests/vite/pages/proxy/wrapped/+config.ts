@@ -5,4 +5,5 @@ export default {
   proxyHeaders: {
     "X-VITE-PROXY": "1",
   },
+  layoutHeaders: ["x-react-layout", "x-react-current-nav"],
 } satisfies Config;
