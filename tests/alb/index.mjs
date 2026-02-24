@@ -22,6 +22,7 @@ const BIFROST_PATHS = [
   "/auto-navigate",
   "/proxy-to",
   "/cors-test",
+  "/not-found",
   "/",
 ];
 

@@ -77,7 +77,8 @@ export const viteProxyPlugin: FastifyPluginAsync<
     opts;
   async function replyWithPage(
     reply: FastifyReply<RouteGenericInterface, RawServerBase>,
-    pageContext: RenderedPageContext
+    pageContext: RenderedPageContext,
+    statusCodeOverride?: number
   ): Promise<FastifyReply> {
     const { httpResponse } = pageContext;
 
@@ -96,7 +97,7 @@ export const viteProxyPlugin: FastifyPluginAsync<
     const { statusCode, headers, getBody } = httpResponse;
     return (
       reply
-        .status(statusCode)
+        .status(statusCodeOverride ?? statusCode)
         .headers(Object.fromEntries(headers))
         // This disables any possibility of real streaming. To re-enable streaming we should adopt vike-photon and rewrite wrapped proxy as a Vike middleware.
         // Why not pipe? Because Vike gives us `pipe` which sends data into a Writable, but Fastify's reply.send only accepts a ReadableStream. Passthrough can convert but causes race conditions
@@ -282,10 +283,12 @@ export const viteProxyPlugin: FastifyPluginAsync<
           } satisfies WrappedServerOnly,
           ...customPageContextInit,
         };
+        const upstreamStatusCode = reply.statusCode;
         const pageContext = await renderPage(pageContextInit);
         req.vikePageContext = pageContext;
         req.bifrostProxyMode = "wrapped";
-        return replyWithPage(reply, pageContext);
+        // Preserve the upstream's status code (e.g. 404) rather than using Vike's
+        return replyWithPage(reply, pageContext, upstreamStatusCode);
       },
     },
   });
