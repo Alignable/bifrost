@@ -100,6 +100,13 @@ app.get("/json-wrapped", async (req, res) => {
   res.status(200).json({ data: true });
 });
 
+app.get("/not-found", async (req, res) => {
+  if (req.header("X-VITE-PROXY")) {
+    res.setHeader("X-REACT-LAYOUT", "main_nav");
+  }
+  res.status(404).type("text/html").send("<html><head><title>Not Found</title></head><body>Not Found</body></html>");
+});
+
 app.get("/:file.js", async (req, res) => {
   res.status(200);
   res.setHeader("Content-Type", "application/javascript");

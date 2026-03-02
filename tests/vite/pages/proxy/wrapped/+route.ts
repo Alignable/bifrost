@@ -1,6 +1,6 @@
 import { RouteSync } from "vike/types";
 
-const paths = ["/custom", "/custom-bifrost", "/json-route", "/json-only", "/script-wrapped", "/json-wrapped"];
+const paths = ["/custom", "/custom-bifrost", "/json-route", "/json-only", "/script-wrapped", "/json-wrapped", "/not-found"];
 
 const route: RouteSync = (pageContext): ReturnType<RouteSync> => {
   return paths.includes(pageContext.urlPathname);

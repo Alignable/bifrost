@@ -77,6 +77,17 @@ test.describe("requests", () => {
       });
     });
 
+    test("wrapped proxy preserves 404 from backend", async ({ request }) => {
+      const req = await request.get("/not-found");
+      expect(diagnostics(req)).toEqual({
+        status: 404,
+        pageId: "/pages/proxy/wrapped",
+        layout: ["main_nav"],
+        proxyMode: "wrapped",
+        sentProxyHeaders: true,
+      });
+    });
+
     test("wrapped with no layout", async ({ request }) => {
       const req = await request.get(toPath({ title: "a", layout: "" }));
       expect(diagnostics(req)).toEqual({
