@@ -239,10 +239,6 @@ export const viteProxyPlugin: FastifyPluginAsync<
         const proxyLayoutInfo = req.getLayout?.(reply.getHeaders());
         req.bifrostProxyLayout = proxyLayoutInfo;
 
-        // Strip layout headers after getLayout has read them — they are server-side only
-        for (const header of req.layoutHeaders ?? []) {
-          reply.removeHeader(header);
-        }
         if (!proxyLayoutInfo) {
           return reply.send("stream" in res ? res.stream : res);
         }
@@ -293,6 +289,10 @@ export const viteProxyPlugin: FastifyPluginAsync<
           ...customPageContextInit,
         };
         const upstreamStatusCode = reply.statusCode;
+        // Strip layout headers after getLayout has read them — they are server-side only
+        for (const header of req.layoutHeaders ?? []) {
+          reply.removeHeader(header);
+        }
         const pageContext = await renderPage(pageContextInit);
         req.vikePageContext = pageContext;
         req.bifrostProxyMode = "wrapped";
