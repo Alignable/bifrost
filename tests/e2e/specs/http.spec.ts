@@ -136,6 +136,22 @@ test.describe("requests", () => {
     });
   });
 
+  test.describe("layoutHeaders", () => {
+    test("strips layoutHeaders from wrapped response", async ({ request }) => {
+      const req = await request.get(toPath({ title: "a" }));
+      expect(req.headers()["x-react-layout"]).toBeUndefined();
+      expect(req.headers()["x-react-current-nav"]).toBeUndefined();
+    });
+
+    test("does not strip headers on passthru response", async ({ request }) => {
+      const req = await request.get(
+        toPath({ endpoint: "custom-incorrect", title: "a" })
+      );
+      // passthru routes don't go through the wrapped render path, so headers pass through
+      expect(req.headers()["x-test-fake-backend"]).toBe("1");
+    });
+  });
+
   test.describe("wrapped xhr", () => {
     test("passes through script response", async ({ request }) => {
       const req = await request.get("/script-wrapped", {

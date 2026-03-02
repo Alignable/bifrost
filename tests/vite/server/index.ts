@@ -29,6 +29,7 @@ async function startServer() {
     app.register(fastifyStatic, {
       root: distPath,
       prefix: "/bifrost-assets/assets/",
+      logLevel: "warn",
     });
   } else {
     await fs.rm("node_modules/.vite", { recursive: true, force: true });

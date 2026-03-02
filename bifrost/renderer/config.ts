@@ -25,6 +25,7 @@ export default {
       cumulative: true,
     },
     getLayout: { env: { server: true, client: true } },
+    layoutHeaders: { env: { server: true, client: false } },
     proxyHeaders: { env: { server: true, client: true } },
     proxyMode: {
       env: { server: true, client: true, config: true },
@@ -84,6 +85,8 @@ declare global {
       proxyMode?: false | "wrapped" | "passthru";
       proxyHeaders?: Record<string, string>;
       getLayout?: GetLayout;
+      /** Response headers that should be consumed server-side and stripped before sending to the client. */
+      layoutHeaders?: string[];
     }
     interface PageContext {
       proxyLayoutInfo?: ProxyLayoutInfo;

@@ -38,6 +38,7 @@ declare module "fastify" {
     /// Only set when proxy mode is false or wrapped
     vikePageContext?: Partial<PageContextServer> | null;
     getLayout: GetLayout | null;
+    layoutHeaders: string[] | null;
   }
 }
 
@@ -112,6 +113,7 @@ export const viteProxyPlugin: FastifyPluginAsync<
   fastify.decorateRequest("bifrostSentProxyHeaders", false);
   fastify.decorateRequest("vikePageContext", null);
   fastify.decorateRequest("getLayout", null);
+  fastify.decorateRequest("layoutHeaders", null);
   await fastify.register(proxy, {
     ...opts,
     upstream: upstream.href,
@@ -132,6 +134,8 @@ export const viteProxyPlugin: FastifyPluginAsync<
         };
 
         const pageContext = await renderPage(pageContextInit);
+
+        req.layoutHeaders = pageContext.config?.layoutHeaders ?? null;
 
         let proxyMode = pageContext.config?.proxyMode;
         if (!proxyMode) {
@@ -234,6 +238,7 @@ export const viteProxyPlugin: FastifyPluginAsync<
 
         const proxyLayoutInfo = req.getLayout?.(reply.getHeaders());
         req.bifrostProxyLayout = proxyLayoutInfo;
+
         if (!proxyLayoutInfo) {
           return reply.send("stream" in res ? res.stream : res);
         }
@@ -284,6 +289,10 @@ export const viteProxyPlugin: FastifyPluginAsync<
           ...customPageContextInit,
         };
         const upstreamStatusCode = reply.statusCode;
+        // Strip layout headers after getLayout has read them — they are server-side only
+        for (const header of req.layoutHeaders ?? []) {
+          reply.removeHeader(header);
+        }
         const pageContext = await renderPage(pageContextInit);
         req.vikePageContext = pageContext;
         req.bifrostProxyMode = "wrapped";
