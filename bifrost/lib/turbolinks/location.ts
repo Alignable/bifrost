@@ -8,10 +8,10 @@ export class Location {
   static wrap(locatable: Locatable): Location;
   static wrap(locatable?: Locatable | null): Location | undefined;
   static wrap(locatable: Locatable) {
-    if (typeof locatable == "string") {
-      return new this(locatable);
-    } else if (locatable != null) {
+    if (locatable instanceof Location) {
       return locatable;
+    } else {
+      return new Location(locatable);
     }
   }
 
