@@ -50,33 +50,49 @@ export default async function wrappedOnBeforeRender(
     It would be more performant to run the Vike router on the client, but the browser does not expose redirect info.
     Optimization: use serviceworker to intercept redirects.
     */
-    const resp = await fetch(pageContext.urlParsed.href, {
-      headers: { ...pageContext.config.proxyHeaders, accept: "text/html" },
-    }).catch(() => {});
 
+    // Recover response from previous redirect to prevent double request on redirect
+    const respFromPreviousRedirect =
+      pageContext?._turbolinksVisit?.redirectResponse;
+    let resp =
+      respFromPreviousRedirect?.url ===
+      new URL(pageContext.urlParsed.href, location.origin).href
+        ? respFromPreviousRedirect
+        : undefined;
     if (!resp) {
-      // hard reload. can happen on cors errors when redirected to external page
-      window.location.href = pageContext.urlParsed.href;
-      // stop vike rendering to let navigation happen
-      await new Promise(() => {});
-      return;
-    }
+      resp = await fetch(pageContext.urlParsed.href, {
+        headers: { ...pageContext.config.proxyHeaders, accept: "text/html" },
+      }).catch(() => undefined);
 
-    if (resp.redirected) {
-      const parsedUrl = new URL(resp.url);
-      // Need to redirect to run vike router (in case redirect is not wrapped page)
-      // Downside is we will make another network request
-      // TODO: Can we prevent the double request? Move to server side and throw redirect on 3xx?
-      if (window.location.origin === parsedUrl.origin) {
-        // redirect needs to start with "/" or vike will do hard reload
-        throw redirect(parsedUrl.pathname + parsedUrl.search + parsedUrl.hash);
-      } else {
-        // external redirect
-        throw redirect(resp.url);
+      if (!resp) {
+        // hard reload. can happen on cors errors when redirected to external page
+        window.location.href = pageContext.urlParsed.href;
+        // stop vike rendering to let navigation happen
+        await new Promise(() => {});
+        return;
       }
-    }
-    if (!resp.ok) {
-      await hardNavigate(resp.url);
+
+      if (resp.redirected) {
+        const parsedUrl = new URL(resp.url);
+        // Need to redirect to run vike router (in case redirect is not wrapped page)
+        // Downside is we will make another network request
+        // TODO: Can we prevent the double request? Move to server side and throw redirect on 3xx?
+        if (window.location.origin === parsedUrl.origin) {
+          if (pageContext._turbolinksVisit) {
+            pageContext._turbolinksVisit.redirectResponse = resp;
+          }
+          // redirect needs to start with "/" or vike will do hard reload
+          throw redirect(
+            parsedUrl.pathname + parsedUrl.search + parsedUrl.hash
+          );
+        } else {
+          // external redirect
+          throw redirect(resp.url);
+        }
+      }
+      if (!resp.ok) {
+        await hardNavigate(resp.url);
+      }
     }
     const html = await resp.text();
     const layoutInfo = pageContext.config.getLayout!(
