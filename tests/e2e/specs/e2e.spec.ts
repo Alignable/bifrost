@@ -437,14 +437,31 @@ test.describe("redirects", () => {
       baseURL,
     }) => {
       ensureAllNetworkSucceeds(page);
+      const destinationPage = { title: "redirect destination" };
       const customProxy = new CustomProxyPage(page, {
         title: "first page",
-        links: [{ redirectTo: { title: "redirect destination" } }],
+        links: [{ redirectTo: destinationPage }],
       });
       await customProxy.goto();
+
+      // Count requests to the destination URL
+      const destinationPath = toPath(destinationPage);
+      let requestCount = 0;
+      page.on("request", (req) => {
+        if (req.url().includes(destinationPath)) {
+          requestCount++;
+        }
+      });
+
       await customProxy.clickLink("redirect destination");
       expect(page.url()).toContain(`${baseURL}${customProxy.path}`);
       expect(await getTurbolinksLocation(page)).toContain(customProxy.path);
+      // The redirect should result in only 1 request to the destination,
+      // not 2 (one from fetch auto-following redirect + another from vike router re-navigating)
+      expect(
+        requestCount,
+        "destination URL should only be requested once"
+      ).toBe(1);
       // back button works as expected
       await customProxy.goBack();
     });

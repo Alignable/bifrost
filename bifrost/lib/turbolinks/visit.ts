@@ -34,6 +34,7 @@ export class Visit {
   progress = 0;
   referrer?: Location;
   redirectedToLocation?: Location;
+  redirectResponse?: Response;
   snapshotCached = false;
   state = VisitState.initialized;
 
