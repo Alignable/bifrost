@@ -274,6 +274,19 @@ test.describe("script configs", () => {
   });
 });
 
+test("wrapped proxy shows error page when layout has SSR error", async ({
+  page,
+}) => {
+  await page.goto(
+    toPath({ title: "SSR Error", layout: "ssr_error", content: "proxied content here" }),
+    { waitUntil: "networkidle" }
+  );
+
+  await expect(page).toHaveTitle("Error");
+  await expect(page.getByText("500 Internal Server Error")).toHaveCount(1);
+});
+
+
 // If passToClient is misconfigured we will end up sending proxy content in HTML and the JSON hydration blob, doubling page size.
 // Being able to configure this is why we chose VPS over next.js or remix which always serialize all props
 test("on SSR of proxied page, proxy content is only sent once", async ({

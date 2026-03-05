@@ -21,8 +21,15 @@ export default async function wrappedOnBeforeRenderClient(
         document.addEventListener("DOMContentLoaded", () => resolve(null))
       );
     }
+
+    const proxiedBody = document.getElementById("proxied-body");
+    if (!proxiedBody) {
+      throw new Error(
+        "proxied-body not found in DOM after SSR. This likely means the Layout threw during SSR (e.g. accessing `window` or `document`). Fix the SSR error in your Layout component."
+      );
+    }
     pageContext._turbolinksProxy = {
-      body: document.getElementById("proxied-body")!,
+      body: proxiedBody,
     };
     Turbolinks._vpsCachePageContext({
       proxyLayoutInfo: pageContext.proxyLayoutInfo,

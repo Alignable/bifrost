@@ -13,4 +13,5 @@ export default {
   passToClient: ["currentNav"],
   favicon: "https://www.google.com/favicon.ico",
   bodyAttributes: { id: "test-id", class: "test-classname" },
+  stream: { require: true, enable: false },
 } satisfies Config;
