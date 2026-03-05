@@ -1,6 +1,7 @@
 import { usePageContext } from "vike-react/usePageContext";
 import { MainNavLayout } from "../../../layouts/MainNavLayout";
 import { VisitorLayout } from "../../../layouts/VisitorLayout";
+import { SsrErrorLayout } from "../../../layouts/SsrErrorLayout";
 import React, { useEffect } from "react";
 
 export function Layout({ children }: { children: React.ReactNode }) {
@@ -35,6 +36,8 @@ export function Layout({ children }: { children: React.ReactNode }) {
           {children}
         </VisitorLayout>
       );
+    } else if (proxyLayoutInfo.ssr_error) {
+      return <SsrErrorLayout>{children}</SsrErrorLayout>;
     }
   }
   return <>{children}</>;

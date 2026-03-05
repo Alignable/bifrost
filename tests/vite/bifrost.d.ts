@@ -13,6 +13,7 @@ declare global {
       main_nav?: { currentNav: string };
       biz_layout?: { currentNav: string };
       visitor?: { currentNav: string };
+      ssr_error?: { currentNav: string };
     }
   }
 }
