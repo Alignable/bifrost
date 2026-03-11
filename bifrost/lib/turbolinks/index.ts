@@ -1,4 +1,3 @@
-import { mergeHead } from "./mergeHead";
 import { Controller, VisitOptions } from "./controller";
 import { Locatable } from "./location";
 import {
@@ -6,6 +5,7 @@ import {
   focusFirstAutofocusableElement,
 } from "./util";
 import { Visit } from "./visit";
+import { instrument } from "../diagnostic.client";
 
 const controller = new Controller();
 
@@ -48,7 +48,7 @@ export const Turbolinks = {
   },
 
   // Returns promise for turbolinks to be ready to render (runs requestAnimationFrame internally)
-  async _vikeBeforeRender(
+  _vikeBeforeRender: instrument("_vikeBeforeRender", async function (
     visit: Visit | undefined,
     pageContextToCache?: any
   ): Promise<void> {
@@ -74,9 +74,9 @@ export const Turbolinks = {
     } else {
       console.error("visit should exist when onBeforeRenderClient fires");
     }
-  },
+  }),
 
-  _vikeAfterRender(visit: Visit | undefined, activateBody: boolean) {
+  _vikeAfterRender: instrument("_vikeAfterRender", function (visit: Visit | undefined, activateBody: boolean) {
     if (visit) {
       if (activateBody) {
         activateNewBodyScriptElements(
@@ -92,7 +92,7 @@ export const Turbolinks = {
     } else {
       console.error("visit should exist when onAfterRenderClient fires");
     }
-  },
+  }),
 };
 
 export type Turbolinks = typeof Turbolinks;

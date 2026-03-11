@@ -1752,3 +1752,94 @@ test.describe("with ALB", () => {
     });
   });
 });
+
+test.describe("diagnostic events", () => {
+  test.beforeEach(async ({ page }) => {
+    ensureAllNetworkSucceeds(page);
+  });
+
+  function getDiagnosticEvents(page: Page) {
+    return page.evaluate(() => (window as any).__bifrost_diagnostic_events__);
+  }
+
+  function setupDiagnosticCollector(page: Page) {
+    return page.evaluate(() => {
+      (window as any).__bifrost_diagnostic_events__ = [];
+      window.addEventListener("bifrost:diagnostic:*", ((e: CustomEvent) => {
+        (window as any).__bifrost_diagnostic_events__.push({
+          type: e.detail.type,
+          fnName: e.detail.fnName,
+        });
+      }) as EventListener);
+    });
+  }
+
+  test("fires start/end events for wrapped → wrapped navigation", async ({
+    page,
+  }) => {
+    const customProxy = new CustomProxyPage(page, {
+      title: "first page",
+      content: "first",
+      links: [{ title: "second page", content: "second" }],
+    });
+    await customProxy.goto();
+    await setupDiagnosticCollector(page);
+
+    await customProxy.clickLink("second page");
+
+    const events = await getDiagnosticEvents(page);
+    expect(events).toContainEqual({ type: "start", fnName: "_vikeBeforeRender" });
+    expect(events).toContainEqual({ type: "end", fnName: "_vikeBeforeRender" });
+    expect(events).toContainEqual({ type: "start", fnName: "_waitForHeadScripts" });
+    expect(events).toContainEqual({ type: "end", fnName: "_waitForHeadScripts" });
+    expect(events).toContainEqual({ type: "start", fnName: "_vikeAfterRender" });
+    expect(events).toContainEqual({ type: "end", fnName: "_vikeAfterRender" });
+  });
+
+  test("every start has a matching end", async ({ page }) => {
+    const customProxy = new CustomProxyPage(page, {
+      title: "first page",
+      content: "first",
+      links: [{ title: "second page", content: "second" }],
+    });
+    await customProxy.goto();
+    await setupDiagnosticCollector(page);
+
+    await customProxy.clickLink("second page");
+
+    const events: { type: string; fnName: string }[] =
+      await getDiagnosticEvents(page);
+    const starts = events.filter((e) => e.type === "start");
+    const ends = events.filter((e) => e.type === "end");
+
+    for (const start of starts) {
+      expect(
+        ends.some((e) => e.fnName === start.fnName),
+        `missing "end" event for ${start.fnName}`
+      ).toBe(true);
+    }
+  });
+
+  test("fires events in correct order", async ({ page }) => {
+    const customProxy = new CustomProxyPage(page, {
+      title: "first page",
+      content: "first",
+      links: [{ title: "second page", content: "second" }],
+    });
+    await customProxy.goto();
+    await setupDiagnosticCollector(page);
+
+    await customProxy.clickLink("second page");
+
+    const events: { type: string; fnName: string }[] =
+      await getDiagnosticEvents(page);
+
+    const idx = (type: string, fnName: string) =>
+      events.findIndex((e) => e.type === type && e.fnName === fnName);
+
+    // beforeRender starts and ends before afterRender
+    expect(idx("start", "_vikeBeforeRender")).toBeLessThan(idx("end", "_vikeBeforeRender"));
+    expect(idx("end", "_vikeBeforeRender")).toBeLessThan(idx("start", "_vikeAfterRender"));
+    expect(idx("start", "_vikeAfterRender")).toBeLessThan(idx("end", "_vikeAfterRender"));
+  });
+});

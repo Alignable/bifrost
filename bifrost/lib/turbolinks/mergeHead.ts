@@ -1,4 +1,5 @@
 import { createScriptElement } from "./util";
+import { instrument } from "../diagnostic.client";
 
 interface ElementDetails {
   tracked: boolean;
@@ -27,8 +28,8 @@ export function mergeHead(head: HTMLHeadElement) {
   const reload = () => {
     window.Turbolinks.controller.viewInvalidated();
     return {
-      waitForReload: () => new Promise<void>(() => {}),
-      waitForHeadScripts: () => new Promise<void>(() => {}),
+      waitForReload: instrument("_waitForReload", () => new Promise<void>(() => {})),
+      waitForHeadScripts: instrument("_waitForHeadScripts", () => new Promise<void>(() => {})),
     };
   };
 
@@ -56,8 +57,8 @@ export function mergeHead(head: HTMLHeadElement) {
   copyNewHeadProvisionalElements(newHead.provisional);
 
   return {
-    waitForReload: () => Promise.resolve(),
-    waitForHeadScripts: copyNewHeadScriptElements(newHead.scripts),
+    waitForReload: instrument("_waitForReload", () => Promise.resolve()),
+    waitForHeadScripts: instrument("_waitForHeadScripts", copyNewHeadScriptElements(newHead.scripts)),
   };
 }
 
