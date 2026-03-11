@@ -24,11 +24,6 @@ function dispatchDiagnosticEvent(detail: DiagnosticEventDetail): void {
   window.dispatchEvent(new CustomEvent(wildCardEvent, { detail }));
 }
 
-window.addEventListener("bifrost:diagnostic:_vikeAfterRender", (e) => {
-  e.detail.type;
-  e.detail.fnName;
-})
-
 /**
  * Wraps `fn` so that it dispatches typed `CustomEvent`s on `window`
  * around each invocation. Works with both sync and async functions —
