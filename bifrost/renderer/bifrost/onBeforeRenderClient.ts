@@ -1,8 +1,9 @@
 import { PageContextClient } from "vike/types";
 import { Turbolinks } from "../../lib/turbolinks";
 import { setBodyAttributes } from "../../lib/elementUtils";
+import { instrument } from "../../lib/diagnostic.client";
 
-export default async function bifrostOnBeforeRenderClient(
+export default instrument("bifrostOnBeforeRenderClient", async function bifrostOnBeforeRenderClient(
   pageContext: PageContextClient
 ) {
   if (!pageContext.isHydration && !pageContext.errorWhileRendering) {
@@ -18,4 +19,4 @@ export default async function bifrostOnBeforeRenderClient(
         )
       );
   }
-}
+});

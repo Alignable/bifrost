@@ -8,7 +8,7 @@ const allHeadScriptsEverRun: { [outerHTML: string]: ElementDetails } = {};
 let firstMerge = true;
 let lastTrackedScriptSignature: string;
 
-export function recordExistingHeadScripts(categorizedHead?: CategorizedHead) {
+export const recordExistingHeadScripts = instrument("recordExistingHeadScripts", function recordExistingHeadScripts(categorizedHead?: CategorizedHead) {
   categorizedHead ||= categorizeHead(document.head);
   // record all existing head scripts as having been run, because they were run by browser, not mergeHead
   for (const element of categorizedHead.scripts) {
@@ -19,7 +19,7 @@ export function recordExistingHeadScripts(categorizedHead?: CategorizedHead) {
   lastTrackedScriptSignature =
     lastTrackedScriptSignature || trackedElementSignature(categorizedHead);
   firstMerge = false;
-}
+});
 
 // Returns function which resolves when all new blocking head scripts have loaded
 export function mergeHead(head: HTMLHeadElement) {
