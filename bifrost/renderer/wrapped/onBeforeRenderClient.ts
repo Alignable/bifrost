@@ -9,17 +9,18 @@ import {
   setBodyAttributes,
   getElementAttributes,
 } from "../../lib/elementUtils";
+import { instrument } from "../../lib/diagnostic.client";
 
-export default async function wrappedOnBeforeRenderClient(
+export default instrument("wrappedOnBeforeRenderClient", async function wrappedOnBeforeRenderClient(
   pageContext: PageContextClient
 ) {
   if (pageContext.isHydration) {
     // Vike scripts load async so can run before document.body exists. we need to delay rendering.
     // This is only an issue if user sets `injectScriptsAt: "HTML_BEGIN"` in +config.ts
     if (document.readyState === "loading") {
-      await new Promise((resolve) =>
-        document.addEventListener("DOMContentLoaded", () => resolve(null))
-      );
+      await instrument("_waitForDOMContentLoaded", () => new Promise((resolve) =>
+        document.addEventListener("DOMContentLoaded", () => resolve(null), { once: true})
+      ))();
     }
 
     const proxiedBody = document.getElementById("proxied-body");
@@ -70,4 +71,4 @@ export default async function wrappedOnBeforeRenderClient(
   pageContext._waitForHeadScripts = waitForHeadScripts;
 
   if (bodyAttrs) setBodyAttributes(bodyAttrs);
-}
+});

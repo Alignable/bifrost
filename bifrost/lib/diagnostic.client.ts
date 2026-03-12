@@ -1,4 +1,4 @@
-type InstrumentedFunctions = "_vikeAfterRender" | "_vikeBeforeRender" | "_waitForHeadScripts" | "_waitForReload";
+type InstrumentedFunctions = "_vikeAfterRender" | "_vikeBeforeRender" | "_waitForHeadScripts" | "_waitForReload" | "wrappedOnBeforeRenderClient" | "wrappedOnAfterRenderClient" | "bifrostOnBeforeRenderClient" | "bifrostOnAfterRenderClient" | "recordExistingHeadScripts" | "_waitForDOMContentLoaded";
 
 interface DiagnosticEventDetail {
   /** Whether the instrumented function is starting or has finished. */

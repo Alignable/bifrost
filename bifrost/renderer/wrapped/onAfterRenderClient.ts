@@ -1,8 +1,9 @@
 import "../../lib/type";
 import type { PageContextClient } from "vike/types";
 import { Turbolinks } from "../../lib/turbolinks";
+import { instrument } from "../../lib/diagnostic.client";
 
-export default async function wrappedOnAfterRenderClient(
+export default instrument("wrappedOnAfterRenderClient", async function wrappedOnAfterRenderClient(
   pageContext: PageContextClient
 ) {
   if (!pageContext.isHydration) {
@@ -10,4 +11,4 @@ export default async function wrappedOnAfterRenderClient(
     await pageContext._waitForHeadScripts?.();
     Turbolinks._vikeAfterRender(pageContext._turbolinksVisit, true);
   }
-}
+});
