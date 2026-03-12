@@ -17,9 +17,12 @@ export default async function wrappedOnBeforeRenderClient(
     // Vike scripts load async so can run before document.body exists. we need to delay rendering.
     // This is only an issue if user sets `injectScriptsAt: "HTML_BEGIN"` in +config.ts
     if (document.readyState === "loading") {
-      await new Promise((resolve) =>
-        document.addEventListener("DOMContentLoaded", () => resolve(null))
-      );
+      await new Promise((resolve) => {
+        document.addEventListener("DOMContentLoaded", () => resolve(null), { once:
+    true });
+        // If state changed between the outer check and now, resolve immediately
+        if (document.readyState !== "loading") resolve(null);
+      });
     }
 
     const proxiedBody = document.getElementById("proxied-body");
