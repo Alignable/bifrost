@@ -52,6 +52,8 @@ export default {
                 "import:@alignable/bifrost/__internal/renderer/wrapped/onBeforeRenderClient:default",
               onAfterRenderClient:
                 "import:@alignable/bifrost/__internal/renderer/wrapped/onAfterRenderClient:default",
+              hooksTimeout:
+                "import:@alignable/bifrost/__internal/renderer/wrapped/hooksTimeout:default",
               meta: {
                 onBeforeRender: { env: { client: true, server: false } },
               },
