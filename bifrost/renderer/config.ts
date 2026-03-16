@@ -27,6 +27,7 @@ export default {
     getLayout: { env: { server: true, client: true } },
     layoutHeaders: { env: { server: true, client: false } },
     proxyHeaders: { env: { server: true, client: true } },
+    onWrappedReactRenderTimeout: { env: { server: false, client: true} },
     proxyMode: {
       env: { server: true, client: true, config: true },
       effect({ configDefinedAt, configValue }) {
@@ -87,6 +88,10 @@ declare global {
       getLayout?: GetLayout;
       /** Response headers that should be consumed server-side and stripped before sending to the client. */
       layoutHeaders?: string[];
+      /**
+       * Fired when react render times out on the client in the wrapped proxy
+       */
+      onWrappedReactRenderTimeout?: (pageContext: PageContext) => void;
     }
     interface PageContext {
       proxyLayoutInfo?: ProxyLayoutInfo;
