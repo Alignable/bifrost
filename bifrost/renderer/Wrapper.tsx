@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect } from "react";
 import { usePageContext } from "vike-react/usePageContext";
 
 export default function Wrapper({ children }: { children: React.ReactNode }) {
@@ -12,10 +12,12 @@ export default function Wrapper({ children }: { children: React.ReactNode }) {
     pageContext._shouldEmitBeforeRender = false;
   }
 
-  if (pageContext.isClientSide && pageContext._reactRenderTimeout) {
-    clearTimeout(pageContext._reactRenderTimeout);
-    pageContext._reactRenderTimeout = undefined;
-  }
+  useEffect(() => {
+    if (pageContext.isClientSide && pageContext._reactRenderTimeout) {
+      clearTimeout(pageContext._reactRenderTimeout);
+      pageContext._reactRenderTimeout = undefined;
+    }
+  }, [pageContext]);
   
   return <>{children}</>;
 }
