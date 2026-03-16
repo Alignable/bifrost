@@ -14,6 +14,7 @@ export default function Wrapper({ children }: { children: React.ReactNode }) {
 
   if (pageContext.isClientSide && pageContext._reactRenderTimeout) {
     clearTimeout(pageContext._reactRenderTimeout);
+    pageContext._reactRenderTimeout = undefined;
   }
   
   return <>{children}</>;
