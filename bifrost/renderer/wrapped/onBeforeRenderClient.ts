@@ -71,4 +71,8 @@ export default instrument("wrappedOnBeforeRenderClient", async function wrappedO
   pageContext._waitForHeadScripts = waitForHeadScripts;
 
   if (bodyAttrs) setBodyAttributes(bodyAttrs);
+
+  pageContext._reactRenderTimeout = setTimeout(() => {
+    pageContext.config.onWrappedReactRenderTimeout?.(pageContext);
+  }, 30000);
 });
