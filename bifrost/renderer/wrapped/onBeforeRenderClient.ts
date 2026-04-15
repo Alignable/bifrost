@@ -23,6 +23,7 @@ export default instrument("wrappedOnBeforeRenderClient", async function wrappedO
       ))();
     }
 
+    // This should be caught by onAfterRenderHtml, but just in case, check again on client side
     const proxiedBody = document.getElementById("proxied-body");
     if (!proxiedBody) {
       throw new Error(

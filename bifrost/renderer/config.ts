@@ -27,7 +27,7 @@ export default {
     getLayout: { env: { server: true, client: true } },
     layoutHeaders: { env: { server: true, client: false } },
     proxyHeaders: { env: { server: true, client: true } },
-    onWrappedReactRenderTimeout: { env: { server: false, client: true} },
+    onWrappedReactRenderTimeout: { env: { server: false, client: true } },
     proxyMode: {
       env: { server: true, client: true, config: true },
       effect({ configDefinedAt, configValue }) {
@@ -46,6 +46,8 @@ export default {
                 "import:@alignable/bifrost/__internal/renderer/wrapped/onRenderHtml:default",
               onBeforeRenderHtml:
                 "import:@alignable/bifrost/__internal/renderer/wrapped/onBeforeRenderHtml:default",
+              onAfterRenderHtml:
+                "import:@alignable/bifrost/__internal/renderer/wrapped/onAfterRenderHtml:default",
               onBeforeRender:
                 "import:@alignable/bifrost/__internal/renderer/wrapped/onBeforeRender.client:default",
               onBeforeRenderClient:
