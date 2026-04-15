@@ -11,7 +11,7 @@ export interface WrappedServerOnly {
   // Instead, we nest them inside wrappedServerOnly and move them to top-level pageContext in onBeforeRenderHtml
   proxyLayoutInfo: Vike.ProxyLayoutInfo;
   // Marker to verify that render succeeded
-  renderedBody: boolean;
+  renderedBody?: boolean;
 }
 
 declare global {
