@@ -278,14 +278,17 @@ test("wrapped proxy shows error page when layout has SSR error", async ({
   page,
 }) => {
   await page.goto(
-    toPath({ title: "SSR Error", layout: "ssr_error", content: "proxied content here" }),
+    toPath({
+      title: "SSR Error",
+      layout: "ssr_error",
+      content: "proxied content here",
+    }),
     { waitUntil: "networkidle" }
   );
 
   await expect(page).toHaveTitle("Error");
   await expect(page.getByText("500 Internal Server Error")).toHaveCount(1);
 });
-
 
 // If passToClient is misconfigured we will end up sending proxy content in HTML and the JSON hydration blob, doubling page size.
 // Being able to configure this is why we chose VPS over next.js or remix which always serialize all props
@@ -429,6 +432,19 @@ test.describe("client navigation", () => {
       await page.goBack();
       expect(await page.evaluate(() => window.scrollY)).toEqual(0);
       expect(page.url().endsWith("vite-page")).toBeTruthy();
+    });
+  });
+
+  test("to route with header but no body", async ({ page, baseURL }) => {
+    const customProxy = new CustomProxyPage(page, {
+      title: "a",
+      content: "<a href='/json-wrapped'>json wrapped</a>",
+    });
+    await customProxy.goto();
+
+    await ensureBrowserNavigation(page, async () => {
+      await page.getByText("json wrapped").click();
+      await expect(page.locator("body")).toContainText(`{"data":true}`);
     });
   });
 });
@@ -1788,11 +1804,23 @@ test.describe("diagnostic events", () => {
     await customProxy.clickLink("second page");
 
     const events = await getDiagnosticEvents(page);
-    expect(events).toContainEqual({ type: "start", fnName: "_vikeBeforeRender" });
+    expect(events).toContainEqual({
+      type: "start",
+      fnName: "_vikeBeforeRender",
+    });
     expect(events).toContainEqual({ type: "end", fnName: "_vikeBeforeRender" });
-    expect(events).toContainEqual({ type: "start", fnName: "_waitForHeadScripts" });
-    expect(events).toContainEqual({ type: "end", fnName: "_waitForHeadScripts" });
-    expect(events).toContainEqual({ type: "start", fnName: "_vikeAfterRender" });
+    expect(events).toContainEqual({
+      type: "start",
+      fnName: "_waitForHeadScripts",
+    });
+    expect(events).toContainEqual({
+      type: "end",
+      fnName: "_waitForHeadScripts",
+    });
+    expect(events).toContainEqual({
+      type: "start",
+      fnName: "_vikeAfterRender",
+    });
     expect(events).toContainEqual({ type: "end", fnName: "_vikeAfterRender" });
   });
 
@@ -1838,8 +1866,14 @@ test.describe("diagnostic events", () => {
       events.findIndex((e) => e.type === type && e.fnName === fnName);
 
     // beforeRender starts and ends before afterRender
-    expect(idx("start", "_vikeBeforeRender")).toBeLessThan(idx("end", "_vikeBeforeRender"));
-    expect(idx("end", "_vikeBeforeRender")).toBeLessThan(idx("start", "_vikeAfterRender"));
-    expect(idx("start", "_vikeAfterRender")).toBeLessThan(idx("end", "_vikeAfterRender"));
+    expect(idx("start", "_vikeBeforeRender")).toBeLessThan(
+      idx("end", "_vikeBeforeRender")
+    );
+    expect(idx("end", "_vikeBeforeRender")).toBeLessThan(
+      idx("start", "_vikeAfterRender")
+    );
+    expect(idx("start", "_vikeAfterRender")).toBeLessThan(
+      idx("end", "_vikeAfterRender")
+    );
   });
 });

@@ -90,7 +90,7 @@ export default async function wrappedOnBeforeRender(
           throw redirect(resp.url);
         }
       }
-      if (!resp.ok) {
+      if (!resp.ok || !resp.headers.get("content-type")?.includes("text/html")) {
         await hardNavigate(resp.url);
       }
     }
@@ -108,10 +108,6 @@ export default async function wrappedOnBeforeRender(
     parsed.innerHTML = html;
     const bodyEl = parsed.querySelector("body")!;
     const headEl = parsed.querySelector("head")!;
-    if(!bodyEl || !headEl) {
-      await hardNavigate(resp.url);
-      return;
-    }
     pageContext.proxyLayoutInfo = layoutInfo;
     pageContext._turbolinksProxy = {
       body: bodyEl,
