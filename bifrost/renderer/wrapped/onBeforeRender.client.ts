@@ -108,6 +108,10 @@ export default async function wrappedOnBeforeRender(
     parsed.innerHTML = html;
     const bodyEl = parsed.querySelector("body")!;
     const headEl = parsed.querySelector("head")!;
+    if(!bodyEl || !headEl) {
+      await hardNavigate(resp.url);
+      return;
+    }
     pageContext.proxyLayoutInfo = layoutInfo;
     pageContext._turbolinksProxy = {
       body: bodyEl,
