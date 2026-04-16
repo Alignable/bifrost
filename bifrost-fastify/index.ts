@@ -79,26 +79,28 @@ export const viteProxyPlugin: FastifyPluginAsync<
   async function replyWithPage(
     reply: FastifyReply<RouteGenericInterface, RawServerBase>,
     pageContext: RenderedPageContext,
-    statusCodeOverride?: number
+    statusCodeFromProxy?: number
   ): Promise<FastifyReply> {
     const { httpResponse } = pageContext;
-
-    if (
-      onError &&
-      httpResponse?.statusCode === 500 &&
-      pageContext.errorWhileRendering
-    ) {
-      onError(pageContext.errorWhileRendering, pageContext);
-    }
 
     if (!httpResponse) {
       return reply.code(404).type("text/html").send("Not Found");
     }
 
     const { statusCode, headers, getBody } = httpResponse;
+
+    if (onError && statusCode === 500 && pageContext.errorWhileRendering) {
+      onError(pageContext.errorWhileRendering, pageContext);
+    }
+
     return (
       reply
-        .status(statusCodeOverride ?? statusCode)
+        // If there is an error on the Bifrost side, we use the bifrost statusCode, otherwise prefer the proxy's code
+        .status(
+          pageContext.errorWhileRendering
+            ? statusCode
+            : (statusCodeFromProxy ?? statusCode)
+        )
         .headers(Object.fromEntries(headers))
         // This disables any possibility of real streaming. To re-enable streaming we should adopt vike-photon and rewrite wrapped proxy as a Vike middleware.
         // Why not pipe? Because Vike gives us `pipe` which sends data into a Writable, but Fastify's reply.send only accepts a ReadableStream. Passthrough can convert but causes race conditions

@@ -90,7 +90,7 @@ export default async function wrappedOnBeforeRender(
           throw redirect(resp.url);
         }
       }
-      if (!resp.ok) {
+      if (!resp.ok || !resp.headers.get("content-type")?.includes("text/html")) {
         await hardNavigate(resp.url);
       }
     }

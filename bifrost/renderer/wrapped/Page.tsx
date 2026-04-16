@@ -10,6 +10,11 @@ export default function Page() {
     ? pageContext._turbolinksProxy?.body?.innerHTML
     : pageContext._wrappedServerOnly?.bodyInnerHtml;
 
+  // Set marker so we can render error if failed to render body due to error in surrounding Layout
+  if (bodyHtml && !pageContext.isClientSide && pageContext._wrappedServerOnly) {
+    pageContext._wrappedServerOnly.renderedBody = true;
+  }
+
   if (bodyHtml) {
     return (
       <div

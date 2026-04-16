@@ -99,6 +99,23 @@ test.describe("requests", () => {
       });
     });
 
+    test("wrapped with error in layout", async ({ request }) => {
+      const req = await request.get(toPath(
+        {
+          title: "SSR Error",
+          layout: "ssr_error",
+          content: "proxied content here",
+        }
+        ));
+      expect(diagnostics(req)).toEqual({
+        status: 500,
+        pageId: "/pages/_error",
+        layout: ["ssr_error"],
+        proxyMode: "wrapped",
+        sentProxyHeaders: true,
+      });
+    });
+
     test("HEAD request on vite-page", async ({ request }) => {
       const req = await request.head("./vite-page");
       expect(diagnostics(req)).toEqual({
