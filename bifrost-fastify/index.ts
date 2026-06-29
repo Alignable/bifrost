@@ -258,8 +258,12 @@ export const viteProxyPlugin: FastifyPluginAsync<
 
         const html = await text(res.stream);
 
-        const { bodyAttributes, bodyInnerHtml, headInnerHtml } =
-          extractDomElements(html);
+        const {
+          bodyAttributes,
+          bodyInnerHtml,
+          headInnerHtml,
+          nestedComponents,
+        } = extractDomElements(html);
 
         if (!bodyInnerHtml || !headInnerHtml) {
           return reply.send(html);
@@ -287,6 +291,7 @@ export const viteProxyPlugin: FastifyPluginAsync<
             bodyInnerHtml,
             headInnerHtml,
             proxyLayoutInfo,
+            nestedComponents,
           } satisfies WrappedServerOnly,
           ...customPageContextInit,
         };

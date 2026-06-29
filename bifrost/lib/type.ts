@@ -12,6 +12,14 @@ export interface WrappedServerOnly {
   proxyLayoutInfo: Vike.ProxyLayoutInfo;
   // Marker to verify that render succeeded
   renderedBody?: boolean;
+  // Placeholder divs (`<div data-bifrost-render="name">`) found in the proxied body:
+  // their byte range within bodyInnerHtml (set by extractDomElements) and whether a
+  // NestedComponentPortal claimed each one during React render (`rendered`). Page.tsx
+  // strips any entry left unrendered. Optional: older bifrost-fastify versions don't send it.
+  nestedComponents?: Record<
+    string,
+    { start: number; end: number; rendered?: boolean }
+  >;
 }
 
 declare global {
