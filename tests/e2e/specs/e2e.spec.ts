@@ -4,6 +4,7 @@ import {
   expectNoMoreScripts,
   ensureNoBrowserNavigation,
   storeConsoleLog,
+  waitForConsoleLog,
   validateDOMOnTurbolinks,
   StringMatcher,
   sleep,
@@ -81,6 +82,44 @@ test.describe("pages", () => {
     await expect(
       page.locator("nav", { hasText: "Main Nav Layout" })
     ).toHaveCount(1);
+  });
+
+  test("back button to a page proxied by render() fires each turbolinks event once", async ({
+    page,
+  }) => {
+    ensureAllNetworkSucceeds(page);
+    await page.goto("./proxy-to", { waitUntil: "networkidle" });
+    await waitForTurbolinksInit(page);
+    await expect(page).toHaveTitle("b");
+
+    await ensureNoBrowserNavigation(page, async () => {
+      const loaded = waitForConsoleLog(page, (m) => m.text() === T.load);
+      await page.getByText("vite page").click();
+      await loaded;
+    });
+    await expect(page).toHaveTitle("vite page");
+
+    // capture only the events from the back navigation
+    const logs = storeConsoleLog(page);
+    await ensureNoBrowserNavigation(page, async () => {
+      const loaded = waitForConsoleLog(page, (m) => m.text() === T.load);
+      await page.goBack();
+      await loaded;
+    });
+
+    await expect(page).toHaveTitle("b");
+    await expect(
+      page.locator("nav", { hasText: "Main Nav Layout" })
+    ).toHaveCount(1);
+
+    // restoration visits skip click/before-visit, and each event fires exactly once
+    expect(logs.filter((s) => s.startsWith("turbolinks:"))).toEqual([
+      T.visit,
+      T.beforeRender,
+      T.render,
+      T.load,
+    ]);
+    await expectNoMoreScripts(page);
   });
 
   test("it serves vite pages", async ({ page }) => {
