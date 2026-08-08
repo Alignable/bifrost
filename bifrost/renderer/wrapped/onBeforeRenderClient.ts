@@ -35,6 +35,7 @@ export default instrument("wrappedOnBeforeRenderClient", async function wrappedO
     };
     Turbolinks._vpsCachePageContext({
       proxyLayoutInfo: pageContext.proxyLayoutInfo,
+      proxyNestedComponents: pageContext.proxyNestedComponents,
     });
     recordExistingHeadScripts();
     return;
@@ -46,13 +47,15 @@ export default instrument("wrappedOnBeforeRenderClient", async function wrappedO
         "restoration visit should never happen on initial render"
       );
     }
-    const { proxyLayoutInfo } = pageContext._snapshot.pageContext;
+    const { proxyLayoutInfo, proxyNestedComponents } =
+      pageContext._snapshot.pageContext;
     const { bodyEl, headEl } = pageContext._snapshot;
     const proxyBodyEl = bodyEl.querySelector("#proxied-body")!;
     if (!proxyBodyEl || !(proxyBodyEl instanceof HTMLElement)) {
       throw new Error("proxied body not found in cached snapshot");
     }
     pageContext.proxyLayoutInfo = proxyLayoutInfo;
+    pageContext.proxyNestedComponents = proxyNestedComponents;
     pageContext._turbolinksProxy = {
       bodyAttrs: getElementAttributes(bodyEl),
       body: proxyBodyEl,

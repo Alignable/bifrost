@@ -15,7 +15,7 @@ async function* getFiles(dir: string): AsyncGenerator<string> {
 }
 
 export default defineConfig({
-  entry: ["./index.ts", "./renderer/**/*"],
+  entry: ["./index.ts", "./NestedComponentPortal.tsx", "./renderer/**/*"],
   format: "esm",
   clean: true,
   sourcemap: true,

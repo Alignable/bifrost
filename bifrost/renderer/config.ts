@@ -15,7 +15,7 @@ export default {
     "import:@alignable/bifrost/__internal/renderer/onBeforeRoute:default",
   Wrapper: "import:@alignable/bifrost/__internal/renderer/Wrapper:default",
 
-  passToClient: ["proxyLayoutInfo"],
+  passToClient: ["proxyLayoutInfo", "proxyNestedComponents"],
 
   meta: {
     bodyAttributes: {
@@ -97,6 +97,12 @@ declare global {
     }
     interface PageContext {
       proxyLayoutInfo?: ProxyLayoutInfo;
+      /**
+       * Which nested components (`<div data-bifrost-render="name">`) the backend
+       * requested in the proxied HTML. Lets userspace fetch data / conditionally
+       * render the matching `<NestedComponentPortal>` only for requested components.
+       */
+      proxyNestedComponents?: Record<string, boolean>;
     }
     interface ProxyLayoutInfo {}
   }
