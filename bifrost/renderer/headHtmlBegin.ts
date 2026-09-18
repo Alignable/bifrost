@@ -2,7 +2,7 @@
 
 // Register turbolinks global for ios to hook into
 // Also allows Turbolinks.visit / Turbolinks.controller.viewWillRender to be called before Turbolinks is started (Vike loads async)
-const turbolinksIOSCompat = `window.Turbolinks = {controller:{restorationIdentifier: '',started:false,viewWillRender:(...a)=>{addEventListener("turbolinks:start", () => {window.Turbolinks.controller.viewWillRender(...a)})}},visit:(...a)=>{addEventListener("turbolinks:start", () => {window.Turbolinks.visit(...a)})}};`;
+const turbolinksIOSCompat = `if(!(window.Turbolinks&&window.Turbolinks.controller&&window.Turbolinks.controller.started)){window.Turbolinks = {controller:{restorationIdentifier: '',started:false,viewWillRender:(...a)=>{addEventListener("turbolinks:start", () => {window.Turbolinks.controller.viewWillRender(...a)})}},visit:(...a)=>{addEventListener("turbolinks:start", () => {window.Turbolinks.visit(...a)})}}};`;
 
 /// emit turbolinks:load on DOMContentLoaded
 const turbolinksLoadEvent = `addEventListener("DOMContentLoaded", () => {
