@@ -11,11 +11,15 @@
     "build": "npm run -w=bifrost -w=bifrost-fastify build",
     "publish": "npm -w=bifrost -w=bifrost-fastify publish --access public"
   },
+  "overrides": {
+    "vike": "$vike"
+  },
   "engines": {
     "node": ">=22"
   },
   "devDependencies": {
     "@playwright/test": "^1.57.0",
-    "@types/node": "^24.10.1"
+    "@types/node": "^24.10.1",
+    "vike": "0.4.259-commit-2fe6cc7"
   }
 }
