@@ -4,6 +4,7 @@ import { Turbolinks } from "../../lib/turbolinks";
 import {
   mergeHead,
   recordExistingHeadScripts,
+  recordTrackedElementBaseline,
 } from "../../lib/turbolinks/mergeHead";
 import {
   setBodyAttributes,
@@ -37,6 +38,7 @@ export default instrument("wrappedOnBeforeRenderClient", async function wrappedO
       proxyLayoutInfo: pageContext.proxyLayoutInfo,
     });
     recordExistingHeadScripts();
+    recordTrackedElementBaseline();
     return;
   }
 

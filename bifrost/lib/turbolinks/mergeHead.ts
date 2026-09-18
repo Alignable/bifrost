@@ -8,18 +8,22 @@ const allHeadScriptsEverRun: { [outerHTML: string]: ElementDetails } = {};
 let firstMerge = true;
 let lastTrackedScriptSignature: string;
 
-export const recordExistingHeadScripts = instrument("recordExistingHeadScripts", function recordExistingHeadScripts(categorizedHead?: CategorizedHead) {
-  categorizedHead ||= categorizeHead(document.head);
-  // record all existing head scripts as having been run, because they were run by browser, not mergeHead
-  for (const element of categorizedHead.scripts) {
+// Scripts already in the document were run by the browser, so mergeHead must never run them again (e.g. when restoring a snapshot)
+export const recordExistingHeadScripts = instrument("recordExistingHeadScripts", function recordExistingHeadScripts() {
+  for (const element of categorizeHead(document.head).scripts) {
     allHeadScriptsEverRun[element.outerHTML] = {
       tracked: elementIsTracked(element),
     };
   }
-  lastTrackedScriptSignature =
-    lastTrackedScriptSignature || trackedElementSignature(categorizedHead);
-  firstMerge = false;
 });
+
+// Only a wrapped SSR page defines the tracked-element baseline. A vite page has none, so its first merge into a wrapped page must never reload.
+export function recordTrackedElementBaseline() {
+  lastTrackedScriptSignature =
+    lastTrackedScriptSignature ||
+    trackedElementSignature(categorizeHead(document.head));
+  firstMerge = false;
+}
 
 // Returns function which resolves when all new blocking head scripts have loaded
 export function mergeHead(head: HTMLHeadElement) {

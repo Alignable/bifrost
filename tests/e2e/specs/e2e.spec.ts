@@ -1136,6 +1136,43 @@ test.describe("back button restoration", () => {
     await customProxy.goForward();
   });
 
+  test("history nav keeps working after entering on a vite page", async ({
+    page,
+  }) => {
+    ensureAllNetworkSucceeds(page);
+    const first = {
+      title: "first page",
+      content: "first page body content",
+      links: [{ title: "second page", content: "second page body content" }],
+    };
+    const customProxy = new CustomProxyPage(page, first);
+
+    await page.goto("./vite-page", { waitUntil: "networkidle" });
+    await waitForTurbolinksInit(page);
+    await ensureNoBrowserNavigation(page, async () => {
+      const loaded = waitForConsoleLog(page, (m) => m.text() === T.load);
+      await page.evaluate(
+        (path) => (window as any).Turbolinks.visit(path),
+        toPath(first)
+      );
+      await loaded;
+    });
+    customProxy.pageData = first;
+    await expect(page).toHaveTitle("first page");
+
+    await customProxy.clickLink("second page");
+
+    await ensureNoBrowserNavigation(page, async () => {
+      await customProxy.goBack();
+      // restoring the snapshot must not re-run the vite page's inline Turbolinks stub
+      expect(
+        await page.evaluate("window.Turbolinks.controller.started")
+      ).toBe(true);
+      await customProxy.goForward();
+      await customProxy.goBack();
+    });
+  });
+
   test("restores layout", async ({ page, context }) => {
     const customProxy = new CustomProxyPage(page, {
       title: "first page",
