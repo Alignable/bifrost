@@ -13,6 +13,8 @@ export type PageDataOk = {
   headScripts?: Head[];
   bodyScripts?: Body[];
   links?: (PageData & LinkOptions)[];
+  /** Close the connection without responding */
+  hangup?: boolean;
 };
 export type PageDataRedirect = {
   redirectTo: PageData;
