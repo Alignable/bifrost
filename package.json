@@ -9,7 +9,9 @@
   "scripts": {
     "test": "npm run -w=tests-playwright test",
     "build": "npm run -w=bifrost -w=bifrost-fastify build",
-    "publish": "npm -w=bifrost -w=bifrost-fastify publish --access public"
+    "publish": "npm -w=bifrost -w=bifrost-fastify publish --access public",
+    "bench": "npm run -w=tests-bench server --",
+    "bench:micro": "npm run -w=tests-bench micro --"
   },
   "overrides": {
     "vike": "$vike"
