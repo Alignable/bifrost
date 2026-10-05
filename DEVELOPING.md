@@ -21,3 +21,7 @@ overmind start -f Procfile.dev
 ```
 
 This starts the server on http://localhost:5050 and rebuilds bifrost on changes. Playwright will reuse the dev server for tests.
+
+## Benchmarks
+
+`npm run bench` (server under HTTP load) and `npm run bench:micro`. See [tests/bench/README.md](tests/bench/README.md) for the optimize/compare/profile workflow.
