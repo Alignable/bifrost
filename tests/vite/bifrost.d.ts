@@ -6,6 +6,7 @@ declare global {
     interface PageContext {
       currentNav?: string;
       benchSsrState?: unknown;
+      appHookSawWrappedPage?: boolean;
     }
     interface Config {
       currentNav?: string;

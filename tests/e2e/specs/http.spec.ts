@@ -189,4 +189,30 @@ test.describe("requests", () => {
       expect(await req.json()).toEqual({ data: true });
     });
   });
+
+  test.describe("wrapped render", () => {
+    test("app +onCreatePageContext can await loadWrappedPage, and the backend is requested once", async ({
+      request,
+    }) => {
+      const page = { title: "app hook", content: `app hook ${Math.random()}` };
+      const req = await request.get(toPath(page), {
+        headers: { "X-TEST-APP-HOOK": "1" },
+      });
+      expect(req.status()).toBe(200);
+      expect(req.headers()["x-test-app-hook-saw-wrapped"]).toBe("true");
+      expect(await req.text()).toContain(page.content);
+
+      const hits = await request.get(
+        `http://localhost:5557/__hits?page=${encodeURIComponent(JSON.stringify(page))}`
+      );
+      expect((await hits.json()).count).toBe(1);
+    });
+
+    test("responds with an error when the backend drops the connection", async ({
+      request,
+    }) => {
+      const req = await request.get(toPath({ title: "hangup", hangup: true }));
+      expect(req.status()).toBeGreaterThanOrEqual(500);
+    });
+  });
 });

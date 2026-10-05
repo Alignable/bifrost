@@ -54,6 +54,13 @@ async function startServer() {
       "X-TEST-SENT-PROXY-HEADERS",
       req.bifrostSentProxyHeaders ? "1" : "0"
     );
+
+    const appHookSawWrappedPage = req.vikePageContext?.appHookSawWrappedPage;
+    if (appHookSawWrappedPage !== undefined)
+      reply.header(
+        "X-TEST-APP-HOOK-SAW-WRAPPED",
+        String(appHookSawWrappedPage)
+      );
   });
 
   app.get("/cors-test", async (req, res) => {
