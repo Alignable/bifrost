@@ -25,6 +25,10 @@ declare global {
     }
     interface PageContextServer {
       _wrappedServerOnly?: WrappedServerOnly;
+      /** Set by bifrost-fastify: requests the backend and returns its page to wrap, or null to send the backend response as-is */
+      _loadWrappedServerOnly?: (
+        pageContext: PageContextServer
+      ) => Promise<WrappedServerOnly | null>;
     }
     interface PageContextClient {
       _snapshot?: Snapshot;
