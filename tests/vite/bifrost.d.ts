@@ -5,6 +5,7 @@ declare global {
     }
     interface PageContext {
       currentNav?: string;
+      benchSsrState?: unknown;
     }
     interface Config {
       currentNav?: string;
@@ -14,6 +15,7 @@ declare global {
       biz_layout?: { currentNav: string };
       visitor?: { currentNav: string };
       ssr_error?: { currentNav: string };
+      bench_visitor?: { currentNav: string; tracking: string; footer: boolean };
     }
   }
 }
