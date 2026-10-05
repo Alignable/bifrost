@@ -43,6 +43,8 @@ The "passthru" proxy mode is an option of incremental migration. Passthru routes
    5. `meta: { onBeforeRender: { env: { client: true, server: false } } }` is temporarily required.
 3. Move your navbar/layouts to be render-able via Bifrost
 
+Bifrost requests Rails while rendering the wrapped page, from its own `+onCreatePageContext`. Vike runs your app's `+onCreatePageContext` before Bifrost's, so if yours needs the wrapped page (`pageContext._wrappedServerOnly`), or request state that `beforeWrappedRender` updates, `await loadWrappedPage(pageContext)` from `@alignable/bifrost` first. It resolves to whether the page is wrapped; Rails is still requested only once.
+
 ## Building new Vike Pages
 
 Follow the [vike-react docs](https://vike.dev/vike-react) to build new unproxied pages.
