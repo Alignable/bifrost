@@ -1,6 +1,7 @@
 import { navigate as vikeNavigate } from "vike/client/router";
 import "./lib/diagnostic.client";
 export { prefetch } from "vike/client/router";
+export { loadWrappedPage } from "./renderer/wrapped/onCreatePageContext";
 
 // It would be great if we could just let people call `navigate` from Vike,
 // Multiple blockers:

@@ -42,6 +42,8 @@ export default {
           case "wrapped":
             return {
               Page: "import:@alignable/bifrost/__internal/renderer/wrapped/Page:default" as any,
+              onCreatePageContext:
+                "import:@alignable/bifrost/__internal/renderer/wrapped/onCreatePageContext:default",
               onRenderHtml:
                 "import:@alignable/bifrost/__internal/renderer/wrapped/onRenderHtml:default",
               onBeforeRenderHtml:

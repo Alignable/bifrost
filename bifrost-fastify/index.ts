@@ -7,6 +7,7 @@ import {
 } from "fastify";
 import { FastifyRequest, RequestGenericInterface } from "fastify/types/request";
 import proxy, { type FastifyHttpProxyOptions } from "@fastify/http-proxy";
+import type { FastifyReplyFromHooks } from "@fastify/reply-from";
 import accepts from "@fastify/accepts";
 import type { GetLayout, WrappedServerOnly } from "@alignable/bifrost/config";
 import { renderPage } from "vike/server";
@@ -28,6 +29,12 @@ type RenderedPageContext = Awaited<
   >
 >;
 
+type UpstreamResponse = Parameters<
+  NonNullable<FastifyReplyFromHooks["onResponse"]>
+>[2];
+/** Backend response held back from the client while Bifrost decides whether to wrap it */
+type Upstream = { res: UpstreamResponse } | { body: string } | { error: Error };
+
 declare module "fastify" {
   interface FastifyRequest {
     /// Actual ProxyMode after processing  backend server results, which can tell us to fallback to passthru or redirect
@@ -39,6 +46,8 @@ declare module "fastify" {
     vikePageContext?: Partial<PageContextServer> | null;
     getLayout: GetLayout | null;
     layoutHeaders: string[] | null;
+    /// Set while a wrapped page waits for the backend response, so onResponse hands it over instead of sending it
+    bifrostAwaitUpstream: ((upstream: Upstream) => void) | null;
   }
 }
 
@@ -68,6 +77,10 @@ interface ViteProxyPluginOptions extends Omit<
     >
   ) => void;
 }
+
+const isRedirect = (statusCode: number) =>
+  [301, 302, 303, 307, 308].includes(statusCode);
+
 /**
  * Fastify plugin that wraps @fasitfy/http-proxy to proxy Rails/Turbolinks server into a vike site.
  */
@@ -109,6 +122,7 @@ export const viteProxyPlugin: FastifyPluginAsync<
         .send(await getBody())
     );
   }
+
   await fastify.register(accepts);
   fastify.decorateRequest("bifrostProxyMode", false);
   fastify.decorateRequest("bifrostProxyLayout", null);
@@ -116,6 +130,7 @@ export const viteProxyPlugin: FastifyPluginAsync<
   fastify.decorateRequest("vikePageContext", null);
   fastify.decorateRequest("getLayout", null);
   fastify.decorateRequest("layoutHeaders", null);
+  fastify.decorateRequest("bifrostAwaitUpstream", null);
   await fastify.register(proxy, {
     ...opts,
     upstream: upstream.href,
@@ -129,15 +144,142 @@ export const viteProxyPlugin: FastifyPluginAsync<
           ? await buildPageContextInit(req)
           : {};
 
+        // Filled in by loadWrappedServerOnly, which the wrapped renderer calls during renderPage
+        const wrapped: { upstream?: Upstream; statusCode?: number } = {};
+        let wrapping: Promise<WrappedServerOnly | null> | undefined;
+
+        /** Requests the backend through reply-from, resolving with its response instead of sending it */
+        function fetchUpstream(href: string) {
+          return new Promise<Upstream>((resolve) => {
+            const settle = (upstream: Upstream) => {
+              if (req.bifrostAwaitUpstream !== settle) return;
+              req.bifrostAwaitUpstream = null;
+              resolve(upstream);
+            };
+            req.bifrostAwaitUpstream = settle;
+            // reply-from never calls back if an HTTP/2 client disconnects first
+            reply.raw.once("close", () =>
+              settle({ error: new Error("Client closed the request") })
+            );
+            const { options } = reply.fromParameters(href);
+            reply.from(href, {
+              ...(options as any),
+              onError: (_reply: unknown, { error }: { error: Error }) =>
+                settle({ error }),
+            });
+          });
+        }
+
+        async function loadWrappedServerOnly(
+          pageContext: PageContextServer
+        ): Promise<WrappedServerOnly | null> {
+          const {
+            getLayout,
+            proxyHeaders = {},
+            layoutHeaders,
+          } = pageContext.config;
+          // Client navigation and missing getLayout are handled after renderPage returns
+          if (pageContext.isClientSideNavigation || !getLayout) return null;
+
+          let proxyHeadersAlreadySet = true;
+          for (const [key, val] of Object.entries(proxyHeaders)) {
+            proxyHeadersAlreadySet &&= req.headers[key.toLowerCase()] == val;
+            req.headers[key.toLowerCase()] = val;
+          }
+          // If proxy headers set, this is a client navigation meant to go direct to legacy backend.
+          // ALB CANNOT be used for this. see `onBeforeRenderClient` for details
+          if (proxyHeadersAlreadySet) return null;
+
+          // setting _bfproxy tells rewriteRequestHeaders we're in wrapped mode
+          (req.raw as RawRequestExtendedWithProxy)._bfproxy = true;
+          req.getLayout = getLayout;
+          req.bifrostSentProxyHeaders = true;
+          req.log.info(`bifrost: proxy route matched, proxying to backend`);
+
+          const upstreamResponse = await fetchUpstream(
+            pageContext.urlParsed.href
+          );
+          wrapped.upstream = upstreamResponse;
+          if (!("res" in upstreamResponse) || isRedirect(reply.statusCode))
+            return null;
+
+          const proxyLayoutInfo = getLayout(reply.getHeaders());
+          req.bifrostProxyLayout = proxyLayoutInfo;
+          if (!proxyLayoutInfo) return null;
+
+          const contentType = reply.getHeader("content-type") as
+            string | undefined;
+          if (
+            !contentType ||
+            parseContentType(contentType).type !== "text/html"
+          ) {
+            return null;
+          }
+
+          const html = await text(upstreamResponse.res.stream);
+          const { bodyAttributes, bodyInnerHtml, headInnerHtml } =
+            extractDomElements(html);
+          if (!bodyInnerHtml || !headInnerHtml) {
+            wrapped.upstream = { body: html };
+            return null;
+          }
+
+          try {
+            beforeWrappedRender?.(req, reply);
+          } catch (e) {
+            req.log.error(
+              `Error in beforeWrappedRender: ${(e as Error).message}`
+            );
+          }
+          // beforeWrappedRender may have changed req (e.g. a session set by the backend)
+          if (buildPageContextInit) {
+            Object.assign(pageContext, await buildPageContextInit(req));
+          }
+
+          wrapped.statusCode = reply.statusCode;
+          // Strip layout headers after getLayout has read them — they are server-side only
+          for (const header of layoutHeaders ?? []) {
+            reply.removeHeader(header);
+          }
+          return {
+            bodyAttributes,
+            bodyInnerHtml,
+            headInnerHtml,
+            proxyLayoutInfo,
+          };
+        }
+
         const pageContextInit = {
           urlOriginal: req.url,
           headersOriginal: req.headers,
+          // Critical that we don't set any passToClient values in pageContextInit
+          // If we do, Vike re-requests pageContext on client navigation. This breaks wrapped proxy.
+          // Memoized: an app's +onCreatePageContext may call it before Bifrost's (see loadWrappedPage)
+          _loadWrappedServerOnly: (pageContext: PageContextServer) =>
+            (wrapping ??= loadWrappedServerOnly(pageContext)),
           ...customPageContextInit,
         };
 
         const pageContext = await renderPage(pageContextInit);
 
         req.layoutHeaders = pageContext.config?.layoutHeaders ?? null;
+
+        if (wrapped.statusCode !== undefined) {
+          req.vikePageContext = pageContext;
+          req.bifrostProxyMode = "wrapped";
+          // Preserve the upstream's status code (e.g. 404) rather than using Vike's
+          return replyWithPage(reply, pageContext, wrapped.statusCode);
+        }
+
+        // The backend already responded but isn't wrappable: send it as-is
+        if (wrapped.upstream) {
+          req.bifrostProxyMode = "passthru";
+          const response = wrapped.upstream;
+          if ("error" in response) return reply.send(response.error);
+          if ("body" in response) return reply.send(response.body);
+          const { res } = response;
+          return reply.send("stream" in res ? res.stream : res);
+        }
 
         let proxyMode = pageContext.config?.proxyMode;
         if (!proxyMode) {
@@ -153,7 +295,6 @@ export const viteProxyPlugin: FastifyPluginAsync<
             break;
           }
           case "wrapped": {
-            req.log.info(`bifrost: proxy route matched, proxying to backend`);
             if (!!pageContext.isClientSideNavigation) {
               // This should never happen because wrapped proxy routes have no onBeforeRender. onRenderClient should make a request to the legacy backend.
               req.log.error(
@@ -163,25 +304,7 @@ export const viteProxyPlugin: FastifyPluginAsync<
                 req.url.replace("/index.pageContext.json", "")
               );
             }
-            if (pageContext.config?.getLayout) {
-              let proxyHeadersAlreadySet = true;
-              for (const [key, val] of Object.entries(
-                pageContext.config?.proxyHeaders || {}
-              )) {
-                proxyHeadersAlreadySet &&=
-                  req.headers[key.toLowerCase()] == val;
-                req.headers[key.toLowerCase()] = val;
-              }
-              // If proxy headers set, this is a client navigation meant to go direct to legacy backend.
-              // ALB CANNOT be used for this. see `onBeforeRenderClient` for details
-              // Only set getLayout and _bfproxy if we didn't already set proxy headers
-              if (!proxyHeadersAlreadySet) {
-                // setting _bfproxy tells onResponse we're in wrapped mode
-                (req.raw as RawRequestExtendedWithProxy)._bfproxy = true;
-                req.getLayout = pageContext.config.getLayout;
-                req.bifrostSentProxyHeaders = true;
-              }
-            } else {
+            if (!pageContext.config?.getLayout) {
               req.log.error(
                 "Config missing getLayout on wrapped route! Falling back to passthru proxy"
               );
@@ -223,8 +346,8 @@ export const viteProxyPlugin: FastifyPluginAsync<
         }
         return headers;
       },
-      async onResponse(req, reply, res) {
-        if ([301, 302, 303, 307, 308].includes(reply.statusCode)) {
+      onResponse(req, reply, res) {
+        if (isRedirect(reply.statusCode)) {
           const location = reply.getHeader("location") as string;
           if (location) {
             const url = new URL(location, host.href);
@@ -234,72 +357,14 @@ export const viteProxyPlugin: FastifyPluginAsync<
               url.protocol = host.protocol;
             }
             reply.header("location", url);
-            return reply.send("stream" in res ? res.stream : res);
           }
         }
 
-        const proxyLayoutInfo = req.getLayout?.(reply.getHeaders());
-        req.bifrostProxyLayout = proxyLayoutInfo;
-
-        if (!proxyLayoutInfo) {
-          return reply.send("stream" in res ? res.stream : res);
-        }
-
-        const contentType = reply.getHeader("content-type") as
-          | string
-          | undefined;
-
-        if (
-          !contentType ||
-          parseContentType(contentType).type !== "text/html"
-        ) {
-          return reply.send("stream" in res ? res.stream : res);
-        }
-
-        const html = await text(res.stream);
-
-        const { bodyAttributes, bodyInnerHtml, headInnerHtml } =
-          extractDomElements(html);
-
-        if (!bodyInnerHtml || !headInnerHtml) {
-          return reply.send(html);
-        }
-
-        try {
-          beforeWrappedRender?.(req, reply);
-        } catch (e) {
-          req.log.error(
-            `Error in beforeWrappedRender: ${(e as Error).message}`
-          );
-        }
-
-        const customPageContextInit = buildPageContextInit
-          ? await buildPageContextInit(req)
-          : {};
-
-        const pageContextInit = {
-          urlOriginal: reply.request.url,
-          headersOriginal: req.headers,
-          // Critical that we don't set any passToClient values in pageContextInit
-          // If we do, Vike re-requests pageContext on client navigation. This breaks wrapped proxy.
-          _wrappedServerOnly: {
-            bodyAttributes,
-            bodyInnerHtml,
-            headInnerHtml,
-            proxyLayoutInfo,
-          } satisfies WrappedServerOnly,
-          ...customPageContextInit,
-        };
-        const upstreamStatusCode = reply.statusCode;
-        // Strip layout headers after getLayout has read them — they are server-side only
-        for (const header of req.layoutHeaders ?? []) {
-          reply.removeHeader(header);
-        }
-        const pageContext = await renderPage(pageContextInit);
-        req.vikePageContext = pageContext;
-        req.bifrostProxyMode = "wrapped";
-        // Preserve the upstream's status code (e.g. 404) rather than using Vike's
-        return replyWithPage(reply, pageContext, upstreamStatusCode);
+        const stream = "stream" in res ? res.stream : res;
+        if (req.bifrostAwaitUpstream) return req.bifrostAwaitUpstream({ res });
+        // The client disconnected while a wrapped page waited for this response
+        if (reply.sent) return stream.destroy();
+        return reply.send(stream);
       },
     },
   });
