@@ -99,6 +99,20 @@ test.describe("requests", () => {
       });
     });
 
+    test("wrapped with error in getLayout", async ({ request }) => {
+      const req = await request.get(
+        toPath({ title: "a", layout: "get_layout_error" })
+      );
+      expect(diagnostics(req)).toEqual({
+        status: 500,
+        pageId: "/pages/_error",
+        layout: [],
+        proxyMode: "wrapped",
+        sentProxyHeaders: true,
+      });
+      expect(req.headers()["x-test-onerror"]).toBe("true");
+    });
+
     test("wrapped with error in layout", async ({ request }) => {
       const req = await request.get(toPath(
         {
