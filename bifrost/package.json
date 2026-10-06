@@ -53,14 +53,14 @@
     "@types/node": "^20.0.0",
     "@types/react": "^19.2.0",
     "@types/react-dom": "^19.0.0",
-    "@vitejs/plugin-react": "^4.7.0",
+    "@vitejs/plugin-react": "^6.0.1",
     "react": "^19.2.0",
     "tsup": "^7.1.0",
     "turbolinks": "5.3.0-beta.1",
-    "typescript": "^5.0.4",
+    "typescript": "^5.9.3",
     "vike-react": "0.6.21",
-    "vite": "^6.3.5",
-    "vike": "0.4.259-commit-2fe6cc7",
+    "vite": "^8.0.13",
+    "vike": "0.4.267-commit-5676e14",
     "cross-env": "^7.0.3"
   }
 }
