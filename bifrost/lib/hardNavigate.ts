@@ -6,5 +6,5 @@ export async function hardNavigate(url: string): Promise<never> {
   history.pushState(null, "", url);
   window.Turbolinks.controller.viewInvalidated();
   // stop vike rendering to let navigation happen
-  await new Promise(() => {});
+  return new Promise<never>(() => {});
 }
