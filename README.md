@@ -125,6 +125,12 @@ declare global {
 }
 ```
 
+Bifrost waits for Rails inside `+onCreatePageContext`, so Vike's hook timeout applies: by default it warns after 4 s and fails the render after 30 s. If Rails can be slower, raise it in the wrapped route's config, alongside any other `hooksTimeout` settings there:
+
+```ts
+hooksTimeout: { onCreatePageContext: { warning: 10_000, error: 60_000 } },
+```
+
 ### 5. Passthru routes
 
 ```ts
@@ -138,7 +144,7 @@ Links behave as they did with Turbolinks, and Turbolinks events still fire. For 
 
 ## Your own `+onCreatePageContext`
 
-Bifrost requests Rails from its own `+onCreatePageContext`, and Vike runs all `+onCreatePageContext` hooks at the same time. Your hook therefore can't see the wrapped page (`proxyLayoutInfo`, `_wrappedServerOnly`), or request state that `beforeWrappedRender` changes. To keep your hooks correct, Bifrost renders the wrapped page a second time if your app has other `+onCreatePageContext` hooks.
+Bifrost requests Rails from its own `+onCreatePageContext`, and Vike runs all `+onCreatePageContext` hooks at the same time. Your hook therefore can't see the wrapped page (`proxyLayoutInfo`, `_wrappedServerOnly`), or request state that `beforeWrappedRender` changes. To keep your hooks correct, Bifrost renders the wrapped page a second time if your app has other `+onCreatePageContext` hooks, and logs a warning the first time it does.
 
 **For better performance, await `loadWrappedPage` in your hook.** Bifrost then renders the page once:
 
