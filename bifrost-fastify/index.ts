@@ -9,7 +9,7 @@ import { FastifyRequest, RequestGenericInterface } from "fastify/types/request";
 import proxy, { type FastifyHttpProxyOptions } from "@fastify/http-proxy";
 import type { FastifyReplyFromHooks } from "@fastify/reply-from";
 import accepts from "@fastify/accepts";
-import type { GetLayout, WrappedServerOnly } from "@alignable/bifrost/config";
+import type { GetLayout, WrappedPage } from "@alignable/bifrost/config";
 import { renderPage } from "vike/server";
 import { PageContextServer } from "vike/types";
 import { extractDomElements } from "./lib/extractDomElements";
@@ -144,9 +144,9 @@ export const viteProxyPlugin: FastifyPluginAsync<
           ? await buildPageContextInit(req)
           : {};
 
-        // Filled in by loadWrappedServerOnly, which the wrapped renderer calls during renderPage
+        // Filled in by loadWrappedPage, which the wrapped renderer calls during renderPage
         const wrapped: { upstream?: Upstream; statusCode?: number } = {};
-        let wrapping: Promise<WrappedServerOnly | null> | undefined;
+        let wrapping: Promise<WrappedPage | null> | undefined;
 
         /** Requests the backend through reply-from, resolving with its response instead of sending it */
         function fetchUpstream(href: string) {
@@ -170,9 +170,9 @@ export const viteProxyPlugin: FastifyPluginAsync<
           });
         }
 
-        async function loadWrappedServerOnly(
+        async function loadWrappedPage(
           pageContext: PageContextServer
-        ): Promise<WrappedServerOnly | null> {
+        ): Promise<WrappedPage | null> {
           const {
             getLayout,
             proxyHeaders = {},
@@ -232,9 +232,9 @@ export const viteProxyPlugin: FastifyPluginAsync<
             );
           }
           // beforeWrappedRender may have changed req (e.g. a session set by the backend)
-          if (buildPageContextInit) {
-            Object.assign(pageContext, await buildPageContextInit(req));
-          }
+          const customPageContextInit = buildPageContextInit
+            ? await buildPageContextInit(req)
+            : {};
 
           wrapped.statusCode = reply.statusCode;
           // Strip layout headers after getLayout has read them — they are server-side only
@@ -242,10 +242,13 @@ export const viteProxyPlugin: FastifyPluginAsync<
             reply.removeHeader(header);
           }
           return {
-            bodyAttributes,
-            bodyInnerHtml,
-            headInnerHtml,
-            proxyLayoutInfo,
+            ...customPageContextInit,
+            _wrappedServerOnly: {
+              bodyAttributes,
+              bodyInnerHtml,
+              headInnerHtml,
+              proxyLayoutInfo,
+            },
           };
         }
 
@@ -254,9 +257,11 @@ export const viteProxyPlugin: FastifyPluginAsync<
           headersOriginal: req.headers,
           // Critical that we don't set any passToClient values in pageContextInit
           // If we do, Vike re-requests pageContext on client navigation. This breaks wrapped proxy.
-          // Memoized: an app's +onCreatePageContext may call it before Bifrost's (see loadWrappedPage)
-          _loadWrappedServerOnly: (pageContext: PageContextServer) =>
-            (wrapping ??= loadWrappedServerOnly(pageContext)),
+          // Memoized: an app's +onCreatePageContext may call it too, and Bifrost may render again (see loadWrappedPage)
+          _bifrostWrap: {
+            load: (pageContext: PageContextServer) =>
+              (wrapping ??= loadWrappedPage(pageContext)),
+          },
           ...customPageContextInit,
         };
 

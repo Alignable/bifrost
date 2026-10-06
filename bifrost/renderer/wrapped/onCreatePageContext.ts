@@ -1,27 +1,44 @@
 import "../../lib/type";
 import type {} from "../config";
+import { render } from "vike/abort";
 import type { PageContext, PageContextServer } from "vike/types";
 
 /**
- * Waits for the backend page of a wrapped route and sets `_wrappedServerOnly`; resolves to whether the page is wrapped.
- * Vike runs an app's +onCreatePageContext before Bifrost's, so call this first in one that needs the wrapped page
- * or request state the backend response changes (e.g. via beforeWrappedRender).
+ * Waits for the backend's page on a wrapped route and adds it to pageContext; resolves to whether the page is wrapped.
+ * Vike runs +onCreatePageContext hooks concurrently, so an app hook that needs the wrapped page should await this.
+ * If an app has other +onCreatePageContext hooks and none awaits it, Bifrost renders the page again once the backend responds.
  */
 export async function loadWrappedPage(pageContext: PageContext) {
-  const { _loadWrappedServerOnly } = pageContext as PageContextServer;
-  if (_loadWrappedServerOnly) {
-    const wrappedServerOnly = await _loadWrappedServerOnly(
-      pageContext as PageContextServer
-    );
-    if (wrappedServerOnly)
-      (pageContext as PageContextServer)._wrappedServerOnly = wrappedServerOnly;
+  const pc = pageContext as PageContextServer;
+  const wrap = pc._bifrostWrap;
+  if (wrap && !pc._wrappedServerOnly && pc.config.proxyMode === "wrapped") {
+    wrap.awaited = true;
+    const page = await wrap.load(pc);
+    if (page) Object.assign(pc, page);
   }
-  return !!(pageContext as PageContextServer)._wrappedServerOnly;
+  return !!pc._wrappedServerOnly;
 }
 
 // Also runs on the client, where it does nothing. A server-only hook would make Vike fetch pageContext.json on client navigation.
 export default async function wrappedOnCreatePageContext(
   pageContext: PageContext
 ) {
-  await loadWrappedPage(pageContext);
+  const pc = pageContext as PageContextServer;
+  const wrap = pc._bifrostWrap;
+  if (!wrap || pc._wrappedServerOnly) return;
+  const page = await wrap.load(pc);
+  if (!page) return;
+  const hooks: unknown = pc.config.onCreatePageContext;
+  const onlyBifrostHook = Array.isArray(hooks) && hooks.length === 1;
+  if (onlyBifrostHook || wrap.awaited) {
+    Object.assign(pc, page);
+    return;
+  }
+  // The app's hooks ran alongside this one without the backend's page. Render again with onBeforeRoute adding it first.
+  // Keeping abortReason keeps a `throw render(url, { proxy: "wrapped" })` route from re-running the page that threw it.
+  wrap.page = page;
+  throw render(
+    pc.urlParsed.href as `/${string}`,
+    pc.abortReason as {} | undefined
+  );
 }
