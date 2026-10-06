@@ -14,6 +14,11 @@ export interface WrappedServerOnly {
   renderedBody?: boolean;
 }
 
+/** pageContext additions for rendering a wrapped page */
+export type WrappedPage = Partial<Vike.PageContextServer> & {
+  _wrappedServerOnly: WrappedServerOnly;
+};
+
 declare global {
   namespace Vike {
     interface PageContext {
@@ -25,10 +30,15 @@ declare global {
     }
     interface PageContextServer {
       _wrappedServerOnly?: WrappedServerOnly;
-      /** Set by bifrost-fastify: requests the backend and returns its page to wrap, or null to send the backend response as-is */
-      _loadWrappedServerOnly?: (
-        pageContext: PageContextServer
-      ) => Promise<WrappedServerOnly | null>;
+      /** Set by bifrost-fastify, and shared by every render of the request */
+      _bifrostWrap?: {
+        /** Requests the backend once per request; resolves to the page to wrap, or null to send the backend's response as-is */
+        load: (pageContext: PageContextServer) => Promise<WrappedPage | null>;
+        /** Whether an app hook awaited loadWrappedPage, so it saw the backend's page */
+        awaited?: boolean;
+        /** Set when Bifrost renders again with the backend's page; onBeforeRoute adds it to the new render */
+        page?: WrappedPage;
+      };
     }
     interface PageContextClient {
       _snapshot?: Snapshot;
