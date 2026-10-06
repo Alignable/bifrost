@@ -1,4 +1,4 @@
-import { test, expect, APIResponse } from "@playwright/test";
+import { test, expect, APIResponse, APIRequestContext } from "@playwright/test";
 import { toPath } from "../../fake-backend/page-builder";
 
 test.describe("requests", () => {
@@ -191,21 +191,77 @@ test.describe("requests", () => {
   });
 
   test.describe("wrapped render", () => {
-    test("app +onCreatePageContext can await loadWrappedPage, and the backend is requested once", async ({
+    async function backendHits(request: APIRequestContext, page: object) {
+      const res = await request.get(
+        `http://localhost:5557/__hits?page=${encodeURIComponent(JSON.stringify(page))}`
+      );
+      return (await res.json()).count;
+    }
+
+    test("renders once when Bifrost's is the only +onCreatePageContext", async ({
       request,
     }) => {
-      const page = { title: "app hook", content: `app hook ${Math.random()}` };
-      const req = await request.get(toPath(page), {
-        headers: { "X-TEST-APP-HOOK": "1" },
+      const page = { title: "one hook", content: `one hook ${Math.random()}` };
+      const req = await request.get(toPath(page));
+      expect(req.status()).toBe(200);
+      expect(req.headers()["x-test-aborts"]).toBe("0");
+      expect(await req.text()).toContain(page.content);
+      expect(await backendHits(request, page)).toBe(1);
+    });
+
+    test("renders once when the app's +onCreatePageContext awaits loadWrappedPage", async ({
+      request,
+    }) => {
+      const page = {
+        endpoint: "custom-app-hook",
+        title: "app hook",
+        content: `app hook ${Math.random()}`,
+      };
+      const req = await request.get(`http://localhost:5555${toPath(page)}`, {
+        headers: { "X-TEST-LOAD-WRAPPED-PAGE": "1", Accept: "text/html" },
       });
       expect(req.status()).toBe(200);
       expect(req.headers()["x-test-app-hook-saw-wrapped"]).toBe("true");
+      expect(req.headers()["x-test-aborts"]).toBe("0");
       expect(await req.text()).toContain(page.content);
+      expect(await backendHits(request, page)).toBe(1);
+    });
 
-      const hits = await request.get(
-        `http://localhost:5557/__hits?page=${encodeURIComponent(JSON.stringify(page))}`
-      );
-      expect((await hits.json()).count).toBe(1);
+    test("renders again so the app's +onCreatePageContext sees the wrapped page", async ({
+      request,
+    }) => {
+      const page = {
+        endpoint: "custom-app-hook",
+        title: "app hook",
+        content: `app hook ${Math.random()}`,
+      };
+      const req = await request.get(`http://localhost:5555${toPath(page)}`, {
+        headers: { Accept: "text/html" },
+      });
+      expect(req.status()).toBe(200);
+      expect(req.headers()["x-test-app-hook-saw-wrapped"]).toBe("true");
+      expect(req.headers()["x-test-aborts"]).toBe("1");
+      expect(await req.text()).toContain(page.content);
+      expect(await backendHits(request, page)).toBe(1);
+    });
+
+    test("renders again without re-running the page that threw render(url, { proxy: \"wrapped\" })", async ({
+      request,
+    }) => {
+      const page = {
+        endpoint: "custom-render-target",
+        title: "render target",
+        content: `render target ${Math.random()}`,
+      };
+      const req = await request.get(`http://localhost:5555${toPath(page)}`, {
+        headers: { Accept: "text/html" },
+      });
+      expect(req.status()).toBe(200);
+      expect(req.headers()["x-test-app-hook-saw-wrapped"]).toBe("true");
+      // The page's own render(), then Bifrost's. Losing abortReason would route back to the page and render a third time.
+      expect(req.headers()["x-test-aborts"]).toBe("2");
+      expect(await req.text()).toContain(page.content);
+      expect(await backendHits(request, page)).toBe(1);
     });
 
     test("responds with an error when the backend drops the connection", async ({

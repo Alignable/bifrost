@@ -55,6 +55,12 @@ async function startServer() {
       req.bifrostSentProxyHeaders ? "1" : "0"
     );
 
+    if (req.vikePageContext?.pageContextsAborted)
+      reply.header(
+        "X-TEST-ABORTS",
+        String(req.vikePageContext.pageContextsAborted.length)
+      );
+
     const appHookSawWrappedPage = req.vikePageContext?.appHookSawWrappedPage;
     if (appHookSawWrappedPage !== undefined)
       reply.header(

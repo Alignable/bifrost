@@ -105,4 +105,4 @@ declare global {
 }
 
 // This is only used for fastify integration
-export { type WrappedServerOnly } from "../lib/type";
+export { type WrappedServerOnly, type WrappedPage } from "../lib/type";
