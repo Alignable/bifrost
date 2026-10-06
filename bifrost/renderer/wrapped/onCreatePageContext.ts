@@ -36,9 +36,23 @@ export default async function wrappedOnCreatePageContext(
   }
   // The app's hooks ran alongside this one without the backend's page. Render again with onBeforeRoute adding it first.
   // Keeping abortReason keeps a `throw render(url, { proxy: "wrapped" })` route from re-running the page that threw it.
+  warnRenderingTwice(pc);
   wrap.page = page;
   throw render(
     pc.urlParsed.href as `/${string}`,
     pc.abortReason as {} | undefined
+  );
+}
+
+let warnedRenderingTwice = false;
+function warnRenderingTwice(pageContext: PageContextServer) {
+  if (warnedRenderingTwice) return;
+  warnedRenderingTwice = true;
+  const files = (pageContext.configEntries.onCreatePageContext ?? [])
+    .filter((entry) => entry.configValue !== wrappedOnCreatePageContext)
+    .map((entry) => entry.configDefinedByFile ?? entry.configDefinedAt);
+  console.warn(
+    `[bifrost] Rendered wrapped page ${pageContext.urlPathname} twice, so that +onCreatePageContext in ${files.join(", ")} ` +
+      "sees the backend's page. Await loadWrappedPage(pageContext) there to render wrapped pages once. Shown once."
   );
 }
