@@ -15,7 +15,7 @@
   "peerDependencies": {
     "@alignable/bifrost": "1.0.34",
     "fastify": "^5.0.0",
-    "vike": ">=0.4.251",
+    "vike": ">=0.4.259-commit-2fe6cc7",
     "vite": ">=6"
   },
   "devDependencies": {
@@ -27,8 +27,9 @@
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
     "tsup": "^6.7.0",
-    "typescript": "^5.0.4",
-    "vite": "^6.3.5"
+    "typescript": "^5.9.3",
+    "vike": "0.4.267-commit-5676e14",
+    "vite": "^8.0.13"
   },
   "scripts": {
     "build": "tsup",
