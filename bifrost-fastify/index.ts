@@ -55,7 +55,8 @@ type RawRequestExtendedWithProxy = FastifyRequest<
   RequestGenericInterface,
   RawServerBase
 >["raw"] & {
-  _bfproxy?: boolean;
+  /** Headers to add to the backend request for a wrapped page */
+  _bfproxyHeaders?: Record<string, string>;
 };
 
 interface ViteProxyPluginOptions extends Omit<
@@ -145,7 +146,11 @@ export const viteProxyPlugin: FastifyPluginAsync<
           : {};
 
         // Filled in by loadWrappedPage, which the wrapped renderer calls during renderPage
-        const wrapped: { upstream?: Upstream; statusCode?: number } = {};
+        const wrapped: {
+          upstream?: Upstream;
+          statusCode?: number;
+          layoutHeaders?: string[];
+        } = {};
         let wrapping: Promise<WrappedPage | null> | undefined;
 
         /** Requests the backend through reply-from, resolving with its response instead of sending it */
@@ -181,17 +186,17 @@ export const viteProxyPlugin: FastifyPluginAsync<
           // Client navigation and missing getLayout are handled after renderPage returns
           if (pageContext.isClientSideNavigation || !getLayout) return null;
 
-          let proxyHeadersAlreadySet = true;
-          for (const [key, val] of Object.entries(proxyHeaders)) {
-            proxyHeadersAlreadySet &&= req.headers[key.toLowerCase()] == val;
-            req.headers[key.toLowerCase()] = val;
-          }
           // If proxy headers set, this is a client navigation meant to go direct to legacy backend.
           // ALB CANNOT be used for this. see `onBeforeRenderClient` for details
+          const proxyHeadersAlreadySet = Object.entries(proxyHeaders).every(
+            ([key, val]) => req.headers[key.toLowerCase()] == val
+          );
           if (proxyHeadersAlreadySet) return null;
 
-          // setting _bfproxy tells rewriteRequestHeaders we're in wrapped mode
-          (req.raw as RawRequestExtendedWithProxy)._bfproxy = true;
+          // rewriteRequestHeaders adds them to the backend request
+          (req.raw as RawRequestExtendedWithProxy)._bfproxyHeaders =
+            proxyHeaders;
+          wrapped.layoutHeaders = layoutHeaders;
           req.getLayout = getLayout;
           req.bifrostSentProxyHeaders = true;
           req.log.info(`bifrost: proxy route matched, proxying to backend`);
@@ -276,8 +281,22 @@ export const viteProxyPlugin: FastifyPluginAsync<
           return replyWithPage(reply, pageContext, wrapped.statusCode);
         }
 
-        // The backend already responded but isn't wrappable: send it as-is
         if (wrapped.upstream) {
+          // Wrapping failed, e.g. getLayout threw: send the error page rather than the backend's page without its layout
+          if (pageContext.errorWhileRendering) {
+            const { upstream } = wrapped;
+            if ("res" in upstream) {
+              const { res } = upstream;
+              ("stream" in res ? res.stream : res).destroy();
+            }
+            for (const header of wrapped.layoutHeaders ?? []) {
+              reply.removeHeader(header);
+            }
+            req.vikePageContext = pageContext;
+            req.bifrostProxyMode = "wrapped";
+            return replyWithPage(reply, pageContext);
+          }
+          // The backend already responded but isn't wrappable: send it as-is
           req.bifrostProxyMode = "passthru";
           const response = wrapped.upstream;
           if ("error" in response) return reply.send(response.error);
@@ -339,8 +358,13 @@ export const viteProxyPlugin: FastifyPluginAsync<
         headers["X-Forwarded-Host"] = host.host;
         headers["X-Forwarded-Proto"] = host.protocol.replace(":", "");
 
-        if ((request.raw as RawRequestExtendedWithProxy)._bfproxy) {
+        const proxyHeaders = (request.raw as RawRequestExtendedWithProxy)
+          ._bfproxyHeaders;
+        if (proxyHeaders) {
           // Proxying and wrapping
+          for (const [key, val] of Object.entries(proxyHeaders)) {
+            headers[key.toLowerCase()] = val;
+          }
 
           // Delete cache headers
           delete headers["if-modified-since"];
