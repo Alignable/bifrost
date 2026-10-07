@@ -278,6 +278,25 @@ test.describe("requests", () => {
       expect(await backendHits(request, page)).toBe(1);
     });
 
+    for (const [name, layout] of [
+      ["wrappable", undefined],
+      ["not wrappable", ""],
+    ] as const) {
+      test(`sends a guard's redirect when the backend's page is ${name}`, async ({
+        request,
+      }) => {
+        const page = { endpoint: "custom-app-hook", title: "guard", layout };
+        const req = await request.get(`http://localhost:5555${toPath(page)}`, {
+          headers: { "X-TEST-GUARD-REDIRECT": "1", Accept: "text/html" },
+          maxRedirects: 0,
+        });
+        expect(req.status()).toBe(302);
+        expect(req.headers()["location"]).toBe("/vite-page");
+        expect(req.headers()["x-react-layout"]).toBeUndefined();
+        expect(JSON.parse(req.headers()["x-test-proxymode"])).toBe("wrapped");
+      });
+    }
+
     test("responds with an error when the backend drops the connection", async ({
       request,
     }) => {

@@ -14,6 +14,7 @@ import { renderPage } from "vike/server";
 import { PageContextServer } from "vike/types";
 import { extractDomElements } from "./lib/extractDomElements";
 import { Http2ServerRequest } from "http2";
+import type { Readable } from "node:stream";
 import { text } from "node:stream/consumers";
 import { parse as parseContentType } from "fast-content-type-parse";
 import { IncomingMessage } from "http";
@@ -33,7 +34,11 @@ type UpstreamResponse = Parameters<
   NonNullable<FastifyReplyFromHooks["onResponse"]>
 >[2];
 /** Backend response held back from the client while Bifrost decides whether to wrap it */
-type Upstream = { res: UpstreamResponse } | { body: string } | { error: Error };
+type Upstream =
+  | { res: UpstreamResponse }
+  | { body: string }
+  | { error: Error }
+  | { clientClosed: true };
 
 declare module "fastify" {
   interface FastifyRequest {
@@ -81,6 +86,18 @@ interface ViteProxyPluginOptions extends Omit<
 
 const isRedirect = (statusCode: number) =>
   [301, 302, 303, 307, 308].includes(statusCode);
+
+/** Throws away a backend response, reading its body so the keep-alive connection can be reused */
+function discardUpstream(res: UpstreamResponse) {
+  // reply-from's undici response body, typed as IncomingMessage
+  const stream: Readable & { dump?: () => Promise<null> } =
+    "stream" in res ? res.stream : res;
+  // Without a listener, an error here is an uncaught exception, e.g. destroy() on an unread undici body
+  stream.on("error", () => {});
+  // undici's dump() reads up to 128 KiB, then closes the connection rather than downloading a large page
+  if (stream.dump) void stream.dump();
+  else stream.resume();
+}
 
 /**
  * Fastify plugin that wraps @fasitfy/http-proxy to proxy Rails/Turbolinks server into a vike site.
@@ -163,9 +180,7 @@ export const viteProxyPlugin: FastifyPluginAsync<
             };
             req.bifrostAwaitUpstream = settle;
             // reply-from never calls back if an HTTP/2 client disconnects first
-            reply.raw.once("close", () =>
-              settle({ error: new Error("Client closed the request") })
-            );
+            reply.raw.once("close", () => settle({ clientClosed: true }));
             const { options } = reply.fromParameters(href);
             reply.from(href, {
               ...(options as any),
@@ -274,7 +289,10 @@ export const viteProxyPlugin: FastifyPluginAsync<
 
         req.layoutHeaders = pageContext.config?.layoutHeaders ?? null;
 
-        if (wrapped.statusCode !== undefined) {
+        // A hook ran after the backend responded and threw redirect(), e.g. a +guard on the wrapped route
+        const redirected = isRedirect(pageContext.httpResponse?.statusCode ?? 0);
+
+        if (wrapped.statusCode !== undefined && !redirected) {
           req.vikePageContext = pageContext;
           req.bifrostProxyMode = "wrapped";
           // Preserve the upstream's status code (e.g. 404) rather than using Vike's
@@ -282,13 +300,14 @@ export const viteProxyPlugin: FastifyPluginAsync<
         }
 
         if (wrapped.upstream) {
-          // Wrapping failed, e.g. getLayout threw: send the error page rather than the backend's page without its layout
-          if (pageContext.errorWhileRendering) {
-            const { upstream } = wrapped;
-            if ("res" in upstream) {
-              const { res } = upstream;
-              ("stream" in res ? res.stream : res).destroy();
-            }
+          if ("clientClosed" in wrapped.upstream) {
+            req.bifrostProxyMode = "wrapped";
+            // The client is gone. 499 is nginx's "client closed request"; sending an error would log it as a server error.
+            return reply.code(499).send();
+          }
+          // Send Vike's redirect, or its error page when wrapping failed (e.g. getLayout threw) rather than the backend's page without its layout
+          if (pageContext.errorWhileRendering || redirected) {
+            if ("res" in wrapped.upstream) discardUpstream(wrapped.upstream.res);
             for (const header of wrapped.layoutHeaders ?? []) {
               reply.removeHeader(header);
             }
@@ -389,11 +408,10 @@ export const viteProxyPlugin: FastifyPluginAsync<
           }
         }
 
-        const stream = "stream" in res ? res.stream : res;
         if (req.bifrostAwaitUpstream) return req.bifrostAwaitUpstream({ res });
         // The client disconnected while a wrapped page waited for this response
-        if (reply.sent) return stream.destroy();
-        return reply.send(stream);
+        if (reply.sent) return discardUpstream(res);
+        return reply.send("stream" in res ? res.stream : res);
       },
     },
   });
