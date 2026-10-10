@@ -109,6 +109,12 @@ export default async function wrappedOnBeforeRender(
     const bodyEl = parsed.querySelector("body")!;
     const headEl = parsed.querySelector("head")!;
     pageContext.proxyLayoutInfo = layoutInfo;
+    pageContext.proxyNestedComponents = Object.fromEntries(
+      [...bodyEl.querySelectorAll("[data-bifrost-render]")].map((el) => [
+        el.getAttribute("data-bifrost-render")!,
+        true,
+      ])
+    );
     pageContext._turbolinksProxy = {
       body: bodyEl,
       head: headEl,

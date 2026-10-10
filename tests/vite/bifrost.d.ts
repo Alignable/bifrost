@@ -15,6 +15,9 @@ declare global {
       visitor?: { currentNav: string };
       ssr_error?: { currentNav: string };
     }
+    interface NestedComponents {
+      myComponent: true;
+    }
   }
 }
 

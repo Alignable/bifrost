@@ -2,10 +2,11 @@ import { usePageContext } from "vike-react/usePageContext";
 import { MainNavLayout } from "../../../layouts/MainNavLayout";
 import { VisitorLayout } from "../../../layouts/VisitorLayout";
 import { SsrErrorLayout } from "../../../layouts/SsrErrorLayout";
+import { NestedComponentPortal } from "@alignable/bifrost/NestedComponentPortal";
 import React, { useEffect } from "react";
 
 export function Layout({ children }: { children: React.ReactNode }) {
-  const { proxyLayoutInfo } = usePageContext();
+  const { proxyLayoutInfo, proxyNestedComponents } = usePageContext();
 
   useEffect(() => {
     const listener = () => {
@@ -27,6 +28,14 @@ export function Layout({ children }: { children: React.ReactNode }) {
     if (main_nav) {
       return (
         <MainNavLayout currentNav={main_nav.currentNav}>
+          <span data-testid="requested-components">
+            {Object.keys(proxyNestedComponents ?? {}).sort().join(",")}
+          </span>
+          {proxyNestedComponents?.myComponent && (
+            <NestedComponentPortal name="myComponent">
+              <span>portaled react content</span>
+            </NestedComponentPortal>
+          )}
           {children}
         </MainNavLayout>
       );
