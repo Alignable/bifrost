@@ -1,56 +1,174 @@
-bifrost is the framework for incremental migration from Rails/Turbolinks to Vite-powered React SSR.
+# Bifrost
 
-# How does it work?
+Bifrost lets you migrate a Rails + Turbolinks app to [Vike](https://vike.dev) (React SSR) one route at a time.
 
-1. Vike tries to handle request
-2. If it cannot, proxy to Rails
-3. If Rails returns layout, wrap in layout
-4. Else just return as-is
+It sits in front of Rails. New pages are rendered by Vike. Rails pages are either rendered inside your new React layout ("wrapped") or passed through untouched. Navigation between all of them stays client-side, like Turbolinks.
 
-## Breaking changes moving from turbolinks to bifrost:
+It has two packages:
 
-- turbolinks-permanent is gone
-- request:start and request:end events removed
-- Some discrepency in event data and exactly when they fire
+- **`@alignable/bifrost`** is a Vike extension, built on [vike-react](https://vike.dev/vike-react). It renders wrapped pages and replaces Turbolinks on the client.
+- **`@alignable/bifrost-fastify`** is a Fastify plugin. It renders pages with Vike and proxies everything else to Rails.
 
-## Getting Started
+## How it works
 
-### Installation
+Each route has a `proxyMode`:
 
-Install and setup [Vike](https://vike.dev/) and [vike-react](https://vike.dev/vike-react)
-Install a Fastify server
-Install `@alignable/bifrost` and `@alignable/bifrost-fastify`
+| `proxyMode` | Server | Client navigation |
+| --- | --- | --- |
+| `false` | Vike renders the page. | Vike renders the page. |
+| `"wrapped"` | Bifrost requests the page from Rails with your `proxyHeaders`. Rails responds without its layout, plus headers saying which layout to use. Bifrost renders your React layout around Rails' `<body>` and merges Rails' `<head>`. | Bifrost fetches the page from Rails and swaps it into the layout. |
+| `"passthru"` | Rails' response is sent as-is. | Full page load. |
 
-In fastify, register viteProxyPlugin
-Create your default config `pages/+config.ts` with `extends [VikeReact, BifrostConfig]` and default `proxyMode: false`, which lets you build Vike-rendered pages.
+Requests that aren't HTML GET or HEAD requests, such as assets, forms and APIs, are proxied straight to Rails. If a wrapped page's response has no layout or isn't HTML (for example a redirect, JSON, or a page Rails rendered with its own layout), Bifrost sends Rails' response as-is.
 
-### Proxy modes
+## Setup
 
-The "wrapped" proxy mode is the main point of Bifrost. The backend proxies your request to Rails and wraps the result in a React layout component. It copies over any attributes on the `body` tag, and inserts tags inside `head`, including running any scripts.
+Requires Vike with vike-react (React 19) and Fastify 5.
 
-When the user clicks a link, it will check your Vike routing rules. If the route has `proxyMode: wrapped`, it will make a request to Rails and do all of the above, this time on the client. If the link is to a Vike page with `proxyMode: false`, it will render that page instead.
+```sh
+npm install @alignable/bifrost @alignable/bifrost-fastify
+```
 
-The "passthru" proxy mode is an option of incremental migration. Passthru routes simply render whatever Rails returns. This lets you start building Vike/Bifrost pages without committing to the full wrapped experience.
+### 1. Vike config
 
-### Setting up Wrapped Proxy
+```ts
+// pages/+config.ts
+import vikeReact from "vike-react/config";
+import bifrost from "@alignable/bifrost/config";
+import type { Config } from "vike/types";
 
-1. In Rails check for a `x-vite-proxy` (name configurable) header and skip rendering the layout, so Bifrost can render the layout, enabling seamless page transitions. Also return which layout the page needs + any layout config/props via another header.
-2. In Bifrost, setup a page with `proxyMode: wrapped` and configure the following:
-   1. `getLayout` is a function to pull layout name and properties from the headers returned by Rails.
-   2. Augment `Vike.ProxyLayoutInfo` with props for your layout
-   3. `+Layout.tsx` can call `usePageContext` and use `proxyLayoutInfo` to render the appropriate data from getLayout
-   4. `proxyHeaders` adds the `x-vite-proxy` (or other named header) to signal Rails you're coming from Bifrost.
-   5. `meta: { onBeforeRender: { env: { client: true, server: false } } }` is temporarily required.
-3. Move your navbar/layouts to be render-able via Bifrost
+export default {
+  extends: [vikeReact, bifrost],
+  proxyMode: false, // Pages are rendered by Vike unless their route says otherwise
+} satisfies Config;
+```
 
-## Building new Vike Pages
+### 2. Server
 
-Follow the [vike-react docs](https://vike.dev/vike-react) to build new unproxied pages.
+```ts
+import fastify from "fastify";
+import { viteProxyPlugin } from "@alignable/bifrost-fastify";
 
-Behind the scenes, Bifrost will emit turbolinks events and handle navigating between new pages and wrapped pages without reloading.
+const app = fastify();
+// Also serve Vike's client assets: its dev middleware in development, the built files in production
+await app.register(viteProxyPlugin, {
+  upstream: new URL("http://rails.internal:3000"),
+  host: new URL("https://www.example.com"),
+  async buildPageContextInit(req) {
+    return { user: await getUser(req) };
+  },
+});
+await app.listen({ port: 3000 });
+```
 
-### Differences between vike-react and bifrost
+`tests/vite/server/index.ts` is a complete example. The options are:
 
-Currently there is only one:
+| Option | |
+| --- | --- |
+| `upstream` | Rails' URL. |
+| `host` | The public URL. Used for `X-Forwarded-*` headers, and to rewrite redirects that point at Rails' host. |
+| `buildPageContextInit(req)` | Adds to `pageContextInit`. It must not set fields that are in `passToClient`, or Vike re-fetches `pageContext` on client navigation. It runs again before a wrapped render. |
+| `beforeWrappedRender(req, reply)` | Called when Rails returns a page to wrap, before rendering it. For example, copy a session cookie Rails just set into your request state. |
+| `onError(error, pageContext)` | Called when rendering fails. |
 
-- You MUST use `navigate()` exported from `@alignable/bifrost`, not from Vike
+Other [`@fastify/http-proxy`](https://github.com/fastify/fastify-http-proxy) options are passed through.
+
+### 3. Rails
+
+When a request has your proxy header (e.g. `X-VITE-PROXY: 1`), render the page without its layout. Then send headers that describe the layout, e.g. `X-React-Layout: main_nav`. Bifrost forwards everything else in the response, including redirects and cookies.
+
+### 4. Wrapped routes
+
+```ts
+// pages/rails/+config.ts
+import type { Config } from "vike/types";
+
+export default {
+  route: "/*", // Or a Route Function
+  proxyMode: "wrapped",
+  proxyHeaders: { "X-VITE-PROXY": "1" },
+  // Response headers getLayout reads, removed before the response is sent
+  layoutHeaders: ["x-react-layout"],
+} satisfies Config;
+```
+
+```ts
+// pages/rails/+getLayout.ts
+import type { GetLayout } from "@alignable/bifrost/config";
+
+const getLayout: GetLayout = (headers) =>
+  // null sends Rails' response as-is
+  headers["x-react-layout"] === "main_nav" ? { main_nav: {} } : null;
+
+export default getLayout;
+```
+
+```tsx
+// pages/rails/+Layout.tsx
+import { usePageContext } from "vike-react/usePageContext";
+
+export default function Layout({ children }: { children: React.ReactNode }) {
+  const { proxyLayoutInfo } = usePageContext();
+  return proxyLayoutInfo?.main_nav ? <MainNav>{children}</MainNav> : <>{children}</>;
+}
+```
+
+Declare your layouts' props on `Vike.ProxyLayoutInfo`:
+
+```ts
+declare global {
+  namespace Vike {
+    interface ProxyLayoutInfo {
+      main_nav?: { currentNav?: string };
+    }
+  }
+}
+```
+
+Bifrost waits for Rails inside `+onCreatePageContext`, so Vike's hook timeout applies: by default it warns after 4 s and fails the render after 30 s. If Rails can be slower, raise it in the wrapped route's config, alongside any other `hooksTimeout` settings there:
+
+```ts
+hooksTimeout: { onCreatePageContext: { warning: 10_000, error: 60_000 } },
+```
+
+### 5. Passthru routes
+
+```ts
+// pages/legacy/+config.ts
+export default { route: "/legacy/*", proxyMode: "passthru" } satisfies Config;
+```
+
+### 6. Navigation
+
+Links behave as they did with Turbolinks, and Turbolinks events still fire. For programmatic navigation, use `navigate()` from `@alignable/bifrost`, not Vike's.
+
+## Your own `+onCreatePageContext`
+
+Bifrost requests Rails from its own `+onCreatePageContext`, and Vike runs all `+onCreatePageContext` hooks at the same time. Your hook therefore can't see the wrapped page (`proxyLayoutInfo`, `_wrappedServerOnly`), or request state that `beforeWrappedRender` changes. To keep your hooks correct, Bifrost renders the wrapped page a second time if your app has other `+onCreatePageContext` hooks, and logs a warning the first time it does.
+
+**For better performance, await `loadWrappedPage` in your hook.** Bifrost then renders the page once:
+
+```ts
+import { loadWrappedPage } from "@alignable/bifrost";
+import type { PageContext } from "vike/types";
+
+export async function onCreatePageContext(pageContext: PageContext) {
+  if (!pageContext.isClientSide && pageContext.config.proxyMode === "wrapped") {
+    // false means Rails' response will be sent as-is
+    if (!(await loadWrappedPage(pageContext))) return;
+  }
+  // ...
+}
+```
+
+Rails is still requested only once per page. In Bifrost's benchmark, the second render adds about 0.5 ms of CPU per wrapped page, roughly 20%.
+
+## Differences from Turbolinks
+
+- `data-turbolinks-permanent` isn't supported.
+- `turbolinks:request-start` and `turbolinks:request-end` don't fire.
+- Event data and timing differ slightly.
+
+## Development
+
+See [DEVELOPING.md](DEVELOPING.md).

@@ -1,4 +1,4 @@
-import type { PageContext } from "vike/types";
+import type { PageContext, PageContextServer } from "vike/types";
 
 if (import.meta.env?.SSR === false) {
   import("./turbolinksStart");
@@ -44,7 +44,10 @@ const onBeforeRoute = (pageContext: PageContext) => {
     }
     return { pageContext: { _turbolinksVisit: currentVisit } };
   }
-  return { pageContext: {} };
+  // The second render of a wrapped page, see wrapped/onCreatePageContext
+  return {
+    pageContext: (pageContext as PageContextServer)._bifrostWrap?.page ?? {},
+  };
 };
 
 export default onBeforeRoute;

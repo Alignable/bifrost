@@ -14,8 +14,8 @@ const isProduction = process.env.NODE_ENV === "production";
 const root = `${__dirname}/..`;
 
 startServer();
-const UPSTREAM = new URL("http://localhost:5557"); //new URL("http://dev.alignable.com:3000");
-const HOST = new URL("http://localhost:5050");
+const UPSTREAM = new URL(process.env.UPSTREAM_URL || "http://localhost:5557");
+const HOST = new URL(process.env.PUBLIC_URL || "http://localhost:5050");
 
 async function startServer() {
   const app = fastify({ logger: { level: process.env.LOG_LEVEL || "info" } });
@@ -54,6 +54,19 @@ async function startServer() {
       "X-TEST-SENT-PROXY-HEADERS",
       req.bifrostSentProxyHeaders ? "1" : "0"
     );
+
+    if (req.vikePageContext?.pageContextsAborted)
+      reply.header(
+        "X-TEST-ABORTS",
+        String(req.vikePageContext.pageContextsAborted.length)
+      );
+
+    const appHookSawWrappedPage = req.vikePageContext?.appHookSawWrappedPage;
+    if (appHookSawWrappedPage !== undefined)
+      reply.header(
+        "X-TEST-APP-HOOK-SAW-WRAPPED",
+        String(appHookSawWrappedPage)
+      );
   });
 
   app.get("/cors-test", async (req, res) => {

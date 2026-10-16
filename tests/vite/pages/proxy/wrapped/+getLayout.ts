@@ -6,6 +6,7 @@ const VALID_LAYOUTS = ["main_nav", "biz_layout", "visitor", "no_layout", "ssr_er
 const getLayout: GetLayout = function (headers) {
   const layoutName = headers["x-react-layout"] as string;
   const currentNav = headers["x-react-current-nav"] as string;
+  if (layoutName === "get_layout_error") throw new Error("getLayout failed");
 
   if (VALID_LAYOUTS.includes(layoutName)) {
     return {
