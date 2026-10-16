@@ -61,12 +61,21 @@ async function startServer() {
         String(req.vikePageContext.pageContextsAborted.length)
       );
 
+    const fromMiddleware = req.vikePageContext?.fromMiddleware;
+    if (fromMiddleware) reply.header("X-TEST-MIDDLEWARE-CONTEXT", fromMiddleware);
+
     const appHookSawWrappedPage = req.vikePageContext?.appHookSawWrappedPage;
     if (appHookSawWrappedPage !== undefined)
       reply.header(
         "X-TEST-APP-HOOK-SAW-WRAPPED",
         String(appHookSawWrappedPage)
       );
+  });
+
+  // Like an error reporter's, e.g. @immobiliarelabs/fastify-sentry's. Sending the error passes it on to Fastify's.
+  app.setErrorHandler<Error & { code?: string }>((error, _req, reply) => {
+    reply.header("X-TEST-ERROR-CODE", error.code);
+    reply.send(error);
   });
 
   app.get("/cors-test", async (req, res) => {

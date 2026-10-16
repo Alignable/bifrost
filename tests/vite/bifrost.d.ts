@@ -7,6 +7,8 @@ declare global {
       currentNav?: string;
       benchSsrState?: unknown;
       appHookSawWrappedPage?: boolean;
+      /** Set by pages/+middleware.ts */
+      fromMiddleware?: string;
     }
     interface Config {
       currentNav?: string;
