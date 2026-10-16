@@ -183,6 +183,42 @@ test.describe("requests", () => {
     });
   });
 
+  // pages/+middleware.ts, like a Vike extension's
+  test.describe("+middleware", () => {
+    test("runs around Vike pages and passes its context to them", async ({
+      request,
+    }) => {
+      const req = await request.get("http://localhost:5555/vite-page", {
+        headers: { Accept: "text/html" },
+      });
+      expect(req.status()).toBe(200);
+      expect(req.headers()["x-test-middleware"]).toBe("1");
+      expect(req.headers()["x-test-middleware-context"]).toBe("context");
+    });
+
+    test("runs around wrapped pages", async ({ request }) => {
+      const req = await request.get(
+        `http://localhost:5555${toPath({ title: "a" })}`,
+        { headers: { Accept: "text/html" } }
+      );
+      expect(JSON.parse(req.headers()["x-test-proxymode"])).toBe("wrapped");
+      expect(req.headers()["x-test-middleware"]).toBe("1");
+      expect(req.headers()["x-test-middleware-context"]).toBe("context");
+    });
+
+    test("runs around requests proxied to the backend", async ({ request }) => {
+      const req = await request.get("http://localhost:5555/hello.js");
+      expect(await req.text()).toEqual("console.log('hello')");
+      expect(req.headers()["x-test-middleware"]).toBe("1");
+    });
+
+    test("answers its own routes", async ({ request }) => {
+      const req = await request.get("http://localhost:5555/middleware-route");
+      expect(await req.text()).toBe("from +middleware");
+      expect(req.headers()["x-test-fake-backend"]).toBeUndefined();
+    });
+  });
+
   test.describe("wrapped xhr", () => {
     test("passes through script response", async ({ request }) => {
       const req = await request.get("/script-wrapped", {
@@ -301,7 +337,9 @@ test.describe("requests", () => {
       request,
     }) => {
       const req = await request.get(toPath({ title: "hangup", hangup: true }));
-      expect(req.status()).toBeGreaterThanOrEqual(500);
+      expect(req.status()).toBe(500);
+      // The server's error handler gets it, e.g. to report it
+      expect(req.headers()["x-test-error-code"]).toBe("UND_ERR_SOCKET");
     });
   });
 });

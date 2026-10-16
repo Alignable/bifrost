@@ -6,17 +6,12 @@
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
   "dependencies": {
-    "@fastify/accepts": "^5.0.4",
-    "@fastify/http-proxy": "^11.4.1",
-    "@fastify/reply-from": "^12.5.0",
-    "fast-content-type-parse": "^3.0.0",
-    "htmlparser2": "^10.0.0"
+    "undici": "^7.16.0"
   },
   "peerDependencies": {
     "@alignable/bifrost": "1.0.35",
     "fastify": "^5.0.0",
-    "vike": ">=0.4.259-commit-2fe6cc7",
-    "vite": ">=6"
+    "vike": ">=0.4.268"
   },
   "devDependencies": {
     "@types/connect": "^3.4.35",

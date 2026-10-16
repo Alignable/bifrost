@@ -12,6 +12,8 @@ npm install
 
 `npm run test` in root directory runs test in `tests/e2e` pacakage.
 
+The tests run against the Fastify server in `tests/vite/server/index.ts`. To run them against the Hono or srvx server instead, build `tests/vite`, start it on port 5555 (`PORT=5555 npm run -w=tests-vite start:hono`, or `start:srvx`), then run the tests: Playwright reuses it.
+
 ## Dev
 
 Easiest way to continuously rebuild pacakges and run sample server is with [Overmind](https://github.com/DarthSim/overmind)

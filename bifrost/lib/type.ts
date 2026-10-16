@@ -1,5 +1,6 @@
 import { type Snapshot } from "../lib/turbolinks/controller";
 import { type Visit } from "./turbolinks/visit";
+import type { PageContextServer } from "vike/types";
 // Internal types used only within bifrost. Public types go in renderer/config.ts
 
 export interface WrappedServerOnly {
@@ -19,6 +20,18 @@ export type WrappedPage = Partial<Vike.PageContextServer> & {
   _wrappedServerOnly: WrappedServerOnly;
 };
 
+/** Set by createBifrostHandler (@alignable/bifrost/server), and shared by every render of the request */
+export interface BifrostWrap {
+  /** Requests the backend once per request; resolves to the page to wrap, or null to send the backend's response as-is */
+  load: (pageContext: PageContextServer) => Promise<WrappedPage | null>;
+  /** Whether an app hook awaited loadWrappedPage, so it saw the backend's page */
+  awaited?: boolean;
+  /** Set when Bifrost renders again with the backend's page; onBeforeRoute adds it to the new render */
+  page?: WrappedPage;
+  /** The last pageContext a hook received, set by Bifrost's +onHookCall: the final render's, which Vike's page handler doesn't return */
+  pageContext?: PageContextServer;
+}
+
 declare global {
   namespace Vike {
     interface PageContext {
@@ -30,15 +43,7 @@ declare global {
     }
     interface PageContextServer {
       _wrappedServerOnly?: WrappedServerOnly;
-      /** Set by bifrost-fastify, and shared by every render of the request */
-      _bifrostWrap?: {
-        /** Requests the backend once per request; resolves to the page to wrap, or null to send the backend's response as-is */
-        load: (pageContext: PageContextServer) => Promise<WrappedPage | null>;
-        /** Whether an app hook awaited loadWrappedPage, so it saw the backend's page */
-        awaited?: boolean;
-        /** Set when Bifrost renders again with the backend's page; onBeforeRoute adds it to the new render */
-        page?: WrappedPage;
-      };
+      _bifrostWrap?: BifrostWrap;
     }
     interface PageContextClient {
       _snapshot?: Snapshot;

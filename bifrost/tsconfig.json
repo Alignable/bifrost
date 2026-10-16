@@ -5,13 +5,14 @@
     "module": "ES2020",
     "declaration": true,
     "declarationMap": true,
-    "moduleResolution": "node",
+    "moduleResolution": "Bundler",
     "lib": ["DOM", "DOM.Iterable", "ESNext"],
     "jsx": "react",
     "skipLibCheck": true,
     "types": ["vike-react", "vite/client"],
     "esModuleInterop": true,
-    "noEmit": true
+    "noEmit": true,
+    "allowImportingTsExtensions": true
   },
-  "include": ["renderer", "lib", "index.ts"]
+  "include": ["renderer", "lib", "server", "index.ts"]
 }
