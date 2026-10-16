@@ -342,8 +342,14 @@ export function createBifrostHandler<Context = undefined>(
         : (backend?.status ?? rendered.status);
       // Buffered, as bifrost-fastify always sent it. The length is set here because a +middleware's response function
       // can turn the body into a stream (Universal Middleware reads response.body), which would be sent chunked.
-      const body = await rendered.text();
-      responseHeaders.set("content-length", String(Buffer.byteLength(body)));
+      // Kept as bytes: decoding a large page only for the server to encode it again cost about 0.8 ms.
+      const body = await bodyBytes(rendered);
+      responseHeaders.set("content-length", String(body.byteLength));
+      // Fastify added this charset when it sent the JSON as a string
+      const contentType = responseHeaders.get("content-type");
+      if (contentType?.startsWith("application/json") && !contentType.includes("charset")) {
+        responseHeaders.set("content-type", `${contentType}; charset=utf-8`);
+      }
       return createResponse(body, { status, headers: responseHeaders });
     }
 
@@ -565,6 +571,17 @@ async function getServerGlobalContext() {
 function createResponse(body: BodyInit | null, init: ResponseInit): Response {
   const response = new FastResponse(body, init);
   return response instanceof Response ? response : new Response(body, init);
+}
+
+async function bodyBytes(response: Response) {
+  const chunks: Uint8Array[] = [];
+  const reader = response.body?.getReader();
+  if (reader) {
+    for (let read = await reader.read(); !read.done; read = await reader.read()) {
+      chunks.push(read.value);
+    }
+  }
+  return Buffer.concat(chunks);
 }
 
 function isResponse(value: unknown): value is Response {

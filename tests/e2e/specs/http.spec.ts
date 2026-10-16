@@ -206,6 +206,20 @@ test.describe("requests", () => {
       expect(req.headers()["x-test-middleware-context"]).toBe("context");
     });
 
+    test("runs around pageContext.json, which keeps its charset", async ({
+      request,
+    }) => {
+      const req = await request.get(
+        "http://localhost:5555/vite-page/index.pageContext.json"
+      );
+      expect(req.status()).toBe(200);
+      expect(req.headers()["content-type"]).toBe(
+        "application/json; charset=utf-8"
+      );
+      expect(req.headers()["x-test-middleware"]).toBe("1");
+      expect(await req.json()).toBeTruthy();
+    });
+
     test("runs around requests proxied to the backend", async ({ request }) => {
       const req = await request.get("http://localhost:5555/hello.js");
       expect(await req.text()).toEqual("console.log('hello')");
