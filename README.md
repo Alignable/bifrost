@@ -23,7 +23,7 @@ Requests that aren't HTML GET or HEAD requests, such as assets, forms and APIs, 
 
 ## Setup
 
-Requires Vike with vike-react (React 19) and Fastify 5.
+Requires Vike 0.4.268 or later with vike-react (React 19), and Fastify 5. Bifrost runs the `+middleware` of Vike extensions for the requests it serves.
 
 ```sh
 npm install @alignable/bifrost @alignable/bifrost-fastify
@@ -70,8 +70,9 @@ await app.listen({ port: 3000 });
 | `buildPageContextInit(req)` | Adds to `pageContextInit`. It must not set fields that are in `passToClient`, or Vike re-fetches `pageContext` on client navigation. It runs again before a wrapped render. |
 | `beforeWrappedRender(req, reply)` | Called when Rails returns a page to wrap, before rendering it. For example, copy a session cookie Rails just set into your request state. |
 | `onError(error, pageContext)` | Called when rendering fails. |
+| `globalAgent` | Sends requests to Rails through undici's global dispatcher instead of the plugin's own. |
 
-Other [`@fastify/http-proxy`](https://github.com/fastify/fastify-http-proxy) options are passed through.
+On another server framework, mount `createBifrostHandler()` from `@alignable/bifrost/server` as the catch-all route, after your own routes: it takes a web `Request` and returns a `Response`. `tests/vite/server/hono.ts` and `tests/vite/server/srvx.ts` are examples.
 
 ### 3. Rails
 
