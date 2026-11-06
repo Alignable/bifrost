@@ -5,8 +5,21 @@ const app = express();
 const port = 5557;
 const publicUrl = "http://localhost:5050";
 
+// Requests per `page` query (or URL), so tests can check how often Bifrost hit the backend
+const hits = new Map<string, number>();
+const hitKey = (page: unknown, url: string) =>
+  typeof page === "string" ? page : url;
+
+app.get("/__hits", (req, res) => {
+  res.json({
+    count: hits.get(hitKey(req.query.page, String(req.query.url))) ?? 0,
+  });
+});
+
 app.use(function (req, res, next) {
   res.setHeader("x-test-fake-backend", "1");
+  const key = hitKey(req.query.page, req.originalUrl);
+  hits.set(key, (hits.get(key) ?? 0) + 1);
   next();
 });
 
@@ -39,6 +52,8 @@ app.get(["/custom", "/custom-:id"], async (req, res) => {
       }
     }
     res.send();
+  } else if (data.hangup) {
+    req.socket.destroy();
   } else {
     res.status(200);
     if (req.header("X-VITE-PROXY")) {

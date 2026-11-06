@@ -1,4 +1,4 @@
-import { test, expect, APIResponse } from "@playwright/test";
+import { test, expect, APIResponse, APIRequestContext } from "@playwright/test";
 import { toPath } from "../../fake-backend/page-builder";
 
 test.describe("requests", () => {
@@ -99,6 +99,20 @@ test.describe("requests", () => {
       });
     });
 
+    test("wrapped with error in getLayout", async ({ request }) => {
+      const req = await request.get(
+        toPath({ title: "a", layout: "get_layout_error" })
+      );
+      expect(diagnostics(req)).toEqual({
+        status: 500,
+        pageId: "/pages/_error",
+        layout: [],
+        proxyMode: "wrapped",
+        sentProxyHeaders: true,
+      });
+      expect(req.headers()["x-test-onerror"]).toBe("true");
+    });
+
     test("wrapped with error in layout", async ({ request }) => {
       const req = await request.get(toPath(
         {
@@ -187,6 +201,107 @@ test.describe("requests", () => {
       });
       expect(req.status()).toBe(200);
       expect(await req.json()).toEqual({ data: true });
+    });
+  });
+
+  test.describe("wrapped render", () => {
+    async function backendHits(request: APIRequestContext, page: object) {
+      const res = await request.get(
+        `http://localhost:5557/__hits?page=${encodeURIComponent(JSON.stringify(page))}`
+      );
+      return (await res.json()).count;
+    }
+
+    test("renders once when Bifrost's is the only +onCreatePageContext", async ({
+      request,
+    }) => {
+      const page = { title: "one hook", content: `one hook ${Math.random()}` };
+      const req = await request.get(toPath(page));
+      expect(req.status()).toBe(200);
+      expect(req.headers()["x-test-aborts"]).toBe("0");
+      expect(await req.text()).toContain(page.content);
+      expect(await backendHits(request, page)).toBe(1);
+    });
+
+    test("renders once when the app's +onCreatePageContext awaits loadWrappedPage", async ({
+      request,
+    }) => {
+      const page = {
+        endpoint: "custom-app-hook",
+        title: "app hook",
+        content: `app hook ${Math.random()}`,
+      };
+      const req = await request.get(`http://localhost:5555${toPath(page)}`, {
+        headers: { "X-TEST-LOAD-WRAPPED-PAGE": "1", Accept: "text/html" },
+      });
+      expect(req.status()).toBe(200);
+      expect(req.headers()["x-test-app-hook-saw-wrapped"]).toBe("true");
+      expect(req.headers()["x-test-aborts"]).toBe("0");
+      expect(await req.text()).toContain(page.content);
+      expect(await backendHits(request, page)).toBe(1);
+    });
+
+    test("renders again so the app's +onCreatePageContext sees the wrapped page", async ({
+      request,
+    }) => {
+      const page = {
+        endpoint: "custom-app-hook",
+        title: "app hook",
+        content: `app hook ${Math.random()}`,
+      };
+      const req = await request.get(`http://localhost:5555${toPath(page)}`, {
+        headers: { Accept: "text/html" },
+      });
+      expect(req.status()).toBe(200);
+      expect(req.headers()["x-test-app-hook-saw-wrapped"]).toBe("true");
+      expect(req.headers()["x-test-aborts"]).toBe("1");
+      expect(await req.text()).toContain(page.content);
+      expect(await backendHits(request, page)).toBe(1);
+    });
+
+    test("renders again without re-running the page that threw render(url, { proxy: \"wrapped\" })", async ({
+      request,
+    }) => {
+      const page = {
+        endpoint: "custom-render-target",
+        title: "render target",
+        content: `render target ${Math.random()}`,
+      };
+      const req = await request.get(`http://localhost:5555${toPath(page)}`, {
+        headers: { Accept: "text/html" },
+      });
+      expect(req.status()).toBe(200);
+      expect(req.headers()["x-test-app-hook-saw-wrapped"]).toBe("true");
+      // The page's own render(), then Bifrost's. Losing abortReason would route back to the page and render a third time.
+      expect(req.headers()["x-test-aborts"]).toBe("2");
+      expect(await req.text()).toContain(page.content);
+      expect(await backendHits(request, page)).toBe(1);
+    });
+
+    for (const [name, layout] of [
+      ["wrappable", undefined],
+      ["not wrappable", ""],
+    ] as const) {
+      test(`sends a guard's redirect when the backend's page is ${name}`, async ({
+        request,
+      }) => {
+        const page = { endpoint: "custom-app-hook", title: "guard", layout };
+        const req = await request.get(`http://localhost:5555${toPath(page)}`, {
+          headers: { "X-TEST-GUARD-REDIRECT": "1", Accept: "text/html" },
+          maxRedirects: 0,
+        });
+        expect(req.status()).toBe(302);
+        expect(req.headers()["location"]).toBe("/vite-page");
+        expect(req.headers()["x-react-layout"]).toBeUndefined();
+        expect(JSON.parse(req.headers()["x-test-proxymode"])).toBe("wrapped");
+      });
+    }
+
+    test("responds with an error when the backend drops the connection", async ({
+      request,
+    }) => {
+      const req = await request.get(toPath({ title: "hangup", hangup: true }));
+      expect(req.status()).toBeGreaterThanOrEqual(500);
     });
   });
 });

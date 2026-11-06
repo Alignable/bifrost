@@ -1,0 +1,18 @@
+{
+  "name": "tests-bench",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "server": "tsx server.ts",
+    "micro": "tsx micro.ts",
+    "fixtures": "tsx fixtures/print-stats.ts"
+  },
+  "devDependencies": {
+    "@types/autocannon": "^7.12.7",
+    "autocannon": "^8.0.0",
+    "htmlparser2": "^10.0.0",
+    "tinybench": "^5.0.0",
+    "tsx": "^4.7.0"
+  }
+}
