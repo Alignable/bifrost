@@ -10,5 +10,5 @@
     "types": ["@alignable/bifrost/config"],
     "allowImportingTsExtensions": true
   },
-  "include": ["./index.ts", "lib"]
+  "include": ["./index.ts"]
 }

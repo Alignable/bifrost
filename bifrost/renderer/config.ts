@@ -3,7 +3,7 @@ import { type Config } from "vike/types";
 export default {
   name: "@alignable/bifrost",
   require: {
-    vike: ">=0.4.244",
+    vike: ">=0.4.268",
     "vike-react": ">=0.6.11",
   },
 
@@ -13,6 +13,7 @@ export default {
     "import:@alignable/bifrost/__internal/renderer/headHtmlEnd:default",
   onBeforeRoute:
     "import:@alignable/bifrost/__internal/renderer/onBeforeRoute:default",
+  onHookCall: "import:@alignable/bifrost/__internal/renderer/onHookCall:default",
   Wrapper: "import:@alignable/bifrost/__internal/renderer/Wrapper:default",
 
   passToClient: ["proxyLayoutInfo"],

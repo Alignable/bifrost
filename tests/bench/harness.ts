@@ -39,8 +39,9 @@ async function waitForServer(url: string, child: ChildProcess) {
 }
 
 /** Production build of tests/vite, with bench-agent.mjs preloaded for CPU stats and profiling over IPC. */
-export async function startBifrost(verbose: boolean) {
-  const child = fork(path.join(VITE_APP, "dist/server/index.js"), [], {
+export async function startBifrost(verbose: boolean, server = "fastify") {
+  const entry = server === "fastify" ? "dist/server/index.js" : `dist/server/${server}.js`;
+  const child = fork(path.join(VITE_APP, entry), [], {
     cwd: VITE_APP,
     execArgv: ["--import", path.join(BENCH_DIR, "bench-agent.mjs")],
     env: {

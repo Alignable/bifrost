@@ -133,6 +133,7 @@ const { values: args } = parseArgs({
     compare: { type: "string" },
     profile: { type: "boolean", default: false },
     "skip-build": { type: "boolean", default: false },
+    server: { type: "string", default: "fastify" },
     verbose: { type: "boolean", default: false },
     help: { type: "boolean", short: "h", default: false },
   },
@@ -151,6 +152,7 @@ if (args.help) {
       --compare <file>          Show deltas against a previous JSON result
       --profile                 CPU-profile one round at the highest connection level and print hot functions
       --skip-build              Don't rebuild bifrost, bifrost-fastify and tests/vite first
+      --server <name>           Which tests/vite server to measure: fastify, hono or srvx (default fastify)
       --verbose                 Show server logs`);
   process.exit(0);
 }
@@ -241,7 +243,7 @@ async function measureLevel(scenario: Scenario, server: ChildProcess | null, con
 }
 
 async function runScenario(scenario: Scenario) {
-  const server = scenario.direct ? null : await startBifrost(args.verbose);
+  const server = scenario.direct ? null : await startBifrost(args.verbose, args.server);
   try {
     const res = await fetch((scenario.direct ? BACKEND : BIFROST) + scenario.path, {
       headers: { ...BROWSER_HEADERS, ...scenario.headers },

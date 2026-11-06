@@ -1,6 +1,6 @@
 // In-process microbenchmarks of Bifrost's pure server-side helpers on the benchmark fixtures.
 import { Bench } from "tinybench";
-import { extractDomElements } from "../../bifrost-fastify/lib/extractDomElements";
+import { extractDomElements } from "../../bifrost/server/extractDomElements";
 import { signInHtml } from "./fixtures/signIn";
 import { businessProfileHtml } from "./fixtures/businessProfile";
 
